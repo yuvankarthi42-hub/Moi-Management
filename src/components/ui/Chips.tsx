@@ -149,15 +149,24 @@ export function Badge({
 
 const useStyles = makeStyles((colors) => ({
   bar: {
+    // `flexGrow: 0` alone is not enough: a sibling list is `flexGrow: 1,
+    // flexBasis: 0`, so the default `flexShrink: 1` lets flexbox squeeze this
+    // row to a few pixels and the scroll view clips the chips. It must never
+    // shrink below its content.
     flexGrow: 0,
+    flexShrink: 0,
   },
   barContent: {
     paddingHorizontal: spacing.lg,
     gap: spacing.sm,
     paddingVertical: spacing.xs,
+    alignItems: 'center',
   },
   chip: {
-    height: 34,
+    // minHeight rather than height, so a chip grows with the device's font
+    // scale instead of clipping its label.
+    minHeight: 34,
+    paddingVertical: spacing.xs,
     paddingHorizontal: spacing.lg,
     borderRadius: radius.pill,
     alignItems: 'center',
@@ -177,7 +186,8 @@ const useStyles = makeStyles((colors) => ({
   },
   segment: {
     flex: 1,
-    height: 44,
+    minHeight: 44,
+    paddingVertical: spacing.sm,
     borderRadius: radius.md,
     borderWidth: 1.5,
     borderColor: colors.border,
