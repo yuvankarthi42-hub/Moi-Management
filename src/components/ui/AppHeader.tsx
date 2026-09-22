@@ -7,7 +7,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, makeStyles, radius, spacing, typography, useColors } from '../../theme';
+import {
+  colors, contentColumn, makeStyles, radius, spacing, typography, useColors,
+} from '../../theme';
 
 export interface HeaderAction {
   icon: keyof typeof Ionicons.glyphMap;
@@ -72,6 +74,7 @@ export function AppHeader({
         style,
       ]}
     >
+      <View style={styles.column}>
       <View style={styles.titleRow}>
         {canGoBack ? (
           <Pressable
@@ -115,6 +118,7 @@ export function AppHeader({
       </View>
 
       {children ? <View style={styles.children}>{children}</View> : null}
+      </View>
     </LinearGradient>
   );
 }
@@ -147,12 +151,13 @@ export function HeaderCanvas({
         style,
       ]}
     >
-      {children}
+      <View style={styles.column}>{children}</View>
     </LinearGradient>
   );
 }
 
 const useStyles = makeStyles((colors) => ({
+  column: contentColumn,
   header: {
     paddingHorizontal: spacing.lg,
     borderBottomLeftRadius: radius.xxl,

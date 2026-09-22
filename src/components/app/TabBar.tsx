@@ -4,7 +4,10 @@ import React from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { TAB_BAR_HEIGHT, TAB_FAB_SIZE, colors, makeStyles, radius, shadow, spacing, typography, useColors } from '../../theme';
+import {
+  TAB_BAR_HEIGHT, TAB_FAB_SIZE, colors, contentColumn, makeStyles, radius, shadow, spacing,
+  typography, useColors,
+} from '../../theme';
 import { T } from '../ui/Text';
 
 export interface TabBarProps extends BottomTabBarProps {
@@ -94,6 +97,7 @@ export function TabBar({ state, navigation, onCentrePress }: TabBarProps) {
         { height: TAB_BAR_HEIGHT + insets.bottom, paddingBottom: insets.bottom },
       ]}
     >
+      <View style={styles.column}>
       <View style={styles.side}>{left.map(renderTab)}</View>
 
       <View style={styles.centreSlot}>
@@ -109,6 +113,7 @@ export function TabBar({ state, navigation, onCentrePress }: TabBarProps) {
       </View>
 
       <View style={styles.side}>{right.map(renderTab)}</View>
+      </View>
     </View>
   );
 }
@@ -130,6 +135,11 @@ const useStyles = makeStyles((colors) => ({
       },
       default: {},
     }),
+  },
+  column: {
+    ...contentColumn,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
   },
   side: {
     flex: 1,

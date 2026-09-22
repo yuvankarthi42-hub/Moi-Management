@@ -4,7 +4,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { TAB_BAR_HEIGHT, colors, makeStyles, spacing, useColors } from '../../theme';
+import {
+  TAB_BAR_HEIGHT, colors, contentColumn, makeStyles, spacing, useColors,
+} from '../../theme';
 
 /**
  * Root container for every screen.
@@ -53,7 +55,7 @@ export function ScreenScroll({
   contentStyle,
   ...rest
 }: ScreenScrollProps) {
-  const colors = useColors();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const paddingBottom =
     insets.bottom + spacing.xxl + extraBottomSpace + (withTabBar ? TAB_BAR_HEIGHT : 0);
@@ -66,7 +68,12 @@ export function ScreenScroll({
       keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
       contentInsetAdjustmentBehavior="never"
       {...rest}
-      contentContainerStyle={[{ paddingBottom }, contentStyle, rest.contentContainerStyle]}
+      contentContainerStyle={[
+        { paddingBottom },
+        styles.column,
+        contentStyle,
+        rest.contentContainerStyle,
+      ]}
     >
       {children}
     </ScrollView>
@@ -129,9 +136,17 @@ export function DockedFooter({
         style,
       ]}
     >
-      {children}
+      <View style={styles.footerInner}>{children}</View>
     </View>
   );
+}
+
+/**
+ * Content-width style for `FlatList`/`SectionList` contentContainerStyle, so
+ * lists centre on wide screens exactly like `ScreenScroll` does.
+ */
+export function useListContentStyle() {
+  return useStyles().column;
 }
 
 const useStyles = makeStyles((colors) => ({
@@ -145,6 +160,8 @@ const useStyles = makeStyles((colors) => ({
     right: 0,
     zIndex: 10,
   },
+  column: contentColumn,
+  footerInner: contentColumn,
   footer: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,

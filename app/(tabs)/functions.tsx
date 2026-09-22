@@ -4,7 +4,7 @@ import { FlatList, StyleSheet, View } from 'react-native';
 
 import { FunctionCard } from '../../src/components/app/FunctionCard';
 import {
-  Button, ChipBar, EmptyState, HeaderCanvas, Screen, SearchBar, T, useListBottomPadding,
+  Button, ChipBar, EmptyState, HeaderCanvas, Screen, SearchBar, T, useListBottomPadding, useListContentStyle,
 } from '../../src/components/ui';
 import { matchesFunction, selectFunctions, type FunctionWithStats } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
@@ -18,6 +18,7 @@ export default function FunctionsScreen() {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
+  const listContentStyle = useListContentStyle();
   const bottomPadding = useListBottomPadding(true);
 
   const all = useMemo(() => selectFunctions(data), [data]);
@@ -89,7 +90,7 @@ export default function FunctionsScreen() {
         data={visible}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={[styles.list, { paddingBottom: bottomPadding }]}
+        contentContainerStyle={[styles.list, listContentStyle, { paddingBottom: bottomPadding }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={

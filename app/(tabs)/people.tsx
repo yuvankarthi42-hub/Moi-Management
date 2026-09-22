@@ -4,7 +4,7 @@ import { FlatList, StyleSheet, View } from 'react-native';
 
 import { PersonRow } from '../../src/components/app/PersonRow';
 import {
-  Button, ChipBar, EmptyState, HeaderCanvas, Screen, SearchBar, T, useListBottomPadding,
+  Button, ChipBar, EmptyState, HeaderCanvas, Screen, SearchBar, T, useListBottomPadding, useListContentStyle,
 } from '../../src/components/ui';
 import {
   matchesPerson, selectPeople, selectVillages, type PersonWithStats,
@@ -22,6 +22,7 @@ export default function PeopleScreen() {
   const [query, setQuery] = useState('');
   const [village, setVillage] = useState<string>('all');
   const [sort, setSort] = useState<Sort>('name');
+  const listContentStyle = useListContentStyle();
   const bottomPadding = useListBottomPadding(true);
 
   const people = useMemo(() => selectPeople(data), [data]);
@@ -107,7 +108,7 @@ export default function PeopleScreen() {
         data={visible}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={[styles.list, { paddingBottom: bottomPadding }]}
+        contentContainerStyle={[styles.list, listContentStyle, { paddingBottom: bottomPadding }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={

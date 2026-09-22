@@ -42,6 +42,23 @@ export const shadow = (level: 1 | 2 | 3 = 1) => {
   })!;
 };
 
+/**
+ * Widest the content column ever gets.
+ *
+ * The app is designed for a phone; on a tablet or a large foldable the layout
+ * keeps that column and centres it, rather than stretching rows until a name
+ * and its amount sit at opposite ends of the screen. Backgrounds still run
+ * edge to edge — only the content is constrained.
+ */
+export const CONTENT_MAX_WIDTH = 560;
+
+/** Centres a content column once the screen is wider than the phone layout. */
+export const contentColumn = {
+  width: '100%',
+  maxWidth: CONTENT_MAX_WIDTH,
+  alignSelf: 'center',
+} as const;
+
 /** Height of the bottom tab bar excluding the device's safe-area inset. */
 export const TAB_BAR_HEIGHT = 60;
 

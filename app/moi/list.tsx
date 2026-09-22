@@ -5,7 +5,7 @@ import { FlatList, StyleSheet, View } from 'react-native';
 import { OptionPicker } from '../../src/components/app/OptionPicker';
 import { MoiEntryRow } from '../../src/components/app/PersonRow';
 import {
-  AppHeader, Card, ChipBar, EmptyState, Screen, SearchBar, StatRow, T, useListBottomPadding,
+  AppHeader, Card, ChipBar, EmptyState, Screen, SearchBar, StatRow, T, useListBottomPadding, useListContentStyle,
 } from '../../src/components/ui';
 import { functionTypeMeta } from '../../src/domain/functionTypes';
 import type { PaymentType } from '../../src/domain/models';
@@ -30,6 +30,7 @@ export default function MoiListScreen() {
   const [payment, setPayment] = useState<PaymentType | 'all'>('all');
   const [sort, setSort] = useState<Sort>('recent');
   const [functionOpen, setFunctionOpen] = useState(false);
+  const listContentStyle = useListContentStyle();
   const bottomPadding = useListBottomPadding(false);
 
   const functions = useMemo(() => selectFunctions(data), [data]);
@@ -134,7 +135,7 @@ export default function MoiListScreen() {
             onPress={() => router.push(`/function/${item.functionId}`)}
           />
         )}
-        contentContainerStyle={[styles.list, { paddingBottom: bottomPadding }]}
+        contentContainerStyle={[styles.list, listContentStyle, { paddingBottom: bottomPadding }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
