@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "moi-web",
+      "runtimeExecutable": "/Users/karthick-20298/.nvm/versions/node/v20.20.2/bin/npx",
+      "runtimeArgs": ["expo", "start", "--web", "--port", "8081"],
+      "port": 8081
+    }
+  ]
+}

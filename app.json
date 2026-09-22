@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "Moi Manager",
+    "slug": "moi-manager",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "moimanager",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "backgroundColor": "#F4F5FA",
+    "splash": {
+      "backgroundColor": "#4C1D95",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.moimanager.app",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Attach a photo of the moi entry or the function.",
+        "NSCameraUsageDescription": "Take a photo while recording a moi entry.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.moimanager.app",
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "backgroundColor": "#4C1D95"
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Attach a photo of the moi entry or the function.",
+          "cameraPermission": "Take a photo while recording a moi entry."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
