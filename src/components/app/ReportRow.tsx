@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { colors, radius, spacing } from '../../theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../theme';
 import { Money, T } from '../ui/Text';
 
 /**
@@ -26,6 +26,8 @@ export function ReportRow({
   flow?: 'in' | 'out' | 'neutral';
   last?: boolean;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={[styles.row, !last && styles.divider]}>
       <View style={styles.main}>
@@ -58,7 +60,7 @@ export function ReportRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: {
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
@@ -91,4 +93,4 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.primary,
   },
-});
+}));

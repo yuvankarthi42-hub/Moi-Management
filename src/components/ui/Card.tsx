@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 
-import { colors, radius, shadow, spacing } from '../../theme';
+import { colors, makeStyles, radius, shadow, spacing, useColors } from '../../theme';
 
 export function Card({
   children,
@@ -16,6 +16,8 @@ export function Card({
   padded?: boolean;
   elevation?: 0 | 1 | 2 | 3;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   const base = [
     styles.card,
     padded && styles.padded,
@@ -38,7 +40,7 @@ export function Card({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
@@ -50,4 +52,4 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.9,
   },
-});
+}));

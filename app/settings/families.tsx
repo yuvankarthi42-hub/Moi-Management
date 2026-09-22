@@ -7,11 +7,12 @@ import {
 } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { spacing } from '../../src/theme';
+import { makeStyles, spacing } from '../../src/theme';
 import { formatMoney } from '../../src/utils/format';
 
 /** Manage the family groupings used by the family report. */
 export default function FamiliesScreen() {
+  const styles = useStyles();
   const router = useRouter();
   const { data, addFamily, removeFamily } = useAppData();
 
@@ -149,7 +150,7 @@ export default function FamiliesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   body: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
@@ -161,4 +162,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
   },
-});
+}));

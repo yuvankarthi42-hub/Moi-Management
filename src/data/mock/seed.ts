@@ -362,6 +362,14 @@ export function buildSeed(now = new Date()): BackupPayload {
     language: 'en',
     suggestionRounding: 100,
     auspiciousRupee: true,
+    notifications: {
+      upcomingFunction: true,
+      functionTomorrow: true,
+      pendingRsvp: false,
+      returnMoi: true,
+      backupReminder: true,
+    },
+    hideAmountsOnHome: false,
   };
 
   return {

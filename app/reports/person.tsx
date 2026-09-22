@@ -7,10 +7,11 @@ import { ReportShell } from '../../src/components/app/ReportShell';
 import { Avatar, Card, EmptyState, SearchBar, T } from '../../src/components/ui';
 import { buildPersonReport } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { spacing } from '../../src/theme';
+import { makeStyles, spacing } from '../../src/theme';
 import { formatMoney } from '../../src/utils/format';
 
 export default function PersonReportScreen() {
+  const styles = useStyles();
   const { data } = useAppData();
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -85,11 +86,11 @@ export default function PersonReportScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   summary: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: spacing.md,
   },
-});
+}));

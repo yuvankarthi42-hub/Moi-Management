@@ -12,7 +12,7 @@ import {
 import { ValidationError } from '../../src/data';
 import { selectVillages } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, spacing } from '../../src/theme';
+import { colors, makeStyles, spacing, useColors } from '../../src/theme';
 
 const RELATIONS = [
   'Mama', 'Athai', 'Chithappa', 'Periappa', 'Cousin', 'Friend',
@@ -21,6 +21,8 @@ const RELATIONS = [
 
 /** Creates a person, or edits one when `?id=` is present. */
 export default function PersonFormScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string; name?: string }>();
   const { data, addPerson, editPerson } = useAppData();
@@ -247,7 +249,7 @@ export default function PersonFormScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   avatarBlock: {
     alignItems: 'center',
     marginBottom: spacing.xxl,
@@ -277,4 +279,4 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.8,
   },
-});
+}));

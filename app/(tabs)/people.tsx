@@ -10,12 +10,13 @@ import {
   matchesPerson, selectPeople, selectVillages, type PersonWithStats,
 } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { spacing } from '../../src/theme';
+import { makeStyles, spacing } from '../../src/theme';
 import { formatMoneyCompact } from '../../src/utils/format';
 
 type Sort = 'name' | 'amount' | 'recent';
 
 export default function PeopleScreen() {
+  const styles = useStyles();
   const { data } = useAppData();
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -127,7 +128,7 @@ export default function PeopleScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -155,4 +156,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     flexGrow: 1,
   },
-});
+}));

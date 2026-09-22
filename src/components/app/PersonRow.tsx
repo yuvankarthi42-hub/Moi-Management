@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { paymentTypeMeta } from '../../domain/functionTypes';
 import type { MoiEntryView, PersonWithStats } from '../../domain/selectors';
-import { colors, spacing } from '../../theme';
+import { colors, makeStyles, spacing, useColors } from '../../theme';
 import { formatPhone } from '../../utils/format';
 import { formatTime } from '../../utils/date';
 import { Avatar } from '../ui/Avatar';
@@ -19,6 +19,8 @@ export function PersonRow({
   person: PersonWithStats;
   onPress: () => void;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <Card onPress={onPress} style={styles.card} padded={false}>
       <View style={styles.row}>
@@ -62,6 +64,8 @@ export function MoiEntryRow({
   entry: MoiEntryView;
   onPress?: () => void;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   const payment = paymentTypeMeta(entry.paymentType);
   const name = entry.person?.name ?? 'Unknown';
 
@@ -98,7 +102,7 @@ export function MoiEntryRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     marginBottom: spacing.sm + 2,
   },
@@ -127,4 +131,4 @@ const styles = StyleSheet.create({
   trailingSub: {
     marginTop: 2,
   },
-});
+}));

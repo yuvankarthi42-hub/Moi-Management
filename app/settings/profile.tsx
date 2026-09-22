@@ -10,9 +10,11 @@ import {
 } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, spacing } from '../../src/theme';
+import { colors, makeStyles, spacing, useColors } from '../../src/theme';
 
 export default function ProfileScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const { data, saveProfile } = useAppData();
   const { profile } = data;
@@ -119,7 +121,7 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   avatarBlock: {
     alignItems: 'center',
     marginBottom: spacing.xxl,
@@ -142,4 +144,4 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.surface,
   },
-});
+}));

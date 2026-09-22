@@ -11,11 +11,13 @@ import {
   backupToFile, describeBackup, readBackupFile, shareBackup,
 } from '../../src/services/backupService';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, spacing } from '../../src/theme';
+import { colors, makeStyles, spacing, useColors } from '../../src/theme';
 import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 
 /** Export and import the whole database (spec §21). */
 export default function BackupScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const { data, repositories, restoreBackup, resetDemoData } = useAppData();
   const [busy, setBusy] = useState<'export' | 'import' | undefined>();
@@ -179,7 +181,7 @@ export default function BackupScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     marginHorizontal: spacing.lg,
     marginTop: spacing.md,
@@ -204,4 +206,4 @@ const styles = StyleSheet.create({
   footer: {
     marginTop: spacing.xxl,
   },
-});
+}));

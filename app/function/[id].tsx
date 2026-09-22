@@ -24,7 +24,7 @@ import {
   splitByPaymentType, type FunctionWithStats,
 } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, radius, spacing } from '../../src/theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { countdownLabel, formatDate, formatDateLong } from '../../src/utils/date';
 import { formatCount, formatMoney, formatMoneyCompact } from '../../src/utils/format';
 
@@ -49,6 +49,8 @@ const GUEST_FILTERS: Array<{ value: RsvpStatus | 'all'; label: string }> = [
 ];
 
 export default function FunctionDetailScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -489,6 +491,7 @@ export default function FunctionDetailScreen() {
 
 /** Overview tab — the details the host entered, plus the money summary. */
 function OverviewTab({ fn }: { fn: FunctionWithStats }) {
+  const styles = useStyles();
   const meta = functionTypeMeta(fn.type);
   return (
     <Card>
@@ -562,6 +565,8 @@ function OverviewTab({ fn }: { fn: FunctionWithStats }) {
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={styles.detailRow}>
       <T variant="small" tone="muted" style={styles.detailLabel}>
@@ -574,7 +579,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   missing: { flex: 1, alignItems: 'center' },
   hero: { height: 210 },
   heroImage: {
@@ -695,4 +700,4 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
-});
+}));

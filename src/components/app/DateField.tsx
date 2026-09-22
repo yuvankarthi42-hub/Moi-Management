@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import type { ISODate } from '../../domain/models';
-import { spacing } from '../../theme';
+import { makeStyles, spacing } from '../../theme';
 import { formatDate, fromISODate, toISODate } from '../../utils/date';
 import { Button } from '../ui/Button';
 import { PickerField } from '../ui/Field';
@@ -35,6 +35,7 @@ export function DateField({
   minimumDate?: Date;
   maximumDate?: Date;
 }) {
+  const styles = useStyles();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Date>(() => (value ? fromISODate(value) : new Date()));
 
@@ -106,7 +107,7 @@ export function DateField({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   pickerWrap: {
     paddingHorizontal: spacing.lg,
   },
@@ -116,4 +117,4 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
   },
-});
+}));

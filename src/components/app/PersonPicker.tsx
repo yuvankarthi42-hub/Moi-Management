@@ -4,7 +4,7 @@ import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import type { ID } from '../../domain/models';
 import { matchesPerson, selectPeople, type PersonWithStats } from '../../domain/selectors';
 import { useAppData } from '../../store/AppDataProvider';
-import { colors, spacing } from '../../theme';
+import { colors, makeStyles, spacing, useColors } from '../../theme';
 import { formatMoney, formatPhone } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
@@ -35,6 +35,8 @@ export function PersonPicker({
   title?: string;
   excludeIds?: ID[];
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   const { data } = useAppData();
   const [query, setQuery] = useState('');
 
@@ -126,7 +128,7 @@ export function PersonPicker({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   searchWrap: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
@@ -147,4 +149,4 @@ const styles = StyleSheet.create({
   pressed: {
     backgroundColor: colors.surfaceAlt,
   },
-});
+}));

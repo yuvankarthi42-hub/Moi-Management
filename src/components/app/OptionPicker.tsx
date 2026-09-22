@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { colors, spacing } from '../../theme';
+import { colors, makeStyles, spacing, useColors } from '../../theme';
 import { Sheet } from '../ui/Sheet';
 import { T } from '../ui/Text';
 
@@ -29,6 +29,8 @@ export function OptionPicker<T extends string>({
   selected?: T;
   title: string;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <Sheet visible={visible} onClose={onClose} title={title}>
       <ScrollView keyboardShouldPersistTaps="handled" style={styles.scroll}>
@@ -67,7 +69,7 @@ export function OptionPicker<T extends string>({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   scroll: {
     flexGrow: 0,
   },
@@ -88,4 +90,4 @@ const styles = StyleSheet.create({
   pressed: {
     backgroundColor: colors.surfaceAlt,
   },
-});
+}));

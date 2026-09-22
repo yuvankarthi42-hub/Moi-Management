@@ -11,7 +11,7 @@ import type { LanguagePreference, ThemePreference } from '../../src/domain/model
 import { selectOverview } from '../../src/domain/selectors';
 import { backupToFile } from '../../src/services/backupService';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, radius, spacing } from '../../src/theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 
 const THEME_LABELS: Record<ThemePreference, string> = {
@@ -32,6 +32,8 @@ const LANGUAGE_LABELS: Record<LanguagePreference, string> = {
  * in the bottom bar — the bar stays at four destinations plus the centre action.
  */
 export default function MoreScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const { data, saveSettings, repositories } = useAppData();
   const [themeOpen, setThemeOpen] = useState(false);
@@ -218,6 +220,8 @@ export default function MoreScreen() {
 }
 
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={styles.group}>
       <T variant="captionStrong" tone="muted" style={styles.groupTitle}>
@@ -230,7 +234,7 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   subtitle: {
     marginTop: 2,
   },
@@ -266,4 +270,4 @@ const styles = StyleSheet.create({
   footer: {
     marginTop: spacing.xxl,
   },
-});
+}));

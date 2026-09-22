@@ -4,7 +4,7 @@ import React from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, radius, shadow, spacing, TAB_BAR_HEIGHT, TAB_FAB_SIZE, typography } from '../../theme';
+import { TAB_BAR_HEIGHT, TAB_FAB_SIZE, colors, makeStyles, radius, shadow, spacing, typography, useColors } from '../../theme';
 import { T } from '../ui/Text';
 
 export interface TabBarProps extends BottomTabBarProps {
@@ -35,6 +35,8 @@ const LABELS: Record<string, string> = {
  * very bottom of the screen.
  */
 export function TabBar({ state, navigation, onCentrePress }: TabBarProps) {
+  const styles = useStyles();
+  const colors = useColors();
   const insets = useSafeAreaInsets();
   // Split the four routes around the centre button.
   const routes = state.routes.filter((r) => r.name in ICONS);
@@ -111,7 +113,7 @@ export function TabBar({ state, navigation, onCentrePress }: TabBarProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   bar: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -160,4 +162,4 @@ const styles = StyleSheet.create({
     opacity: 0.9,
     transform: [{ scale: 0.96 }],
   },
-});
+}));

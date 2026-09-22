@@ -2,7 +2,7 @@ import React from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { useAppData } from '../../store/AppDataProvider';
-import { colors, spacing } from '../../theme';
+import { colors, makeStyles, spacing, useColors } from '../../theme';
 import { EmptyState } from '../ui/EmptyState';
 import { T } from '../ui/Text';
 
@@ -14,6 +14,8 @@ import { T } from '../ui/Text';
  * "No people yet" about records that are simply still loading.
  */
 export function DataGate({ children }: { children: React.ReactNode }) {
+  const styles = useStyles();
+  const colors = useColors();
   const { loading, error, refresh } = useAppData();
 
   if (error) {
@@ -44,7 +46,7 @@ export function DataGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   centre: {
     flex: 1,
     alignItems: 'center',
@@ -54,4 +56,4 @@ const styles = StyleSheet.create({
   label: {
     marginTop: spacing.md,
   },
-});
+}));

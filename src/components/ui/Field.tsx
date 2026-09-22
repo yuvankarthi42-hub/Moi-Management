@@ -4,7 +4,7 @@ import {
   Pressable, StyleSheet, TextInput, TextInputProps, View, ViewStyle,
 } from 'react-native';
 
-import { colors, radius, spacing, typography } from '../../theme';
+import { colors, makeStyles, radius, spacing, typography, useColors } from '../../theme';
 import { T } from './Text';
 
 export interface FieldProps extends TextInputProps {
@@ -26,6 +26,9 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
   },
   ref,
 ) {
+  const styles = useStyles();
+  const colors = useColors();
+
   return (
     <View style={[styles.wrap, containerStyle]}>
       {label ? (
@@ -103,6 +106,8 @@ export function PickerField({
   required?: boolean;
   containerStyle?: ViewStyle;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={[styles.wrap, containerStyle]}>
       {label ? (
@@ -160,7 +165,7 @@ export function PickerField({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrap: {
     marginBottom: spacing.lg,
   },
@@ -214,4 +219,4 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.75,
   },
-});
+}));

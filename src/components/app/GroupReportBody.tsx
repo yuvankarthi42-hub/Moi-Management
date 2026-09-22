@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import type { GroupReportRow } from '../../domain/selectors';
-import { colors, radius, spacing } from '../../theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../theme';
 import { Card } from '../ui/Card';
 import { EmptyState } from '../ui/EmptyState';
 import { T } from '../ui/Text';
@@ -22,6 +22,8 @@ export function GroupReportBody({
   unitSingular: string;
   unitPlural: string;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   if (rows.length === 0) {
     return (
       <Card>
@@ -68,7 +70,7 @@ export function GroupReportBody({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   total: {
     backgroundColor: colors.primary,
     borderRadius: radius.lg,
@@ -86,4 +88,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+}));

@@ -13,13 +13,15 @@ import {
   buildReturnMoiReport, selectFunctions, selectNextFunction, selectOverview, selectRecentMoi,
 } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, radius, shadow, spacing } from '../../src/theme';
+import { colors, makeStyles, radius, shadow, spacing, useColors } from '../../src/theme';
 import { greeting } from '../../src/utils/date';
 import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 
 const RECENT_LIMIT = 3;
 
 export default function HomeScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const { data, loading, refresh } = useAppData();
   const router = useRouter();
 
@@ -197,7 +199,7 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   greetRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -260,4 +262,4 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.8,
   },
-});
+}));

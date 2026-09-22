@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { expenseCategoryMeta } from '../../domain/categories';
 import { paymentTypeMeta } from '../../domain/functionTypes';
 import type { Expense } from '../../domain/models';
-import { spacing } from '../../theme';
+import { makeStyles, spacing } from '../../theme';
 import { formatDate } from '../../utils/date';
 import { IconTile } from '../ui/Avatar';
 import { Card } from '../ui/Card';
@@ -12,6 +12,7 @@ import { Money, T } from '../ui/Text';
 
 /** One expense in a function's expense list. */
 export function ExpenseRow({ expense, onPress }: { expense: Expense; onPress?: () => void }) {
+  const styles = useStyles();
   const meta = expenseCategoryMeta(expense.category);
   const payment = paymentTypeMeta(expense.paymentType);
 
@@ -42,7 +43,7 @@ export function ExpenseRow({ expense, onPress }: { expense: Expense; onPress?: (
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     marginBottom: spacing.sm + 2,
   },
@@ -55,4 +56,4 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
   },
-});
+}));

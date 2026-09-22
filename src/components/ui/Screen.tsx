@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, spacing, TAB_BAR_HEIGHT } from '../../theme';
+import { TAB_BAR_HEIGHT, colors, makeStyles, spacing, useColors } from '../../theme';
 
 /**
  * Root container for every screen.
@@ -17,13 +17,20 @@ import { colors, spacing, TAB_BAR_HEIGHT } from '../../theme';
 export function Screen({
   children,
   style,
-  background = colors.background,
+  background,
 }: {
   children: React.ReactNode;
   style?: ViewStyle;
   background?: string;
 }) {
-  return <View style={[styles.root, { backgroundColor: background }, style]}>{children}</View>;
+  const styles = useStyles();
+  const colors = useColors();
+
+  return (
+    <View style={[styles.root, { backgroundColor: background ?? colors.background }, style]}>
+      {children}
+    </View>
+  );
 }
 
 export interface ScreenScrollProps extends ScrollViewProps {
@@ -46,6 +53,7 @@ export function ScreenScroll({
   contentStyle,
   ...rest
 }: ScreenScrollProps) {
+  const colors = useColors();
   const insets = useSafeAreaInsets();
   const paddingBottom =
     insets.bottom + spacing.xxl + extraBottomSpace + (withTabBar ? TAB_BAR_HEIGHT : 0);
@@ -83,13 +91,18 @@ export function useListBottomPadding(withTabBar = false, extra = 0): number {
  * every scroll offset. Screens with a fixed `AppHeader` do not need it — the
  * header already paints there.
  */
-export function StatusBarScrim({ color = colors.headerGradient[0] }: { color?: string }) {
+export function StatusBarScrim({ color }: { color?: string }) {
+  const styles = useStyles();
+  const colors = useColors();
   const insets = useSafeAreaInsets();
   if (insets.top === 0) return null;
   return (
     <View
       pointerEvents="none"
-      style={[styles.scrim, { height: insets.top, backgroundColor: color }]}
+      style={[
+        styles.scrim,
+        { height: insets.top, backgroundColor: color ?? colors.headerGradient[0] },
+      ]}
     />
   );
 }
@@ -105,6 +118,8 @@ export function DockedFooter({
   children: React.ReactNode;
   style?: ViewStyle;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   const insets = useSafeAreaInsets();
   return (
     <View
@@ -119,7 +134,7 @@ export function DockedFooter({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: {
     flex: 1,
   },
@@ -137,4 +152,4 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
-});
+}));

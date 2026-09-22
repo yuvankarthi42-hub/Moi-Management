@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, TextInput, View, ViewStyle } from 'react-native';
 
-import { colors, radius, spacing, typography } from '../../theme';
+import { colors, makeStyles, radius, spacing, typography, useColors } from '../../theme';
 
 export function SearchBar({
   value,
@@ -22,6 +22,8 @@ export function SearchBar({
   onSubmit?: () => void;
   onDark?: boolean;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   const fg = onDark ? colors.onPrimary : colors.text;
   const muted = onDark ? colors.onPrimaryMuted : colors.textMuted;
 
@@ -58,7 +60,7 @@ export function SearchBar({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -81,4 +83,4 @@ const styles = StyleSheet.create({
     ...typography.body,
     padding: 0,
   },
-});
+}));

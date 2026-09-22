@@ -16,7 +16,7 @@ import { PAYMENT_TYPES, functionTypeMeta } from '../../src/domain/functionTypes'
 import type { ExpenseCategory, ID, ISODate, PaymentType } from '../../src/domain/models';
 import { selectFunctions } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, spacing } from '../../src/theme';
+import { colors, makeStyles, spacing, useColors } from '../../src/theme';
 import { formatDate, toISODate } from '../../src/utils/date';
 import { formatMoney } from '../../src/utils/format';
 
@@ -27,6 +27,8 @@ import { formatMoney } from '../../src/utils/format';
  * recorded against a function, never planned against a monthly budget (spec §14).
  */
 export default function ExpenseFormScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string; functionId?: string }>();
   const { data, addExpense, editExpense, removeExpense } = useAppData();
@@ -290,7 +292,7 @@ export default function ExpenseFormScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   label: { marginBottom: spacing.sm },
   amountInput: { fontSize: 20, fontWeight: '700' },
   segmented: { marginBottom: spacing.lg },
@@ -311,4 +313,4 @@ const styles = StyleSheet.create({
   photo: { width: '100%', height: '100%' },
   photoHint: { flex: 1 },
   pressed: { opacity: 0.75 },
-});
+}));

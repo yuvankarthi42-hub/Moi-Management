@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, radius, spacing, typography } from '../../theme';
+import { colors, makeStyles, radius, spacing, typography, useColors } from '../../theme';
 
 export interface HeaderAction {
   icon: keyof typeof Ionicons.glyphMap;
@@ -49,6 +49,8 @@ export function AppHeader({
   bleed = 0,
   style,
 }: AppHeaderProps) {
+  const styles = useStyles();
+  const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -127,6 +129,8 @@ export function HeaderCanvas({
   bleed?: number;
   style?: ViewStyle;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   const insets = useSafeAreaInsets();
   return (
     <LinearGradient
@@ -148,7 +152,7 @@ export function HeaderCanvas({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   header: {
     paddingHorizontal: spacing.lg,
     borderBottomLeftRadius: radius.xxl,
@@ -193,4 +197,4 @@ const styles = StyleSheet.create({
   children: {
     marginTop: spacing.lg,
   },
-});
+}));

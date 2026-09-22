@@ -195,6 +195,15 @@ export interface UserProfile {
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type LanguagePreference = 'en' | 'ta';
 
+/** Reminder toggles (spec §19). Kept granular so the app never spams. */
+export interface NotificationSettings {
+  upcomingFunction: boolean;
+  functionTomorrow: boolean;
+  pendingRsvp: boolean;
+  returnMoi: boolean;
+  backupReminder: boolean;
+}
+
 export interface AppSettings {
   theme: ThemePreference;
   language: LanguagePreference;
@@ -202,6 +211,9 @@ export interface AppSettings {
   suggestionRounding: number;
   /** Add ₹1 to suggested amounts (the traditional auspicious "odd rupee"). */
   auspiciousRupee: boolean;
+  notifications: NotificationSettings;
+  /** Hide amounts on the dashboard until the screen is tapped. */
+  hideAmountsOnHome: boolean;
 }
 
 /**
@@ -240,5 +252,13 @@ export const EMPTY_DATASET: Dataset = {
     language: 'en',
     suggestionRounding: 100,
     auspiciousRupee: true,
+    notifications: {
+      upcomingFunction: true,
+      functionTomorrow: true,
+      pendingRsvp: false,
+      returnMoi: true,
+      backupReminder: true,
+    },
+    hideAmountsOnHome: false,
   },
 };

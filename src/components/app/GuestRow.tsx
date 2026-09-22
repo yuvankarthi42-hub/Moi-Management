@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { rsvpMeta } from '../../domain/categories';
 import type { GuestView } from '../../domain/selectors';
-import { colors, spacing } from '../../theme';
+import { colors, makeStyles, spacing, useColors } from '../../theme';
 import { formatPhone } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
 import { Card } from '../ui/Card';
@@ -24,6 +24,8 @@ export function GuestRow({
   onPress?: () => void;
   onToggleCheckIn?: () => void;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   const rsvp = rsvpMeta(guest.rsvpStatus);
 
   return (
@@ -83,7 +85,7 @@ export function GuestRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     marginBottom: spacing.sm + 2,
   },
@@ -113,4 +115,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 3,
   },
-});
+}));

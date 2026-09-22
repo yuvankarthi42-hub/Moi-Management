@@ -3,7 +3,7 @@ import {
   KeyboardAvoidingView, Platform, ScrollView, ScrollViewProps, StyleSheet,
 } from 'react-native';
 
-import { spacing } from '../../theme';
+import { makeStyles, spacing } from '../../theme';
 
 /**
  * Scrollable form body that stays clear of the keyboard.
@@ -18,6 +18,7 @@ export function KeyboardForm({
   contentContainerStyle,
   ...rest
 }: ScrollViewProps & { children: React.ReactNode }) {
+  const styles = useStyles();
   return (
     <KeyboardAvoidingView
       style={styles.flex}
@@ -36,7 +37,7 @@ export function KeyboardForm({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   flex: {
     flex: 1,
   },
@@ -44,4 +45,4 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: spacing.xxxl,
   },
-});
+}));

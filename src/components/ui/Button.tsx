@@ -4,7 +4,9 @@ import {
   ActivityIndicator, Pressable, StyleSheet, Text, View, ViewStyle,
 } from 'react-native';
 
-import { colors, radius, shadow, spacing, typography } from '../../theme';
+import {
+  makeStyles, radius, shadow, spacing, typography, useColors, type Palette,
+} from '../../theme';
 
 type Variant = 'primary' | 'secondary' | 'success' | 'danger' | 'ghost' | 'outline';
 type Size = 'sm' | 'md' | 'lg';
@@ -23,14 +25,25 @@ export interface ButtonProps {
   style?: ViewStyle;
 }
 
-const VARIANTS: Record<Variant, { bg: string; fg: string; border?: string }> = {
-  primary: { bg: colors.primary, fg: colors.onPrimary },
-  secondary: { bg: colors.primarySoft, fg: colors.primary },
-  success: { bg: colors.success, fg: '#FFFFFF' },
-  danger: { bg: colors.danger, fg: '#FFFFFF' },
-  ghost: { bg: 'transparent', fg: colors.primary },
-  outline: { bg: colors.surface, fg: colors.primary, border: colors.borderStrong },
-};
+interface VariantPalette {
+  bg: string;
+  fg: string;
+  border?: string;
+}
+
+/** Resolved per render so the button follows the active theme. */
+function variantPalette(variant: Variant, colors: Palette): VariantPalette {
+  switch (variant) {
+    case 'secondary': return { bg: colors.primarySoft, fg: colors.primary };
+    case 'success': return { bg: colors.success, fg: '#FFFFFF' };
+    case 'danger': return { bg: colors.danger, fg: '#FFFFFF' };
+    case 'ghost': return { bg: 'transparent', fg: colors.primary };
+    case 'outline':
+      return { bg: colors.surface, fg: colors.primary, border: colors.borderStrong };
+    case 'primary':
+    default: return { bg: colors.primary, fg: colors.onPrimary };
+  }
+}
 
 const SIZES: Record<Size, { height: number; paddingH: number; font: 13 | 15 | 16 }> = {
   sm: { height: 36, paddingH: spacing.md, font: 13 },
@@ -50,7 +63,9 @@ export function Button({
   block = false,
   style,
 }: ButtonProps) {
-  const palette = VARIANTS[variant];
+  const styles = useStyles();
+  const colors = useColors();
+  const palette = variantPalette(variant, colors);
   const dims = SIZES[size];
   const inactive = disabled || loading;
   const raised = variant === 'primary' || variant === 'success' || variant === 'danger';
@@ -106,7 +121,7 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   base: {
     borderRadius: radius.md,
     alignItems: 'center',
@@ -133,4 +148,4 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.5,
   },
-});
+}));

@@ -15,7 +15,7 @@ import { FUNCTION_TYPES, functionTypeMeta } from '../../src/domain/functionTypes
 import type { FunctionType, ISODate } from '../../src/domain/models';
 import { selectVillages } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, radius, spacing } from '../../src/theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { toISODate } from '../../src/utils/date';
 
 /**
@@ -24,6 +24,8 @@ import { toISODate } from '../../src/utils/date';
  * for the validation messages.
  */
 export default function FunctionFormScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { data, addFunction, editFunction } = useAppData();
@@ -263,7 +265,7 @@ export default function FunctionFormScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   cover: {
     height: 140,
     borderRadius: radius.lg,
@@ -298,4 +300,4 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.8,
   },
-});
+}));

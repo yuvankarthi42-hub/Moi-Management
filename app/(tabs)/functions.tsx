@@ -8,11 +8,12 @@ import {
 } from '../../src/components/ui';
 import { matchesFunction, selectFunctions, type FunctionWithStats } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { spacing } from '../../src/theme';
+import { makeStyles, spacing } from '../../src/theme';
 
 type Filter = 'all' | 'upcoming' | 'completed';
 
 export default function FunctionsScreen() {
+  const styles = useStyles();
   const { data } = useAppData();
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('all');
@@ -109,7 +110,7 @@ export default function FunctionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -131,4 +132,4 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     flexGrow: 1,
   },
-});
+}));

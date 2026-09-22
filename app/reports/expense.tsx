@@ -6,11 +6,13 @@ import { ReportShell } from '../../src/components/app/ReportShell';
 import { Card, EmptyState, IconTile, StatRow, T } from '../../src/components/ui';
 import { buildExpenseReport } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, radius, spacing } from '../../src/theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { formatMoney, formatMoneyCompact } from '../../src/utils/format';
 
 /** What functions cost, broken down by category (spec §15). */
 export default function ExpenseReportScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const { data } = useAppData();
 
   return (
@@ -79,7 +81,7 @@ export default function ExpenseReportScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   total: {
     backgroundColor: colors.danger,
     borderRadius: radius.lg,
@@ -93,4 +95,4 @@ const styles = StyleSheet.create({
   list: {
     marginTop: spacing.md,
   },
-});
+}));

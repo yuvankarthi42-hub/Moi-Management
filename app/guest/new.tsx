@@ -13,7 +13,7 @@ import { functionTypeMeta } from '../../src/domain/functionTypes';
 import type { ID, RsvpStatus } from '../../src/domain/models';
 import { selectFunctions, selectVillages } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, spacing } from '../../src/theme';
+import { colors, makeStyles, spacing, useColors } from '../../src/theme';
 import { formatDate } from '../../src/utils/date';
 
 const GROUPS = [
@@ -23,6 +23,8 @@ const GROUPS = [
 
 /** Adds or edits one invitation on a function's guest list (spec §11). */
 export default function GuestFormScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string; functionId?: string }>();
   const { data, addGuest, editGuest, removeGuest } = useAppData();
@@ -317,10 +319,10 @@ export default function GuestFormScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   label: { marginBottom: spacing.sm },
   segmented: { marginBottom: spacing.lg },
   notes: { minHeight: 72, textAlignVertical: 'top' },
   pairRow: { flexDirection: 'row', gap: spacing.md },
   pairItem: { flex: 1 },
-});
+}));

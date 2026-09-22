@@ -5,13 +5,15 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { T } from '../src/components/ui';
 import { useAppData } from '../src/store/AppDataProvider';
-import { colors, radius, spacing } from '../src/theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../src/theme';
 
 /**
  * Launch screen. Holds the branded splash until the dataset has loaded, then
  * hands off to the tabs — so the home screen never flashes empty totals.
  */
 export default function Launch() {
+  const styles = useStyles();
+  const colors = useColors();
   const { loading, error } = useAppData();
 
   if (!loading && !error) return <Redirect href="/(tabs)" />;
@@ -41,7 +43,7 @@ export default function Launch() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: {
     flex: 1,
     alignItems: 'center',
@@ -72,4 +74,4 @@ const styles = StyleSheet.create({
   error: {
     marginTop: spacing.xxxl,
   },
-});
+}));

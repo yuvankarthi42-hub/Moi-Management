@@ -2,13 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 
-import { colors, radius, spacing } from '../../theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../theme';
 import { T } from './Text';
 
 /** Settings-style row: icon, title, optional value, chevron. */
 export function ListRow({
   icon,
-  iconTint = colors.primary,
+  iconTint,
   title,
   subtitle,
   value,
@@ -19,6 +19,7 @@ export function ListRow({
   style,
 }: {
   icon?: keyof typeof Ionicons.glyphMap;
+  /** Defaults to the brand colour of the active theme. */
   iconTint?: string;
   title: string;
   subtitle?: string;
@@ -29,14 +30,18 @@ export function ListRow({
   destructive?: boolean;
   style?: ViewStyle;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
+  const tint = iconTint ?? colors.primary;
+
   const body = (
     <>
       {icon ? (
-        <View style={[styles.iconWrap, { backgroundColor: `${iconTint}18` }]}>
+        <View style={[styles.iconWrap, { backgroundColor: `${tint}18` }]}>
           <Ionicons
             name={icon}
             size={19}
-            color={destructive ? colors.danger : iconTint}
+            color={destructive ? colors.danger : tint}
           />
         </View>
       ) : null}
@@ -83,10 +88,12 @@ export function ListRow({
 
 /** Hairline divider aligned to the text column, not the icon. */
 export function RowDivider({ inset = true }: { inset?: boolean }) {
+  const styles = useStyles();
+  const colors = useColors();
   return <View style={[styles.divider, inset && styles.dividerInset]} />;
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -125,4 +132,4 @@ const styles = StyleSheet.create({
   pressed: {
     backgroundColor: colors.surfaceAlt,
   },
-});
+}));

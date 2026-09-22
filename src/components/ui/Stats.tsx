@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 
-import { colors, spacing } from '../../theme';
+import { colors, makeStyles, spacing, useColors } from '../../theme';
 import { T } from './Text';
 
 export interface StatItem {
@@ -24,6 +24,8 @@ export function StatRow({
   style?: ViewStyle;
   compactLabels?: boolean;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={[styles.row, style]}>
       {items.map((item, index) => (
@@ -56,7 +58,7 @@ export function StatRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: {
     flexDirection: 'row',
     alignItems: 'stretch',
@@ -75,4 +77,4 @@ const styles = StyleSheet.create({
   label: {
     marginTop: 2,
   },
-});
+}));

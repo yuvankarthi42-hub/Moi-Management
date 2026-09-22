@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { functionTypeMeta } from '../../domain/functionTypes';
 import type { FunctionWithStats } from '../../domain/selectors';
-import { colors, radius, spacing } from '../../theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../theme';
 import { countdownLabel, formatDate } from '../../utils/date';
 import { Badge } from '../ui/Chips';
 import { IconTile } from '../ui/Avatar';
@@ -24,6 +24,7 @@ export function FunctionCard({
   onPress: () => void;
   showCountdown?: boolean;
 }) {
+  const styles = useStyles();
   const meta = functionTypeMeta(fn.type);
   const upcoming = fn.status === 'upcoming';
 
@@ -82,6 +83,8 @@ export function UpcomingFunctionCard({
   fn: FunctionWithStats;
   onPress: () => void;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   const meta = functionTypeMeta(fn.type);
 
   return (
@@ -120,7 +123,7 @@ export function UpcomingFunctionCard({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     marginBottom: spacing.md,
   },
@@ -180,4 +183,4 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: radius.lg,
     borderBottomRightRadius: radius.lg,
   },
-});
+}));

@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import React from 'react';
 import { ImageStyle, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
-import { avatarPalette, colors, radius, typography } from '../../theme';
+import { avatarPalette, colors, makeStyles, radius, typography, useColors } from '../../theme';
 import { hashToIndex, initials } from '../../utils/format';
 
 /**
@@ -28,6 +28,7 @@ export function Avatar({
   emoji?: string;
   backgroundColor?: string;
 }) {
+  const styles = useStyles();
   const bg =
     backgroundColor ?? avatarPalette[hashToIndex(seed ?? name, avatarPalette.length)];
   const dimension = { width: size, height: size, borderRadius: size / 2 };
@@ -71,6 +72,8 @@ export function IconTile({
   size?: number;
   style?: ViewStyle;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <View
       style={[
@@ -91,7 +94,7 @@ export function IconTile({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   fallback: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -102,4 +105,4 @@ const styles = StyleSheet.create({
   emoji: {
     textAlign: 'center',
   },
-});
+}));

@@ -5,12 +5,14 @@ import { ReportShell } from '../../src/components/app/ReportShell';
 import { Card, EmptyState, StatRow, T } from '../../src/components/ui';
 import { buildCollectionReport } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, radius, spacing } from '../../src/theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { formatMonth } from '../../src/utils/date';
 import { formatMoney, formatMoneyCompact } from '../../src/utils/format';
 
 /** Moi collected over time, month by month (spec §15). */
 export default function CollectionReportScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const { data } = useAppData();
 
   return (
@@ -90,7 +92,7 @@ export default function CollectionReportScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   total: {
     backgroundColor: colors.success,
     borderRadius: radius.lg,
@@ -125,4 +127,4 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.primary,
   },
-});
+}));

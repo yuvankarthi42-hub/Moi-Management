@@ -13,7 +13,7 @@ import {
   matchesPerson, selectFunctions, splitByPaymentType, type MoiEntryView,
 } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, spacing } from '../../src/theme';
+import { colors, makeStyles, spacing } from '../../src/theme';
 import { formatDate } from '../../src/utils/date';
 import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 
@@ -21,6 +21,7 @@ type Sort = 'recent' | 'highest' | 'lowest' | 'name';
 
 /** Every moi entry across every function, with the filters from spec §9. */
 export default function MoiListScreen() {
+  const styles = useStyles();
   const router = useRouter();
   const { data } = useAppData();
 
@@ -168,7 +169,7 @@ export default function MoiListScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   chips: {
     marginTop: spacing.md,
   },
@@ -182,4 +183,4 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     flexGrow: 1,
   },
-});
+}));

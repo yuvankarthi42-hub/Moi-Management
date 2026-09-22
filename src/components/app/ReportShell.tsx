@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import type { Dataset } from '../../domain/models';
 import { type DateRange } from '../../domain/selectors';
 import { exportReport, type ExportFormat, type ReportKind } from '../../services/exportService';
-import { spacing } from '../../theme';
+import { makeStyles, spacing } from '../../theme';
 import { AppHeader } from '../ui/AppHeader';
 import { Button } from '../ui/Button';
 import { PickerField } from '../ui/Field';
@@ -66,6 +66,7 @@ export function ReportShell({
   children: (range: DateRange | undefined) => React.ReactNode;
   showRangeFilter?: boolean;
 }) {
+  const styles = useStyles();
   const [rangeKey, setRangeKey] = useState<RangeKey>('all');
   const [rangeOpen, setRangeOpen] = useState(false);
   const [busy, setBusy] = useState<ExportFormat | undefined>();
@@ -140,7 +141,7 @@ export function ReportShell({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   filter: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
@@ -158,4 +159,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     marginTop: spacing.xxl,
   },
-});
+}));

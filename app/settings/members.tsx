@@ -11,7 +11,7 @@ import { ValidationError } from '../../src/data';
 import { FAMILY_ROLES, roleMeta } from '../../src/domain/categories';
 import type { FamilyMember, FamilyRole } from '../../src/domain/models';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, spacing } from '../../src/theme';
+import { colors, makeStyles, spacing } from '../../src/theme';
 import { formatPhone } from '../../src/utils/format';
 
 const ROLE_TONE: Record<FamilyRole, 'primary' | 'success' | 'info' | 'neutral'> = {
@@ -26,6 +26,7 @@ const ROLE_TONE: Record<FamilyRole, 'primary' | 'success' | 'info' | 'neutral'> 
  * (spec §16). Permissions are enforced in `FamilyMemberRepository`, not here.
  */
 export default function FamilyMembersScreen() {
+  const styles = useStyles();
   const router = useRouter();
   const { data, addFamilyMember, setMemberRole, removeFamilyMember } = useAppData();
 
@@ -234,7 +235,7 @@ export default function FamilyMembersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   body: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
@@ -276,4 +277,4 @@ const styles = StyleSheet.create({
   roleLabel: {
     marginBottom: spacing.sm,
   },
-});
+}));

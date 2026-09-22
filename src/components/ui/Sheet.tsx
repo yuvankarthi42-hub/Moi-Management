@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, radius, shadow, spacing } from '../../theme';
+import { colors, makeStyles, radius, shadow, spacing, useColors } from '../../theme';
 import { T } from './Text';
 
 /**
@@ -30,6 +30,8 @@ export function Sheet({
   footer?: React.ReactNode;
   contentStyle?: ViewStyle;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
 
@@ -79,7 +81,7 @@ export function Sheet({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   backdrop: {
     flex: 1,
     backgroundColor: colors.overlay,
@@ -123,4 +125,4 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
-});
+}));

@@ -46,7 +46,9 @@ export function makeDataset(overrides: Partial<Dataset> = {}): Dataset {
     familyMembers: [],
     profile: { id: 'me', name: 'Karthick' },
     settings: {
-      theme: 'system', language: 'en', suggestionRounding: 100, auspiciousRupee: true,
+      ...EMPTY_DATASET.settings,
+      suggestionRounding: 100,
+      auspiciousRupee: true,
     },
     ...overrides,
   };

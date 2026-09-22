@@ -8,7 +8,7 @@ import {
 import { selectOverview } from '../../src/domain/selectors';
 import { exportReport, type ExportFormat } from '../../src/services/exportService';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, radius, spacing } from '../../src/theme';
+import { colors, makeStyles, radius, spacing } from '../../src/theme';
 import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 
 const REPORTS = [
@@ -85,6 +85,7 @@ const REPORTS = [
 ];
 
 export default function ReportsScreen() {
+  const styles = useStyles();
   const { data } = useAppData();
   const router = useRouter();
   const [busy, setBusy] = useState<ExportFormat | undefined>();
@@ -179,7 +180,7 @@ export default function ReportsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   statsCard: {
     marginHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
@@ -203,4 +204,4 @@ const styles = StyleSheet.create({
   exportHint: {
     marginTop: spacing.sm,
   },
-});
+}));

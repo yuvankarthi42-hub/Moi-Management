@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 
-import { spacing } from '../../theme';
+import { makeStyles, spacing } from '../../theme';
 import { T } from './Text';
 
 /** "Upcoming Function" / "Recent Functions" heading with an optional link. */
@@ -16,6 +16,7 @@ export function SectionHeader({
   onAction?: () => void;
   style?: ViewStyle;
 }) {
+  const styles = useStyles();
   return (
     <View style={[styles.row, style]}>
       <T variant="h3" style={styles.title}>
@@ -37,7 +38,7 @@ export function SectionHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -53,4 +54,4 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.6,
   },
-});
+}));

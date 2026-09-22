@@ -8,7 +8,7 @@ import {
 } from '../src/components/ui';
 import { searchAll, type SearchResult, type SearchResultKind } from '../src/domain/selectors';
 import { useAppData } from '../src/store/AppDataProvider';
-import { colors, radius, spacing } from '../src/theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../src/theme';
 
 const GROUPS: Array<{
   kind: SearchResultKind;
@@ -30,6 +30,8 @@ const GROUPS: Array<{
  * answers instead of a single ambiguous list.
  */
 export default function SearchScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const { data } = useAppData();
   const [query, setQuery] = useState('');
@@ -127,7 +129,7 @@ export default function SearchScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   content: {
     paddingTop: spacing.lg,
   },
@@ -166,4 +168,4 @@ const styles = StyleSheet.create({
   pressed: {
     backgroundColor: colors.surfaceAlt,
   },
-});
+}));

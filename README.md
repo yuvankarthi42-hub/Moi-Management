@@ -25,6 +25,7 @@ npm start          # then press i / a, or scan the QR with Expo Go
 | `npm run ios` / `npm run android` | Open in a simulator/emulator |
 | `npm run web` | Run in the browser |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Jest unit tests |
 
 The project resolves packages from public npm via `.npmrc`; Expo's dependency
 tree is not fully mirrored on the internal registry, while `@zoho*` scopes still
@@ -50,16 +51,17 @@ src/
 ├── data/                 ← the "backend"
 │   ├── index.ts          Composition root: picks the DataSource
 │   ├── DataSource.ts     The persistence PORT (one interface)
-│   ├── repositories/     Business rules & validation
+│   ├── repositories/     Business rules & validation, one per aggregate
 │   └── mock/             In-memory + AsyncStorage ADAPTER, and the seed data
 │
 ├── domain/
 │   ├── models.ts         Types. Money is always whole rupees, never a float.
 │   ├── selectors.ts      Every derived view & report, as pure functions
-│   └── functionTypes.ts  Function-type metadata (label, emoji, tint)
+│   ├── functionTypes.ts  Function-type metadata (label, emoji, tint)
+│   └── categories.ts     Expense categories, RSVP states, roles & permissions
 │
-├── services/             Export to PDF (expo-print) and CSV
-├── theme/                Colour, spacing, radius, elevation, type ramp
+├── services/             PDF (expo-print), CSV, and backup/restore
+├── theme/                Palettes (light + dark), spacing, elevation, type ramp
 └── utils/                Indian-numbering money format, date helpers
 ```
 
@@ -107,22 +109,43 @@ and a duplicate-entry warning when someone is recorded twice at one function.
 amount or recency; filter by village. Each profile shows lifetime total, moi
 history, their upcoming functions, and call / message shortcuts.
 
-**Reports** — Function, Person, Village, Family, Return Moi and Top Contributors,
-each with a period filter and **PDF / Excel (CSV) export** via the native share
-sheet.
+**Guests** — a per-function guest list where one row is an invitation covering a
+household, with RSVP (accepted / pending / maybe / declined), head-count and
+check-in. The same `Person` is reused across functions rather than duplicated.
+
+**Expenses** — recorded against a function, with category, payment type, who
+paid, date, notes and a receipt photo. There is deliberately **no budget
+module**: expenses are secondary to moi and never exist outside a function.
+
+**Reports** — all ten: Function, Person, Village, Family, Return Moi, Top
+Contributors, Moi Collection, Expense, Payment Method and Guest — each with a
+period filter and **PDF / Excel (CSV) export** via the native share sheet.
+
+**Search** — one box across functions, people, moi entries and guests, with
+results grouped by kind.
 
 **Return Moi** — the distinctive one. It lists guests whose own function is
 coming up, how much they last gave, and a suggested amount to return; mark one
 as returned when you have given it. The suggestion rounds up to a configurable
 multiple and can add the traditional auspicious ₹1 (₹1000 → ₹1001).
 
-**Settings** — profile, families, suggestion rules, theme and language
-preferences, JSON backup via the share sheet, and reset-to-demo-data.
+**Family collaboration** — members with Owner / Admin / Editor / Viewer roles.
+Permissions are enforced in `FamilyMemberRepository`, not in the UI, so a screen
+cannot bypass one by rendering a button.
+
+**Settings** — profile, families, suggestion rules, reminder preferences,
+theme and language, and versioned JSON backup / restore through the share sheet
+(a restore always confirms first — it replaces every record).
+
+**Dark mode** — a full second palette. `makeStyles` builds one stylesheet per
+palette up front and hands back the active one, because `StyleSheet.create`
+captures colour *values* and a module-scope sheet can otherwise never react to a
+theme change.
 
 > Per the brief, the **Invitation** and **QR Check-in** modules are deliberately
-> not implemented. The data model leaves room for them: `FunctionEvent.guestCount`
-> is kept separate from the moi entry count precisely so an invite list can land
-> there later without a migration.
+> not implemented. The data model leaves room for both: `Guest` already carries
+> `rsvpStatus` and `checkedIn`, so QR check-in only needs a scanner screen that
+> calls `GuestRepository.setCheckedIn`.
 
 ---
 
@@ -161,3 +184,45 @@ Amounts are drawn from real moi denominations, which traditionally end in ₹1.
 Function totals are therefore whatever the entries actually add up to — they are
 computed, never hard-coded, so they will not match the round headline figures in
 the original mockups.
+
+
+---
+
+## Tests
+
+```bash
+npm test
+```
+
+46 unit tests over the parts where a mistake would be silent and expensive:
+
+- **Selectors** — that every total is summed from transaction rows, that a
+  planned function falls back to the host's guest estimate, that reports respect
+  their date range, and that the return-moi suggestion rounds correctly.
+- **Formatting** — lakh/crore grouping, the negative-sign position (`-₹2,05,512`,
+  not `₹-2,05,512`), and that `toISODate` uses local time so a late-evening entry
+  does not roll into the next day.
+- **Repositories** — required fields, duplicate-phone and duplicate-guest
+  detection, and that deleting a function takes its moi, expenses and guests with
+  it while deleting a person leaves their guest rows intact.
+
+Two real bugs surfaced this way and are fixed: "last received" in the return-moi
+report picked an arbitrary row when someone gave twice at one function (it now
+sums the occasion), and repository validation threw *synchronously* from methods
+typed `Promise<T>`, so `.catch()` would not have caught it.
+
+---
+
+## Known gaps
+
+- **Stage 2 (Drift/SQLite)** is not built. The port and repositories are shaped
+  for it — see [Swapping in a real backend](#swapping-in-a-real-backend) — but
+  the only adapter today is the AsyncStorage-backed mock.
+- **Tamil strings** are not extracted for localisation. The language preference
+  is stored and the layouts are built to take longer Tamil labels, but the UI
+  copy is still English.
+- **Notification scheduling** is not wired. The preferences exist; nothing
+  registers them with the OS yet.
+- The dataset is loaded into memory whole. That is deliberate at this scale and
+  documented above, but it is the thing to revisit first if a household ever
+  accumulates tens of thousands of moi entries.

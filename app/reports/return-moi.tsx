@@ -10,7 +10,7 @@ import {
 import { functionTypeMeta } from '../../src/domain/functionTypes';
 import { buildReturnMoiReport, type ReturnMoiRow } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, radius, spacing } from '../../src/theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { countdownLabel, formatDate } from '../../src/utils/date';
 import { formatMoney } from '../../src/utils/format';
 
@@ -21,6 +21,8 @@ import { formatMoney } from '../../src/utils/format';
  * hidden — the list is always "upcoming", ordered by how soon each function is.
  */
 export default function ReturnMoiScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const { data, markMoiReturned } = useAppData();
   const router = useRouter();
 
@@ -115,6 +117,8 @@ function ReturnCard({
   onOpen: () => void;
   onMarkReturned?: () => void;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   const meta = functionTypeMeta(row.event.type);
   // Red inside a week, amber inside a month, neutral beyond that.
   const tone = row.daysAway <= 7 ? 'danger' : row.daysAway <= 30 ? 'warning' : 'info';
@@ -196,7 +200,7 @@ function ReturnCard({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -271,4 +275,4 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
   },
-});
+}));

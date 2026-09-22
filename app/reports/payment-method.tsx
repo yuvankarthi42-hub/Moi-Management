@@ -6,7 +6,7 @@ import { Card, EmptyState, Money, T } from '../../src/components/ui';
 import { PAYMENT_TYPES } from '../../src/domain/functionTypes';
 import { buildPaymentMethodReport, type PaymentSplit } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, radius, spacing } from '../../src/theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { formatMoney } from '../../src/utils/format';
 
 /** How moi arrived and how expenses were settled (spec §15). */
@@ -62,6 +62,8 @@ function SplitCard({
   counts?: Record<string, number>;
   flow: 'in' | 'out';
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <Card style={styles.card}>
       <View style={styles.header}>
@@ -112,7 +114,7 @@ function SplitCard({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     marginBottom: spacing.lg,
   },
@@ -149,4 +151,4 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: radius.pill,
   },
-});
+}));

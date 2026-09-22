@@ -12,11 +12,13 @@ import {
   buildReturnMoiReport, selectMoiEntriesForPerson, selectPersonById,
 } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, spacing } from '../../src/theme';
+import { colors, makeStyles, spacing, useColors } from '../../src/theme';
 import { countdownLabel, formatDate } from '../../src/utils/date';
 import { formatCount, formatMoneyCompact, formatPhone } from '../../src/utils/format';
 
 export default function PersonProfileScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { data, loading, removePerson } = useAppData();
@@ -291,6 +293,8 @@ function ActionButton({
   onPress: () => void;
   disabled?: boolean;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <Pressable
       onPress={onPress}
@@ -318,6 +322,8 @@ function DetailRow({
   label: string;
   value: string;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={styles.detailRow}>
       <Ionicons name={icon} size={17} color={colors.textMuted} />
@@ -331,7 +337,7 @@ function DetailRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   loading: {
     marginTop: spacing.xxxl,
   },
@@ -437,4 +443,4 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.35,
   },
-});
+}));

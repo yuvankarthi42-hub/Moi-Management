@@ -1,22 +1,26 @@
 import React from 'react';
 import { StyleSheet, Text as RNText, TextProps, TextStyle } from 'react-native';
 
-import { colors, typography } from '../../theme';
+import { makeStyles, typography, useColors, type Palette } from '../../theme';
 import { formatMoney, formatMoneyCompact } from '../../utils/format';
 
 type Variant = keyof typeof typography;
 type Tone = 'default' | 'secondary' | 'muted' | 'primary' | 'onPrimary' | 'success' | 'danger' | 'warning';
 
-const TONES: Record<Tone, string> = {
-  default: colors.text,
-  secondary: colors.textSecondary,
-  muted: colors.textMuted,
-  primary: colors.primary,
-  onPrimary: colors.onPrimary,
-  success: colors.success,
-  danger: colors.danger,
-  warning: colors.warning,
-};
+/** Resolves a tone against the active palette — never frozen at module load. */
+function toneColor(tone: Tone, colors: Palette): string {
+  switch (tone) {
+    case 'secondary': return colors.textSecondary;
+    case 'muted': return colors.textMuted;
+    case 'primary': return colors.primary;
+    case 'onPrimary': return colors.onPrimary;
+    case 'success': return colors.success;
+    case 'danger': return colors.danger;
+    case 'warning': return colors.warning;
+    case 'default':
+    default: return colors.text;
+  }
+}
 
 export interface TypedTextProps extends TextProps {
   variant?: Variant;
@@ -35,12 +39,15 @@ export function T({
   style,
   ...rest
 }: TypedTextProps) {
+  const styles = useStyles();
+  const colors = useColors();
+
   return (
     <RNText
       {...rest}
       style={[
         typography[variant],
-        { color: color ?? TONES[tone] },
+        { color: color ?? toneColor(tone, colors) },
         center && styles.center,
         style,
       ]}
@@ -65,6 +72,7 @@ export function Money({
   compact?: boolean;
   style?: TextStyle;
 }) {
+  const colors = useColors();
   const color =
     flow === 'in' ? colors.amountIn : flow === 'out' ? colors.amountOut : colors.text;
   return (
@@ -74,8 +82,8 @@ export function Money({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   center: {
     textAlign: 'center',
   },
-});
+}));

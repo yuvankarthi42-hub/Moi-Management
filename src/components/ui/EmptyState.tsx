@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 
-import { colors, radius, spacing } from '../../theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../theme';
 import { Button } from './Button';
 import { T } from './Text';
 
@@ -22,6 +22,8 @@ export function EmptyState({
   onAction?: () => void;
   style?: ViewStyle;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={[styles.wrap, style]}>
       <View style={styles.iconCircle}>
@@ -42,7 +44,7 @@ export function EmptyState({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrap: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -68,4 +70,4 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     minWidth: 180,
   },
-});
+}));

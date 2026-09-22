@@ -7,12 +7,14 @@ import { ReportShell } from '../../src/components/app/ReportShell';
 import { Card, EmptyState, T } from '../../src/components/ui';
 import { buildTopContributors } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, radius } from '../../src/theme';
+import { colors, makeStyles, radius, useColors } from '../../src/theme';
 
 /** Medal colours for the top three; everyone else gets the plain badge. */
 const MEDALS = ['🥇', '🥈', '🥉'];
 
 export default function TopContributorsScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const { data } = useAppData();
   const router = useRouter();
 
@@ -77,7 +79,7 @@ export default function TopContributorsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   medal: {
     fontSize: 22,
     lineHeight: 28,
@@ -90,4 +92,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+}));

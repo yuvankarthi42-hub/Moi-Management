@@ -6,12 +6,14 @@ import { ReportShell } from '../../src/components/app/ReportShell';
 import { Card, EmptyState, StatRow, T } from '../../src/components/ui';
 import { buildGuestReport } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, radius, spacing } from '../../src/theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { formatDate } from '../../src/utils/date';
 import { formatCount } from '../../src/utils/format';
 
 /** Invited / accepted / attended, per function (spec §15). */
 export default function GuestReportScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const { data } = useAppData();
   const router = useRouter();
 
@@ -113,6 +115,7 @@ function Bar({
   value: number;
   tint: string;
 }) {
+  const styles = useStyles();
   return (
     <View style={styles.bar}>
       <View style={styles.barHeader}>
@@ -136,6 +139,8 @@ function Bar({
 }
 
 function Pill({ label }: { label: string }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={styles.pill}>
       <T variant="caption" tone="muted">
@@ -145,7 +150,7 @@ function Pill({ label }: { label: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   statsCard: {
     paddingVertical: spacing.md,
     marginBottom: spacing.lg,
@@ -196,4 +201,4 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-});
+}));

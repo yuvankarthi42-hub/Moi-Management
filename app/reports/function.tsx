@@ -7,11 +7,13 @@ import { Card, EmptyState, IconTile, StatRow, T } from '../../src/components/ui'
 import { functionTypeMeta } from '../../src/domain/functionTypes';
 import { buildFunctionReport } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, radius, spacing } from '../../src/theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { formatDate } from '../../src/utils/date';
 import { formatCount, formatMoney, formatMoneyCompact } from '../../src/utils/format';
 
 export default function FunctionReportScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const { data } = useAppData();
 
   return (
@@ -101,7 +103,7 @@ export default function FunctionReportScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   total: {
     backgroundColor: colors.primary,
     borderRadius: radius.lg,
@@ -130,4 +132,4 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
-});
+}));

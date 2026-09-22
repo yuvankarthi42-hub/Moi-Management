@@ -16,7 +16,7 @@ import type { ID, PaymentType } from '../../src/domain/models';
 import { selectFunctions } from '../../src/domain/selectors';
 import { ValidationError } from '../../src/data';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, radius, spacing } from '../../src/theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { formatDate } from '../../src/utils/date';
 import { formatMoney } from '../../src/utils/format';
 
@@ -24,6 +24,8 @@ import { formatMoney } from '../../src/utils/format';
 const QUICK_AMOUNTS = [101, 501, 1001, 2001, 5001];
 
 export default function AddMoiScreen() {
+  const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const { data, addMoiEntry, repositories } = useAppData();
   const params = useLocalSearchParams<{ functionId?: string; personId?: string }>();
@@ -314,7 +316,7 @@ function confirm(title: string, message: string): Promise<boolean> {
   });
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   label: {
     marginBottom: spacing.sm,
   },
@@ -389,4 +391,4 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.75,
   },
-});
+}));
