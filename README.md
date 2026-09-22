@@ -188,6 +188,57 @@ the original mockups.
 
 ---
 
+## Deploying the web build to Vercel
+
+> **This deploys the web build only.** Moi Manager is a React Native app — the
+> iOS and Android apps ship through EAS Build and the stores, not Vercel. The
+> web build is for demos, review and sharing a link; treat it as a preview of
+> the product, not the product itself.
+
+Config lives in [`vercel.json`](vercel.json):
+
+| Setting | Value |
+| --- | --- |
+| Build command | `npx expo export --platform web` |
+| Output directory | `dist` |
+| Node | 20.19.4+ (`engines` in package.json) |
+
+**Git integration (recommended)** — push the repo, then in the Vercel dashboard
+*Add New → Project → Import*. `vercel.json` supplies the build settings, so
+accept the defaults and deploy. Every later push redeploys.
+
+**Or from this machine:**
+
+```bash
+npx vercel --prod
+```
+
+The first run asks you to log in and links the project.
+
+### Why `output: "single"` and not `"static"`
+
+`app.json` sets the web build to a single-page app. A static export pre-renders
+one HTML file per known route, but `/function/[id]` and `/person/[id]` depend on
+ids that only exist in the visitor's own browser storage — they can never be
+enumerated at build time. The SPA shell plus the rewrite in `vercel.json` lets
+the client router resolve those routes on a hard refresh. (Verified: a cold load
+of `/function/fn_3` works.)
+
+### What behaves differently on the web build
+
+- **Dates** use the browser's native `<input type="date">`
+  ([`DateField.web.tsx`](src/components/app/DateField.web.tsx)).
+  `@react-native-community/datetimepicker` ships no web build, so on a browser
+  the picker rendered nothing and a date could not be chosen at all.
+- **Haptics** are a no-op; there is no vibration API in play.
+- **PDF / CSV export and backup** download through the browser instead of the
+  native share sheet.
+- **Storage is per-origin `localStorage`.** Each visitor to the deployed URL
+  gets their own copy of the demo data; nothing is shared or uploaded, and
+  clearing site data resets it.
+
+---
+
 ## Tests
 
 ```bash
