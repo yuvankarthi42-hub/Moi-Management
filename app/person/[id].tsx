@@ -4,8 +4,7 @@ import React, { useMemo } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
 
 import {
-  AppHeader, Avatar, Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll,
-  SectionHeader, StatRow, T,
+  AppHeader, Avatar, Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll, SectionHeader, StatRow, T, useToast,
 } from '../../src/components/ui';
 import { functionTypeMeta, paymentTypeMeta } from '../../src/domain/functionTypes';
 import {
@@ -25,6 +24,7 @@ export default function PersonProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { data, loading, removePerson } = useAppData();
+  const { showToast } = useToast();
 
   const person = useMemo(() => (id ? selectPersonById(data, id) : undefined), [data, id]);
   const history = useMemo(() => (id ? selectMoiTimelineForPerson(data, id) : []), [data, id]);
@@ -75,6 +75,7 @@ export default function PersonProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             await removePerson(person.id);
+            showToast({ message: `${person.name} deleted`, variant: 'destructive' });
             router.replace('/(tabs)/people');
           },
         },

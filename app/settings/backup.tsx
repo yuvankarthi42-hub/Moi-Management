@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 
 import {
-  AppHeader, Button, Card, ListRow, RowDivider, Screen, ScreenScroll, StatRow, T,
+  AppHeader, Button, Card, ListRow, RowDivider, Screen, ScreenScroll, StatRow, T, useToast,
 } from '../../src/components/ui';
 import { selectOverview } from '../../src/domain/selectors';
 import {
@@ -20,6 +20,7 @@ export default function BackupScreen() {
   const colors = useColors();
   const router = useRouter();
   const { data, repositories, restoreBackup, resetDemoData } = useAppData();
+  const { showToast } = useToast();
   const [busy, setBusy] = useState<'export' | 'import' | undefined>();
 
   const overview = useMemo(() => selectOverview(data), [data]);
@@ -30,7 +31,8 @@ export default function BackupScreen() {
       const payload = await repositories.settings.exportBackup();
       const summary = await backupToFile(payload);
       const shared = await shareBackup(summary);
-      if (!shared) Alert.alert('Backup saved', `The file is at:\n${summary.uri}`);
+      if (shared) showToast({ message: 'Backup ready to save' });
+      else Alert.alert('Backup saved', `The file is at:\n${summary.uri}`);
     } catch (error) {
       Alert.alert(
         'Backup failed',
@@ -69,7 +71,7 @@ export default function BackupScreen() {
             onPress: async () => {
               try {
                 await restoreBackup(json);
-                Alert.alert('Restored', 'Your records have been brought back.');
+                showToast({ message: 'Backup restored' });
               } catch (error) {
                 Alert.alert(
                   'Restore failed',
@@ -96,7 +98,14 @@ export default function BackupScreen() {
       'Every function, person, moi entry and expense you have added will be replaced with the sample records. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Reset', style: 'destructive', onPress: () => resetDemoData() },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            await resetDemoData();
+            showToast({ message: 'Demo data restored' });
+          },
+        },
       ],
     );
   };

@@ -7,7 +7,7 @@ import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { OptionPicker } from '../../src/components/app/OptionPicker';
 import {
-  AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen,
+  AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, useToast,
 } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { selectVillages } from '../../src/domain/selectors';
@@ -26,6 +26,7 @@ export default function PersonFormScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string; name?: string }>();
   const { data, addPerson, editPerson } = useAppData();
+  const { showToast } = useToast();
 
   const existing = useMemo(
     () => data.people.find((p) => p.id === params.id),
@@ -89,12 +90,13 @@ export default function PersonFormScreen() {
     try {
       if (existing) {
         await editPerson(existing.id, payload);
-        router.back();
+        showToast({ message: `${payload.name} updated` });
       } else {
         await addPerson(payload);
-        // Return to whatever sent us here (often the Add Moi form).
-        router.back();
+        showToast({ message: `${payload.name} added to your people` });
       }
+      // Return to whatever sent us here (often the Add Moi form).
+      router.back();
     } catch (error) {
       if (error instanceof ValidationError) {
         setErrors({ [error.field ?? 'name']: error.message });

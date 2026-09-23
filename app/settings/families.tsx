@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 
 import {
-  AppHeader, Button, Card, EmptyState, Field, ListRow, RowDivider, Screen, ScreenScroll, Sheet, T,
+  AppHeader, Button, Card, EmptyState, Field, ListRow, RowDivider, Screen, ScreenScroll, Sheet, T, useToast,
 } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { useAppData } from '../../src/store/AppDataProvider';
@@ -15,6 +15,7 @@ export default function FamiliesScreen() {
   const styles = useStyles();
   const router = useRouter();
   const { data, addFamily, removeFamily } = useAppData();
+  const { showToast } = useToast();
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -44,6 +45,7 @@ export default function FamiliesScreen() {
     setSaving(true);
     try {
       await addFamily({ name, village: village || undefined });
+      showToast({ message: `${name} added` });
       setName('');
       setVillage('');
       setOpen(false);
@@ -60,7 +62,14 @@ export default function FamiliesScreen() {
       `“${label}” will be removed. Its members stay in your contact book, just without a family.`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => removeFamily(id) },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            await removeFamily(id);
+            showToast({ message: `${label} deleted`, variant: 'destructive' });
+          },
+        },
       ],
     );
   };

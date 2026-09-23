@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AppDataProvider, useAppData } from '../src/store/AppDataProvider';
+import { ToastProvider } from '../src/components/ui';
 import { ThemeProvider, useTheme } from '../src/theme';
 
 // Keep the native splash up until the dataset is in memory, so a cold start or
@@ -42,7 +43,11 @@ function ThemedApp() {
 
   return (
     <ThemeProvider preference={data.settings.theme}>
-      <AppChrome />
+      {/* Inside the theme so toasts follow it, outside the navigator so one
+          survives the screen that raised it closing. */}
+      <ToastProvider>
+        <AppChrome />
+      </ToastProvider>
     </ThemeProvider>
   );
 }

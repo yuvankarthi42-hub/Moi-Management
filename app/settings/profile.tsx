@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import {
-  AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, Screen,
+  AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, Screen, useToast,
 } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { useAppData } from '../../src/store/AppDataProvider';
@@ -17,6 +17,7 @@ export default function ProfileScreen() {
   const colors = useColors();
   const router = useRouter();
   const { data, saveProfile } = useAppData();
+  const { showToast } = useToast();
   const { profile } = data;
 
   const [name, setName] = useState(profile.name);
@@ -47,6 +48,7 @@ export default function ProfileScreen() {
     setSaving(true);
     try {
       await saveProfile({ name, phone, email, village, photoUri });
+      showToast({ message: 'Profile saved' });
       router.back();
     } catch (error) {
       if (error instanceof ValidationError) setErrors({ [error.field ?? 'name']: error.message });

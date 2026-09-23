@@ -8,7 +8,7 @@ import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { DateField } from '../../src/components/app/DateField';
 import { OptionPicker } from '../../src/components/app/OptionPicker';
 import {
-  AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, T,
+  AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, T, useToast,
 } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { FUNCTION_TYPES, functionTypeMeta } from '../../src/domain/functionTypes';
@@ -29,6 +29,7 @@ export default function FunctionFormScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { data, addFunction, editFunction } = useAppData();
+  const { showToast } = useToast();
 
   const existing = useMemo(() => data.functions.find((f) => f.id === id), [data.functions, id]);
   const villages = useMemo(() => selectVillages(data), [data]);
@@ -96,9 +97,11 @@ export default function FunctionFormScreen() {
     try {
       if (existing) {
         await editFunction(existing.id, payload);
+        showToast({ message: `${payload.title} updated` });
         router.back();
       } else {
         const newId = await addFunction(payload);
+        showToast({ message: `${payload.title} created` });
         // Replace so Back from the detail screen returns to the list, not the form.
         router.replace(`/function/${newId}`);
       }

@@ -6,12 +6,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+import { MoiSavedSheet, type MoiSavedDetails } from '../../src/components/app/MoiSavedSheet';
 import { OptionPicker } from '../../src/components/app/OptionPicker';
 import { PersonPicker } from '../../src/components/app/PersonPicker';
 import {
   AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, Segmented, T,
 } from '../../src/components/ui';
-import { PAYMENT_TYPES, functionTypeMeta } from '../../src/domain/functionTypes';
+import { PAYMENT_TYPES, functionTypeMeta, paymentTypeMeta } from '../../src/domain/functionTypes';
 import type { ID, PaymentType } from '../../src/domain/models';
 import { selectFunctions } from '../../src/domain/selectors';
 import { ValidationError } from '../../src/data';
@@ -62,6 +63,7 @@ export default function AddMoiScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const amountRef = useRef<TextInput>(null);
+  const [saved, setSaved] = useState<MoiSavedDetails | undefined>();
 
   const person = data.people.find((p) => p.id === personId);
   const fn = functions.find((f) => f.id === functionId);
@@ -122,7 +124,14 @@ export default function AddMoiScreen() {
       if (Platform.OS !== 'web') {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
-      router.back();
+      // Confirm what was written down, and offer the next entry — at a
+      // function the host is working through a queue of guests.
+      setSaved({
+        amount: numericAmount,
+        personName: person?.name ?? 'them',
+        functionTitle: fn?.title,
+        paymentLabel: paymentTypeMeta(paymentType).label,
+      });
     } catch (error) {
       if (error instanceof ValidationError) {
         setErrors({ [error.field ?? 'amount']: error.message });
@@ -283,6 +292,26 @@ export default function AddMoiScreen() {
         onCreateNew={(prefillName) => {
           setPersonOpen(false);
           router.push({ pathname: '/person/new', params: { name: prefillName, returnTo: 'moi' } });
+        }}
+      />
+
+      <MoiSavedSheet
+        visible={saved != null}
+        details={saved}
+        onDone={() => {
+          setSaved(undefined);
+          router.back();
+        }}
+        onAddAnother={() => {
+          setSaved(undefined);
+          // Keep the function and payment type — those stay the same all day —
+          // and clear only what changes per guest.
+          setPersonId(undefined);
+          setAmount('');
+          setNotes('');
+          setPhotoUri(undefined);
+          setErrors({});
+          setTimeout(() => setPersonOpen(true), 250);
         }}
       />
 

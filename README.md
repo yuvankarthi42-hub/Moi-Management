@@ -138,6 +138,15 @@ multiple and can add the traditional auspicious ₹1 (₹1000 → ₹1001).
 Permissions are enforced in `FamilyMemberRepository`, not in the UI, so a screen
 cannot bypass one by rendering a button.
 
+**Save feedback** — every add, update and delete confirms. Success is a toast
+rather than a blocking alert, because recording moi at a function means dozens
+of saves in a row and an OK button on each would be punishing; deletes of a moi
+entry, moi given or expense offer **Undo**. Saving a moi opens a sheet with a
+short confetti burst that shows what was written down and offers "add another",
+keeping the host in the flow at the moi table. The confetti is built on React
+Native's own `Animated` — no extra dependency — and is skipped when the OS has
+reduce-motion enabled.
+
 **Settings** — profile, families, suggestion rules, reminder preferences,
 theme and language, and versioned JSON backup / restore through the share sheet
 (a restore always confirms first — it replaces every record).

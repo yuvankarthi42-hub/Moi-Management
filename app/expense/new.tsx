@@ -8,7 +8,7 @@ import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { DateField } from '../../src/components/app/DateField';
 import { OptionPicker } from '../../src/components/app/OptionPicker';
 import {
-  AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, Segmented, T,
+  AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, Segmented, T, useToast,
 } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { EXPENSE_CATEGORIES, expenseCategoryMeta } from '../../src/domain/categories';
@@ -32,6 +32,7 @@ export default function ExpenseFormScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string; functionId?: string }>();
   const { data, addExpense, editExpense, removeExpense } = useAppData();
+  const { showToast } = useToast();
 
   const functions = useMemo(() => selectFunctions(data), [data]);
   const existing = useMemo(
@@ -111,8 +112,13 @@ export default function ExpenseFormScreen() {
     };
 
     try {
-      if (existing) await editExpense(existing.id, payload);
-      else await addExpense(payload);
+      if (existing) {
+        await editExpense(existing.id, payload);
+        showToast({ message: 'Expense updated' });
+      } else {
+        await addExpense(payload);
+        showToast({ message: `${formatMoney(numericAmount)} expense saved` });
+      }
       router.back();
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -133,7 +139,19 @@ export default function ExpenseFormScreen() {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
+          const snapshot = existing;
           await removeExpense(existing.id);
+          showToast({
+            message: 'Expense deleted',
+            variant: 'destructive',
+            action: {
+              label: 'Undo',
+              onPress: () => {
+                const { id, createdAt, ...rest } = snapshot;
+                void addExpense(rest);
+              },
+            },
+          });
           router.back();
         },
       },

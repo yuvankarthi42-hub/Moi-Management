@@ -18,4 +18,7 @@ export { SectionHeader } from './SectionHeader';
 export { Sheet } from './Sheet';
 export { StatRow } from './Stats';
 export type { StatItem } from './Stats';
+export { Confetti } from './Confetti';
+export { ToastProvider, useToast } from './Toast';
+export type { ToastOptions, ToastVariant } from './Toast';
 export { Money, T } from './Text';

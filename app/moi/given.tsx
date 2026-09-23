@@ -5,14 +5,16 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+import { MoiSavedSheet, type MoiSavedDetails } from '../../src/components/app/MoiSavedSheet';
 import { OptionPicker } from '../../src/components/app/OptionPicker';
 import { PersonPicker } from '../../src/components/app/PersonPicker';
 import { DateField } from '../../src/components/app/DateField';
 import {
   AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, Segmented, T,
+  useToast,
 } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
-import { PAYMENT_TYPES, functionTypeMeta } from '../../src/domain/functionTypes';
+import { PAYMENT_TYPES, functionTypeMeta, paymentTypeMeta } from '../../src/domain/functionTypes';
 import type { ID, ISODate, PaymentType } from '../../src/domain/models';
 import { describeBalance, selectPersonById } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
@@ -36,6 +38,7 @@ export default function MoiGivenScreen() {
   const { data, addMoiGiven, editMoiGiven, removeMoiGiven } = useAppData();
   const styles = useStyles();
   const colors = useColors();
+  const { showToast } = useToast();
 
   const existing = useMemo(
     () => data.moiGiven.find((g) => g.id === params.id),
@@ -56,6 +59,7 @@ export default function MoiGivenScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const amountRef = useRef<TextInput>(null);
+  const [saved, setSaved] = useState<MoiSavedDetails | undefined>();
 
   useEffect(() => {
     if (!existing) return;
@@ -117,9 +121,20 @@ export default function MoiGivenScreen() {
     };
 
     try {
-      if (existing) await editMoiGiven(existing.id, payload);
-      else await addMoiGiven(payload);
-      router.back();
+      if (existing) {
+        await editMoiGiven(existing.id, payload);
+        showToast({ message: 'Moi given updated' });
+        router.back();
+      } else {
+        await addMoiGiven(payload);
+        setSaved({
+          amount: numericAmount,
+          personName: person?.name ?? 'them',
+          functionTitle: occasion || chosenEvent?.title,
+          paymentLabel: paymentTypeMeta(paymentType).label,
+          direction: 'given',
+        });
+      }
     } catch (error) {
       if (error instanceof ValidationError) {
         setErrors({ [error.field ?? 'amount']: error.message });
@@ -139,7 +154,19 @@ export default function MoiGivenScreen() {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
+          const snapshot = existing;
           await removeMoiGiven(existing.id);
+          showToast({
+            message: 'Moi given deleted',
+            variant: 'destructive',
+            action: {
+              label: 'Undo',
+              onPress: () => {
+                const { id, createdAt, ...rest } = snapshot;
+                void addMoiGiven(rest);
+              },
+            },
+          });
           router.back();
         },
       },
@@ -317,6 +344,26 @@ export default function MoiGivenScreen() {
           onPress={save}
         />
       </DockedFooter>
+
+      <MoiSavedSheet
+        visible={saved != null}
+        details={saved}
+        onDone={() => {
+          setSaved(undefined);
+          router.back();
+        }}
+        onAddAnother={() => {
+          setSaved(undefined);
+          setPersonId(undefined);
+          setPersonEventId(undefined);
+          setOccasion('');
+          setAmount('');
+          setNotes('');
+          setPhotoUri(undefined);
+          setErrors({});
+          setTimeout(() => setPersonOpen(true), 250);
+        }}
+      />
 
       <PersonPicker
         visible={personOpen}

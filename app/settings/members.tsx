@@ -4,8 +4,7 @@ import { Alert, StyleSheet, View } from 'react-native';
 
 import { OptionPicker } from '../../src/components/app/OptionPicker';
 import {
-  AppHeader, Avatar, Badge, Button, Card, EmptyState, Field, ListRow, RowDivider, Screen,
-  ScreenScroll, Sheet, T,
+  AppHeader, Avatar, Badge, Button, Card, EmptyState, Field, ListRow, RowDivider, Screen, ScreenScroll, Sheet, T, useToast,
 } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { FAMILY_ROLES, roleMeta } from '../../src/domain/categories';
@@ -29,6 +28,7 @@ export default function FamilyMembersScreen() {
   const styles = useStyles();
   const router = useRouter();
   const { data, addFamilyMember, setMemberRole, removeFamilyMember } = useAppData();
+  const { showToast } = useToast();
 
   const [addOpen, setAddOpen] = useState(false);
   const [roleFor, setRoleFor] = useState<FamilyMember | undefined>();
@@ -43,6 +43,7 @@ export default function FamilyMembersScreen() {
     setSaving(true);
     try {
       await addFamilyMember({ name, phone: phone || undefined, role });
+      showToast({ message: `${name} added` });
       setName('');
       setPhone('');
       setRole('editor');
@@ -58,6 +59,7 @@ export default function FamilyMembersScreen() {
     setRoleFor(undefined);
     try {
       await setMemberRole(member.id, next);
+      showToast({ message: `${member.name} is now ${next}` });
     } catch (e) {
       Alert.alert('Could not change role', e instanceof Error ? e.message : 'Please try again.');
     }
@@ -75,6 +77,7 @@ export default function FamilyMembersScreen() {
           onPress: async () => {
             try {
               await removeFamilyMember(member.id);
+              showToast({ message: `${member.name} removed`, variant: 'destructive' });
             } catch (e) {
               Alert.alert(
                 'Could not remove',

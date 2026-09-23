@@ -5,7 +5,7 @@ import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { ReportShell } from '../../src/components/app/ReportShell';
 import {
-  Avatar, Badge, Button, Card, EmptyState, Money, T,
+  Avatar, Badge, Button, Card, EmptyState, Money, T, useToast,
 } from '../../src/components/ui';
 import { functionTypeMeta } from '../../src/domain/functionTypes';
 import { buildReturnMoiReport, type ReturnMoiRow } from '../../src/domain/selectors';
@@ -24,6 +24,7 @@ export default function ReturnMoiScreen() {
   const styles = useStyles();
   const colors = useColors();
   const { data, markMoiReturned } = useAppData();
+  const { showToast } = useToast();
   const router = useRouter();
 
   const rows = useMemo(() => buildReturnMoiReport(data, { withinDays: 365 }), [data]);
@@ -36,7 +37,15 @@ export default function ReturnMoiScreen() {
       `Record ${formatMoney(row.suggested)} given to ${row.person.name} for ${row.event.title}?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Mark returned', onPress: () => markMoiReturned(row.event.id, row.suggested) },
+        {
+          text: 'Mark returned',
+          onPress: async () => {
+            await markMoiReturned(row.event.id, row.suggested);
+            showToast({
+              message: `${formatMoney(row.suggested)} recorded for ${row.person.name}`,
+            });
+          },
+        },
       ],
     );
   };

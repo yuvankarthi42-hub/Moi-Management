@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ExpenseRow } from '../../src/components/app/ExpenseRow';
 import { MoiEntryRow } from '../../src/components/app/PersonRow';
 import {
-  Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll, StatRow, StatusBarScrim, T,
+  Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll, StatRow, StatusBarScrim, T, useToast,
 } from '../../src/components/ui';
 import { functionTypeMeta } from '../../src/domain/functionTypes';
 import {
@@ -46,6 +46,7 @@ export default function FunctionDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { data, loading, removeFunction, addFunctionPhoto, removeFunctionPhoto } = useAppData();
+  const { showToast } = useToast();
   const [tab, setTab] = useState<Tab>('overview');
 
   const fn = useMemo(() => (id ? selectFunctionById(data, id) : undefined), [data, id]);
@@ -103,6 +104,7 @@ export default function FunctionDetailScreen() {
           style: 'destructive',
           onPress: async () => {
             await removeFunction(fn.id);
+            showToast({ message: `${fn.title} deleted`, variant: 'destructive' });
             router.replace('/(tabs)/functions');
           },
         },
