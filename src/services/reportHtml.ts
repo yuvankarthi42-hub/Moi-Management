@@ -109,17 +109,15 @@ export function buildReportHtml(
         tiles([
           { k: 'Total collection', v: formatMoney(report.totalCollection) },
           { k: 'Functions', v: String(report.totalFunctions) },
-          { k: 'Guests', v: String(report.totalGuests) },
           { k: 'Average moi', v: formatMoney(report.averageMoi) },
         ]) +
         '<h2>Functions</h2>' +
         table(
-          ['Function', 'Date', 'Entries', 'Guests', 'Collected', 'Expenses'],
+          ['Function', 'Date', 'Entries', 'Collected', 'Expenses'],
           report.rows.map((r) => [
             `${functionTypeMeta(r.type).emoji}  ${r.title}`,
             formatDate(r.date),
             String(r.entryCount),
-            String(r.guestCount),
             formatMoney(r.collected),
             r.expenses ? formatMoney(r.expenses) : '—',
           ]),
@@ -128,7 +126,6 @@ export function buildReportHtml(
             'Total',
             '',
             String(report.rows.reduce((s, r) => s + r.entryCount, 0)),
-            String(report.totalGuests),
             formatMoney(report.totalCollection),
             formatMoney(report.totalExpenses),
           ],

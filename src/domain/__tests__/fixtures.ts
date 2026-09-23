@@ -20,12 +20,12 @@ export function makeDataset(overrides: Partial<Dataset> = {}): Dataset {
       // A past function with moi, expenses and guests.
       {
         id: 'fn1', title: 'Wedding', type: 'wedding', date: '2026-01-10',
-        village: 'Tenkasi', guestCount: 50, createdAt: T,
+        village: 'Tenkasi', createdAt: T,
       },
       // An upcoming function with nothing recorded yet.
       {
         id: 'fn2', title: 'Ear Piercing', type: 'ear_piercing', date: '2026-12-20',
-        village: 'Madurai', guestCount: 30, createdAt: T,
+        village: 'Madurai', createdAt: T,
       },
     ],
     moiEntries: [

@@ -17,11 +17,6 @@ describe('function totals (spec §39)', () => {
     expect(fn.net).toBe(3502 - 2000);
   });
 
-  it('reports the head-count the host entered for the function', () => {
-    const fn = selectFunctionById(makeDataset(), 'fn2', NOW)!;
-    expect(fn.guests).toBe(30);
-  });
-
   it('marks functions upcoming or completed by date', () => {
     const [first, second] = selectFunctions(makeDataset(), NOW);
     // Sorted newest first, so the December function leads.
@@ -40,8 +35,7 @@ describe('overview', () => {
     expect(overview.totalMoi).toBe(3502);
     expect(overview.totalExpenses).toBe(2000);
     expect(overview.balance).toBe(1502);
-    // The two functions expect 50 and 30 guests respectively.
-    expect(overview.totalGuests).toBe(80);
+    expect(overview.peopleCount).toBe(3);
     expect(overview.averageMoi).toBe(Math.round(3502 / 3));
   });
 });

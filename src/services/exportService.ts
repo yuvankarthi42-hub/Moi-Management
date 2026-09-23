@@ -98,17 +98,17 @@ function buildCsvSections(
         sections: [
           {
             title: 'Function Report',
-            headers: ['Function', 'Type', 'Date', 'Entries', 'Guests', 'Collected', 'Expenses'],
+            headers: ['Function', 'Type', 'Date', 'Entries', 'Collected', 'Expenses'],
             rows: report.rows.map((r) => [
               r.title, functionTypeMeta(r.type).label, formatDate(r.date),
-              r.entryCount, r.guestCount, r.collected, r.expenses,
+              r.entryCount, r.collected, r.expenses,
             ]),
           },
           {
             title: 'Summary',
-            headers: ['Total collection', 'Functions', 'Guests', 'Average moi', 'Expenses'],
+            headers: ['Total collection', 'Functions', 'Average moi', 'Expenses'],
             rows: [[
-              report.totalCollection, report.totalFunctions, report.totalGuests,
+              report.totalCollection, report.totalFunctions,
               report.averageMoi, report.totalExpenses,
             ]],
           },

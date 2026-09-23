@@ -49,7 +49,7 @@ export default function FunctionReportScreen() {
                 compactLabels
                 items={[
                   { label: 'Total Functions', value: formatCount(report.totalFunctions) },
-                  { label: 'Total Guests', value: formatCount(report.totalGuests) },
+                  { label: 'Moi Entries', value: formatCount(report.rows.reduce((n, r) => n + r.entryCount, 0)) },
                   { label: 'Average Moi', value: formatMoneyCompact(report.averageMoi) },
                 ]}
               />

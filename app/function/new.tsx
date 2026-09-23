@@ -39,7 +39,6 @@ export default function FunctionFormScreen() {
   const [time, setTime] = useState('');
   const [venue, setVenue] = useState('');
   const [village, setVillage] = useState('');
-  const [guestCount, setGuestCount] = useState('');
   const [host, setHost] = useState('');
   const [notes, setNotes] = useState('');
   const [coverImage, setCoverImage] = useState<string | undefined>();
@@ -58,7 +57,6 @@ export default function FunctionFormScreen() {
     setTime(existing.time ?? '');
     setVenue(existing.venue ?? '');
     setVillage(existing.village ?? '');
-    setGuestCount(existing.guestCount != null ? String(existing.guestCount) : '');
     setHost(existing.host ?? '');
     setNotes(existing.notes ?? '');
     setCoverImage(existing.coverImage);
@@ -91,7 +89,6 @@ export default function FunctionFormScreen() {
       village: village || undefined,
       notes: notes || undefined,
       coverImage,
-      guestCount: guestCount ? Number(guestCount) : undefined,
       host: host || undefined,
       photos: existing?.photos ?? [],
     };
@@ -188,26 +185,13 @@ export default function FunctionFormScreen() {
           onClear={village ? () => setVillage('') : undefined}
         />
 
-        <View style={styles.pairRow}>
-          <Field
-            label="Expected guests"
-            value={guestCount}
-            onChangeText={(text) => setGuestCount(text.replace(/[^\d]/g, ''))}
-            keyboardType="number-pad"
-            placeholder="156"
-            containerStyle={styles.pairItem}
-            error={errors.guestCount}
-            hint="Used until you build the guest list."
-          />
-          <Field
-            label="Host (optional)"
-            value={host}
-            onChangeText={setHost}
-            placeholder="Karthick"
-            autoCapitalize="words"
-            containerStyle={styles.pairItem}
-          />
-        </View>
+        <Field
+          label="Host (optional)"
+          value={host}
+          onChangeText={setHost}
+          placeholder="Karthick"
+          autoCapitalize="words"
+        />
 
         {/* Expenses are their own records against this function (spec §14),
             so they are added from the function's Expenses tab, not here. */}

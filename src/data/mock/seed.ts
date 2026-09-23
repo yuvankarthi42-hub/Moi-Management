@@ -121,50 +121,49 @@ const FUNCTION_BLUEPRINT: Array<{
   village: string;
   venue: string;
   entries: number;
-  guestCount: number;
   budget?: number;
   notes?: string;
 }> = [
   {
     title: 'Harthick Ear Piercing', type: 'ear_piercing', inDays: 10, time: '10:00 AM',
-    village: 'Tenkasi', venue: 'Sri Lakshmi Mahal, Tenkasi', entries: 0, guestCount: 156,
+    village: 'Tenkasi', venue: 'Sri Lakshmi Mahal, Tenkasi', entries: 0,
     budget: 125000,
     notes: 'We are happy to invite you and your family to bless Harthick.',
   },
   {
     title: 'Mahesh Upanayanam', type: 'upanayanam', inDays: 34, time: '07:30 AM',
-    village: 'Madurai', venue: 'Vinayaka Thirumana Mandapam, Madurai', entries: 0, guestCount: 90,
+    village: 'Madurai', venue: 'Vinayaka Thirumana Mandapam, Madurai', entries: 0,
     budget: 74000,
     notes: 'Thread ceremony followed by lunch.',
   },
   {
     title: 'Karthick Wedding', type: 'wedding', inDays: -133, time: '09:15 AM',
-    village: 'Madurai', venue: 'Meenakshi Thirumana Mahal, Madurai', entries: 188, guestCount: 220,
+    village: 'Madurai', venue: 'Meenakshi Thirumana Mahal, Madurai', entries: 188,
     budget: 320000,
   },
   {
     title: 'House Warming', type: 'house_warming', inDays: -172, time: '06:00 AM',
-    village: 'Tenkasi', venue: 'New House, Bharathi Nagar, Tenkasi', entries: 118, guestCount: 132,
+    village: 'Tenkasi', venue: 'New House, Bharathi Nagar, Tenkasi', entries: 118,
     budget: 96000,
   },
   {
     title: 'Baby Shower', type: 'baby_shower', inDays: -216, time: '11:00 AM',
-    village: 'Madurai', venue: 'Home, Anna Nagar, Madurai', entries: 64, guestCount: 70,
+    village: 'Madurai', venue: 'Home, Anna Nagar, Madurai', entries: 64,
     budget: 42000,
   },
   {
     title: 'Harthick Birthday Party', type: 'birthday', inDays: -260, time: '05:00 PM',
-    village: 'Tenkasi', venue: 'Home, Tenkasi', entries: 58, guestCount: 65,
+    village: 'Tenkasi', venue: 'Home, Tenkasi', entries: 58,
     budget: 28000,
   },
   {
     title: 'Deepa Puberty Function', type: 'puberty', inDays: -318, time: '08:30 AM',
-    village: 'Sankarankoil', venue: 'Community Hall, Sankarankoil', entries: 72, guestCount: 85,
+    village: 'Sankarankoil', venue: 'Community Hall, Sankarankoil', entries: 72,
     budget: 54000,
   },
   {
     title: 'Vetri Engagement', type: 'engagement', inDays: -402, time: '10:45 AM',
-    village: 'Courtallam', venue: 'Falls View Mahal, Courtallam', entries: 49, guestCount: 60,
+    village: 'Courtallam', venue: 'Falls View Mahal, Courtallam', entries: 49,
     budget: 38000,
   },
 ];
@@ -238,7 +237,6 @@ export function buildSeed(now = new Date()): BackupPayload {
       venue: bp.venue,
       village: bp.village,
       notes: bp.notes,
-      guestCount: bp.guestCount,
       host: 'Karthick',
       createdAt: toISODate(addDays(now, bp.inDays - 45)),
       photos: [],

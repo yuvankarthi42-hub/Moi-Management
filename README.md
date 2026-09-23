@@ -97,8 +97,8 @@ repositories, not the selectors, not a single screen. Every method is already
 
 ## Features
 
-**Functions** — create, edit, delete; type, date, time, venue, village, guest
-count, expenses, notes, cover photo and a photo gallery. Filter by
+**Functions** — create, edit, delete; type, date, time, venue, village, host,
+notes, cover photo and a photo gallery. Filter by
 All / Upcoming / Completed; search by name, venue or village.
 
 **Moi entries** — person, amount, payment type (Cash / UPI / Other), notes and an
@@ -139,10 +139,9 @@ captures colour *values* and a module-scope sheet can otherwise never react to a
 theme change.
 
 > **Invitation, QR Check-in and Guest management are deliberately not
-> implemented**, at the product owner's direction. Guest *numbers* survive:
-> each function carries an "Expected guests" figure that feeds the dashboard
-> total and the Function Report. What was dropped is the per-guest invitation
-> list — RSVP tracking and attendance check-in.
+> implemented**, at the product owner's direction — including guest *counts*.
+> Nothing in the app tracks attendance any more; every figure it reports is
+> summed from moi entries or expense records.
 >
 > A function's detail screen also has no "People" tab. It listed the function's
 > unique contributors, which duplicated the Moi tab; tapping a moi row now opens

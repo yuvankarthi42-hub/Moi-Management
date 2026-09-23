@@ -86,7 +86,7 @@ export default function HomeScreen() {
             items={[
               { label: 'Functions', value: formatCount(overview.functionCount) },
               { label: 'Moi', value: formatMoneyCompact(overview.totalMoi), tone: 'success' },
-              { label: 'Guests', value: formatCount(overview.totalGuests) },
+              { label: 'People', value: formatCount(overview.peopleCount) },
               { label: 'Expenses', value: formatMoneyCompact(overview.totalExpenses), tone: 'danger' },
             ]}
           />

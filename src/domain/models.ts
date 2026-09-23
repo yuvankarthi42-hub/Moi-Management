@@ -85,8 +85,6 @@ export interface FunctionEvent {
   village?: string;
   notes?: string;
   coverImage?: string;
-  /** How many people are expected to attend. Entered by the host. */
-  guestCount?: number;
   /** Who is hosting, when it is not the profile owner. */
   host?: string;
   photos?: string[];

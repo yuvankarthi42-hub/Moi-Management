@@ -79,12 +79,6 @@ export class FunctionRepository {
     if (!title) throw new ValidationError('Enter a function name.', 'title');
     if (!ISO_DATE.test(input.date ?? '')) throw new ValidationError('Choose a date.', 'date');
 
-    if (input.guestCount != null) {
-      if (!Number.isInteger(input.guestCount) || input.guestCount < 0) {
-        throw new ValidationError('Expected guests must be a whole number.', 'guestCount');
-      }
-    }
-
     return {
       ...input,
       title,

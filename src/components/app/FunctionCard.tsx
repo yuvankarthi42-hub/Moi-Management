@@ -6,6 +6,7 @@ import { functionTypeMeta } from '../../domain/functionTypes';
 import type { FunctionWithStats } from '../../domain/selectors';
 import { colors, makeStyles, radius, spacing, useColors } from '../../theme';
 import { countdownLabel, formatDate } from '../../utils/date';
+import { formatMoney } from '../../utils/format';
 import { Badge } from '../ui/Chips';
 import { IconTile } from '../ui/Avatar';
 import { Card } from '../ui/Card';
@@ -55,7 +56,7 @@ export function FunctionCard({
                 Upcoming
               </T>
               <T variant="caption" tone="muted" style={styles.trailingSub}>
-                {fn.guestCount ? `${fn.guestCount} Guests` : 'No entries yet'}
+                No moi yet
               </T>
             </>
           ) : (
@@ -115,8 +116,14 @@ export function UpcomingFunctionCard({
 
       <View style={styles.heroFooter}>
         <Badge label={countdownLabel(fn.date)} tone="warning" />
+        {/* Before the day arrives there is usually nothing collected yet, so
+            the footer reports progress once it exists and prompts otherwise. */}
         <T variant="caption" tone="muted">
-          {fn.guestCount ? `${fn.guestCount} guests invited` : 'Tap to add details'}
+          {fn.entryCount > 0
+            ? `${formatMoney(fn.collected)} from ${fn.entryCount} ${
+                fn.entryCount === 1 ? 'entry' : 'entries'
+              }`
+            : 'Tap to add moi'}
         </T>
       </View>
     </Card>

@@ -23,8 +23,6 @@ export interface FunctionWithStats extends FunctionEvent {
   expenses: number;
   /** Number of expense rows. */
   expenseCount: number;
-  /** Expected head-count, as entered by the host. */
-  guests: number;
   /** Days until the function; negative once it has passed. */
   daysAway: number;
   /** collected − expenses. */
@@ -53,7 +51,6 @@ export function withFunctionStats(
     entryCount: entries.length,
     expenses,
     expenseCount: expenseRows.length,
-    guests: fn.guestCount ?? 0,
     daysAway: daysUntil(fn.date, now),
     net: collected - expenses,
   };
@@ -189,8 +186,6 @@ export interface OverviewStats {
   entryCount: number;
   totalExpenses: number;
   averageMoi: number;
-  /** Expected head-count across every function. */
-  totalGuests: number;
   /** Moi collected minus everything spent. */
   balance: number;
 }
@@ -201,8 +196,6 @@ export function selectOverview(data: Dataset, now = new Date()): OverviewStats {
   const entryCount = data.moiEntries.length;
   const totalExpenses = data.expenses.reduce((sum, e) => sum + e.amount, 0);
 
-  const totalGuests = data.functions.reduce((sum, fn) => sum + (fn.guestCount ?? 0), 0);
-
   return {
     functionCount: data.functions.length,
     upcomingCount: data.functions.filter((f) => isUpcoming(f.date, now)).length,
@@ -211,7 +204,6 @@ export function selectOverview(data: Dataset, now = new Date()): OverviewStats {
     entryCount,
     totalExpenses,
     averageMoi: entryCount ? Math.round(totalMoi / entryCount) : 0,
-    totalGuests,
     balance: totalMoi - totalExpenses,
   };
 }
@@ -298,7 +290,6 @@ export interface FunctionReportRow {
   type: FunctionEvent['type'];
   collected: number;
   entryCount: number;
-  guestCount: number;
   expenses: number;
 }
 
@@ -306,7 +297,6 @@ export interface FunctionReport {
   rows: FunctionReportRow[];
   totalCollection: number;
   totalFunctions: number;
-  totalGuests: number;
   averageMoi: number;
   totalExpenses: number;
 }
@@ -323,7 +313,6 @@ export function buildFunctionReport(data: Dataset, range?: DateRange): FunctionR
         type: fn.type,
         collected: stats.collected,
         entryCount: stats.entryCount,
-        guestCount: stats.guests,
         expenses: stats.expenses,
       };
     })
@@ -336,7 +325,6 @@ export function buildFunctionReport(data: Dataset, range?: DateRange): FunctionR
     rows,
     totalCollection,
     totalFunctions: rows.length,
-    totalGuests: rows.reduce((s, r) => s + r.guestCount, 0),
     averageMoi: totalEntries ? Math.round(totalCollection / totalEntries) : 0,
     totalExpenses: rows.reduce((s, r) => s + r.expenses, 0),
   };
