@@ -1,4 +1,6 @@
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import { Alert, Platform, Share } from 'react-native';
 
 import { paymentTypeMeta } from '../domain/functionTypes';
@@ -263,39 +265,75 @@ export function buildReceiptText(receipt: ReceiptData): string {
 }
 
 /** What actually happened, so the caller can tell the user. */
-export type ShareOutcome = 'shared' | 'copied' | 'unavailable';
+export type ShareOutcome = 'shared-pdf' | 'shared-text' | 'copied' | 'print-instead' | 'unavailable';
 
 /**
- * Shares the receipt as text.
+ * Shares the receipt as a PDF of the printed sheet.
  *
- * Text rather than a PDF attachment: these go to family over WhatsApp, where a
- * message is read immediately and a file has to be opened first.
+ * On a phone `printToFileAsync` renders the same html the printer would get,
+ * and the share sheet hands over that file — so what the guest receives is the
+ * receipt itself, not a description of it.
  *
- * `Share.share` rejects outright in a browser without the Web Share API — most
- * desktop browsers, and anything not on HTTPS — so the receipt goes to the
- * clipboard there instead of the share silently doing nothing.
+ * The web build cannot do this: `expo-print` there is `window.print()` and
+ * produces no file, and a browser PDF would mean pulling in a renderer. So web
+ * shares the text and says so, with Print → "save as PDF" as the way to get
+ * the document.
  */
 export async function shareReceipt(receipt: ReceiptData): Promise<ShareOutcome> {
+  const html = buildReceiptHtml(receipt);
   const text = buildReceiptText(receipt);
 
+  if (Platform.OS !== 'web') {
+    try {
+      if (await Sharing.isAvailableAsync()) {
+        const { uri } = await Print.printToFileAsync({ html, base64: false });
+
+        // printToFileAsync names the file randomly; rename it so the share
+        // sheet and the receiving app show the receipt number.
+        const target = `${FileSystem.cacheDirectory}moi-receipt-${receipt.receiptNo}.pdf`;
+        let fileUri = uri;
+        try {
+          await FileSystem.moveAsync({ from: uri, to: target });
+          fileUri = target;
+        } catch {
+          // A failed rename is cosmetic — share the original rather than fail.
+        }
+
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'application/pdf',
+          dialogTitle: 'Share receipt',
+          UTI: 'com.adobe.pdf',
+        });
+        return 'shared-pdf';
+      }
+
+      await Share.share({ message: text });
+      return 'shared-text';
+    } catch (error) {
+      if (error instanceof Error && /cancel|abort|dismiss/i.test(error.message)) {
+        return 'shared-pdf';
+      }
+      return 'unavailable';
+    }
+  }
+
+  // Web: no PDF to hand over, so send the text and point at Print for the file.
   try {
     await Share.share({ message: text, title: `Moi receipt \u00B7 ${receipt.receiptNo}` });
-    return 'shared';
+    return 'shared-text';
   } catch (error) {
-    // Dismissing the sheet is a normal outcome, not a failure.
-    if (error instanceof Error && /cancel|abort|dismiss/i.test(error.message)) return 'shared';
-
-    if (Platform.OS === 'web') {
-      try {
-        const clipboard = (globalThis as { navigator?: Navigator }).navigator?.clipboard;
-        if (clipboard?.writeText) {
-          await clipboard.writeText(text);
-          return 'copied';
-        }
-      } catch {
-        // Clipboard can be blocked by permissions; fall through.
-      }
+    if (error instanceof Error && /cancel|abort|dismiss/i.test(error.message)) {
+      return 'shared-text';
     }
-    return 'unavailable';
+    try {
+      const clipboard = (globalThis as { navigator?: Navigator }).navigator?.clipboard;
+      if (clipboard?.writeText) {
+        await clipboard.writeText(text);
+        return 'copied';
+      }
+    } catch {
+      // Clipboard can be blocked by permissions; fall through.
+    }
+    return 'print-instead';
   }
 }

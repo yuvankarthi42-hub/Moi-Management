@@ -37,12 +37,14 @@ export function MoiEntrySheet({
     const outcome = await shareReceipt(receipt);
     if (outcome === 'copied') {
       showToast({ message: 'Receipt copied to the clipboard', aboveTabBar: false });
-    } else if (outcome === 'unavailable') {
+    } else if (outcome === 'print-instead') {
       showToast({
-        message: 'Sharing is unavailable here \u2014 use Print instead',
-        variant: 'error',
+        message: 'Use Print \u2192 save as PDF to get the file',
+        variant: 'info',
         aboveTabBar: false,
       });
+    } else if (outcome === 'unavailable') {
+      showToast({ message: 'Could not share the receipt', variant: 'error', aboveTabBar: false });
     }
   };
 

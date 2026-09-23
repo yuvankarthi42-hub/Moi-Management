@@ -150,12 +150,17 @@ where a message is read at once and an attachment has to be opened first; Print
 covers the formatted document, and its dialog offers save-as-PDF on both
 platforms.
 
-> Both receipt actions need help on the web build, where the Expo modules fall
-> back to no-ops: `expo-print` is `window.print()` and ignores the html it is
-> given, so the receipt is rendered into an offscreen iframe and that frame is
-> printed; `Share.share` rejects outright without the Web Share API, so the
-> receipt goes to the clipboard instead and the toast says so. Both are native
-> behaviour on iOS and Android.
+On a phone, **Share sends the PDF** — `printToFileAsync` renders the same html
+the printer receives, the file is renamed to its receipt number, and the share
+sheet hands it over. So the guest gets the receipt itself, not a description
+of it.
+
+> The web build cannot do either natively, because Expo's modules are no-ops
+> there: `expo-print` is `window.print()` and ignores the html it is handed,
+> and it produces no file at all. So on web the receipt is rendered into an
+> offscreen iframe and *that* frame is printed, and Share falls back to the
+> text (or the clipboard) with a hint to use Print → save as PDF for the
+> document. Both behave properly on iOS and Android.
 
 **Save feedback** — every add, update and delete confirms. Success is a toast
 rather than a blocking alert, because recording moi at a function means dozens
