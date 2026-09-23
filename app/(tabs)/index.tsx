@@ -226,9 +226,9 @@ const useStyles = makeStyles((colors) => ({
     borderTopColor: colors.border,
   },
   headerAction: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.xs,

@@ -25,9 +25,9 @@ export function SectionHeader({
       {actionLabel && onAction ? (
         <Pressable
           onPress={onAction}
-          hitSlop={10}
           accessibilityRole="button"
-          style={({ pressed }) => pressed && styles.pressed}
+          // Padded to a 44pt target rather than the text's own line height.
+          style={({ pressed }) => [styles.action, pressed && styles.pressed]}
         >
           <T variant="smallStrong" tone="primary">
             {actionLabel}
@@ -45,11 +45,16 @@ const useStyles = makeStyles((colors) => ({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     marginTop: spacing.xl,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   title: {
     flex: 1,
     marginRight: spacing.md,
+  },
+  action: {
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingLeft: spacing.md,
   },
   pressed: {
     opacity: 0.6,

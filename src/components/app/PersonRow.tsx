@@ -51,7 +51,7 @@ export function PersonRow({
               owe?" without opening each profile. */}
           <Money value={person.totalReceived} flow="out" variant="bodyStrong" />
           {person.balance > 0 ? (
-            <T variant="caption" tone="warning" style={styles.trailingSub}>
+            <T variant="smallStrong" tone="warning" style={styles.trailingSub}>
               {formatMoney(person.balance)} to return
             </T>
           ) : (

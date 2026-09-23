@@ -203,7 +203,7 @@ export default function PersonProfileScreen() {
             }
           />
           <T
-            variant="small"
+            variant="smallStrong"
             tone={
               balance.state === 'to-return'
                 ? 'warning'

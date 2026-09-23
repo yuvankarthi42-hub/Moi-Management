@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { HeroTotal } from '../../src/components/app/HeroTotal';
 import { ReportRow } from '../../src/components/app/ReportRow';
 import { ReportShell } from '../../src/components/app/ReportShell';
 import { Card, EmptyState, IconTile, StatRow, T } from '../../src/components/ui';
@@ -39,15 +40,13 @@ export default function ExpenseReportScreen() {
 
         return (
           <>
-            <View style={styles.total}>
-              <T variant="small" color={colors.onPrimaryMuted}>
-                Total spent across {report.functionCount}{' '}
-                {report.functionCount === 1 ? 'function' : 'functions'}
-              </T>
-              <T variant="display" tone="onPrimary" adjustsFontSizeToFit numberOfLines={1}>
-                {formatMoney(report.total)}
-              </T>
-            </View>
+            <HeroTotal
+              tone="danger"
+              label={`Total spent across ${report.functionCount} ${
+                report.functionCount === 1 ? 'function' : 'functions'
+              }`}
+              value={formatMoney(report.total)}
+            />
 
             <Card style={styles.statsCard}>
               <StatRow
@@ -82,12 +81,6 @@ export default function ExpenseReportScreen() {
 }
 
 const useStyles = makeStyles((colors) => ({
-  total: {
-    backgroundColor: colors.danger,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
-  },
   statsCard: {
     marginTop: spacing.md,
     paddingVertical: spacing.md,

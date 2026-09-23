@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { HeroTotal } from '../../src/components/app/HeroTotal';
 import { ReportShell } from '../../src/components/app/ReportShell';
 import { Card, EmptyState, StatRow, T } from '../../src/components/ui';
 import { buildCollectionReport } from '../../src/domain/selectors';
@@ -39,15 +40,13 @@ export default function CollectionReportScreen() {
 
         return (
           <>
-            <View style={styles.total}>
-              <T variant="small" color={colors.onPrimaryMuted}>
-                Collected across {report.rows.length}{' '}
-                {report.rows.length === 1 ? 'month' : 'months'}
-              </T>
-              <T variant="display" tone="onPrimary" adjustsFontSizeToFit numberOfLines={1}>
-                {formatMoney(report.total)}
-              </T>
-            </View>
+            <HeroTotal
+              tone="success"
+              label={`Collected across ${report.rows.length} ${
+                report.rows.length === 1 ? 'month' : 'months'
+              }`}
+              value={formatMoney(report.total)}
+            />
 
             <Card style={styles.statsCard}>
               <StatRow
@@ -93,12 +92,6 @@ export default function CollectionReportScreen() {
 }
 
 const useStyles = makeStyles((colors) => ({
-  total: {
-    backgroundColor: colors.success,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
-  },
   statsCard: {
     marginTop: spacing.md,
     paddingVertical: spacing.md,

@@ -140,7 +140,9 @@ export function Badge({
 
   return (
     <View style={[styles.badge, { backgroundColor: palette.bg }, style]}>
-      <Text style={[typography.captionStrong, { color: palette.fg }]} numberOfLines={1}>
+      {/* 14px semibold rather than 12px: it reads at arm's length, and it is
+          "large text" for contrast purposes, which the tinted badge pairs need. */}
+      <Text style={[typography.smallStrong, { color: palette.fg }]} numberOfLines={1}>
         {label}
       </Text>
     </View>
@@ -164,8 +166,8 @@ const useStyles = makeStyles((colors) => ({
   },
   chip: {
     // minHeight rather than height, so a chip grows with the device's font
-    // scale instead of clipping its label.
-    minHeight: 34,
+    // scale instead of clipping its label. 44 is the comfortable touch target.
+    minHeight: 44,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.lg,
     borderRadius: radius.pill,

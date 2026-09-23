@@ -35,8 +35,8 @@ interface VariantPalette {
 function variantPalette(variant: Variant, colors: Palette): VariantPalette {
   switch (variant) {
     case 'secondary': return { bg: colors.primarySoft, fg: colors.primary };
-    case 'success': return { bg: colors.success, fg: '#FFFFFF' };
-    case 'danger': return { bg: colors.danger, fg: '#FFFFFF' };
+    case 'success': return { bg: colors.success, fg: colors.onSuccess };
+    case 'danger': return { bg: colors.danger, fg: colors.onDanger };
     case 'ghost': return { bg: 'transparent', fg: colors.primary };
     case 'outline':
       return { bg: colors.surface, fg: colors.primary, border: colors.borderStrong };

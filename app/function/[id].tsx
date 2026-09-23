@@ -478,8 +478,8 @@ const useStyles = makeStyles((colors) => ({
     paddingHorizontal: spacing.md,
   },
   heroButton: {
-    width: 38,
-    height: 38,
+    width: 44,
+    height: 44,
     borderRadius: radius.pill,
     backgroundColor: 'rgba(0,0,0,0.32)',
     alignItems: 'center',

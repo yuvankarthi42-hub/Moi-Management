@@ -7,6 +7,7 @@ import { makeStyles, radius, shadow, spacing, useColors } from '../../theme';
 import { printReceipt, shareReceipt, type ReceiptData } from '../../services/receiptService';
 import { formatMoney } from '../../utils/format';
 import { Button } from '../ui/Button';
+import { useToast } from '../ui/Toast';
 import { Confetti } from '../ui/Confetti';
 import { T } from '../ui/Text';
 
@@ -42,6 +43,20 @@ export function MoiSavedSheet({
   const styles = useStyles();
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { showToast } = useToast();
+
+  const share = async (data: ReceiptData) => {
+    const outcome = await shareReceipt(data);
+    if (outcome === 'copied') {
+      showToast({ message: 'Receipt copied to the clipboard', aboveTabBar: false });
+    } else if (outcome === 'unavailable') {
+      showToast({
+        message: 'Sharing is unavailable here \u2014 use Print instead',
+        variant: 'error',
+        aboveTabBar: false,
+      });
+    }
+  };
   const given = details?.direction === 'given';
 
   return (
@@ -94,7 +109,7 @@ export function MoiSavedSheet({
                 variant="outline"
                 size="md"
                 block
-                onPress={() => shareReceipt(details.receipt!)}
+                onPress={() => share(details.receipt!)}
               />
             </View>
           ) : null}

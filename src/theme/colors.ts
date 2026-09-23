@@ -33,6 +33,15 @@ export interface Palette {
   dangerSoft: string;
   warning: string;
   warningSoft: string;
+  /**
+   * Text colour for a solid success/danger/warning fill. White works on the
+   * light palette's deep greens and reds, but the dark palette brightens those
+   * hues for legibility *as text*, and white on them drops to ~2:1 — so dark
+   * mode pairs them with near-black instead.
+   */
+  onSuccess: string;
+  onDanger: string;
+  onWarning: string;
   info: string;
   infoSoft: string;
   amountOut: string;
@@ -64,22 +73,25 @@ export const lightColors: Palette = {
   // Text
   text: '#171717',
   textSecondary: '#525252',
-  textMuted: '#737373',
+  textMuted: '#6B6B6B',
   onPrimary: '#FFFFFF',
   onPrimaryMuted: '#C9C0EC',
 
   // Semantic
   success: '#159447',
   successSoft: '#E3F5EA',
-  danger: '#E53935',
+  danger: '#D32F2F',
   dangerSoft: '#FDECEC',
-  warning: '#D98014',
+  warning: '#C37312',
   warningSoft: '#FCF2E3',
   info: '#2563EB',
   infoSoft: '#E6EDFD',
+  onSuccess: '#FFFFFF',
+  onDanger: '#FFFFFF',
+  onWarning: '#FFFFFF',
 
   /** Money that flows out of the household (moi we gave). */
-  amountOut: '#E53935',
+  amountOut: '#D32F2F',
   /** Money that flows in (moi collected). */
   amountIn: '#159447',
 
@@ -91,8 +103,11 @@ export const lightColors: Palette = {
 
 /** Deterministic avatar background colours for people without a photo. */
 export const avatarPalette = [
-  '#3F20B5', '#159447', '#D98014', '#2563EB',
-  '#C2185B', '#0891B2', '#B8860B', '#6D28D9',
+  // Every entry clears 4.5:1 against the white initials drawn on top — the
+  // initials render around 12px on the smaller avatars, which is normal-text
+  // size for contrast purposes, not large.
+  '#3F20B5', '#137A3C', '#AC650E', '#1D5FD4',
+  '#C2185B', '#0A7490', '#94690A', '#6D28D9',
 ] as const;
 
 /**
@@ -133,6 +148,9 @@ export const darkColors: Palette = {
   warningSoft: '#3A2A12',
   info: '#6E9BFF',
   infoSoft: '#17203A',
+  onSuccess: '#08150E',
+  onDanger: '#2A0B0A',
+  onWarning: '#2A1A05',
 
   amountOut: '#FF6B66',
   amountIn: '#3FCB7C',

@@ -10,6 +10,7 @@ import { formatMoney } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { Sheet } from '../ui/Sheet';
+import { useToast } from '../ui/Toast';
 import { T } from '../ui/Text';
 
 /**
@@ -29,6 +30,21 @@ export function MoiEntrySheet({
 }) {
   const styles = useStyles();
   const { data } = useAppData();
+  const { showToast } = useToast();
+
+  const share = async () => {
+    if (!receipt) return;
+    const outcome = await shareReceipt(receipt);
+    if (outcome === 'copied') {
+      showToast({ message: 'Receipt copied to the clipboard', aboveTabBar: false });
+    } else if (outcome === 'unavailable') {
+      showToast({
+        message: 'Sharing is unavailable here \u2014 use Print instead',
+        variant: 'error',
+        aboveTabBar: false,
+      });
+    }
+  };
 
   const entry = useMemo(
     () => data.moiEntries.find((e) => e.id === entryId),
@@ -96,7 +112,7 @@ export function MoiEntrySheet({
               icon="share-social-outline"
               variant="outline"
               block
-              onPress={() => shareReceipt(receipt)}
+              onPress={share}
             />
           </View>
 

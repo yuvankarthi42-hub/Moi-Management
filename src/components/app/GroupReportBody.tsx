@@ -6,6 +6,7 @@ import { colors, makeStyles, radius, spacing, useColors } from '../../theme';
 import { Card } from '../ui/Card';
 import { EmptyState } from '../ui/EmptyState';
 import { T } from '../ui/Text';
+import { HeroTotal } from './HeroTotal';
 import { ReportRow } from './ReportRow';
 
 /** Shared body for the village and family reports — identical shape, different grouping. */
@@ -36,14 +37,10 @@ export function GroupReportBody({
 
   return (
     <>
-      <View style={styles.total}>
-        <T variant="small" color={colors.onPrimaryMuted}>
-          Total across {rows.length} {rows.length === 1 ? unitSingular : unitPlural}
-        </T>
-        <T variant="h1" tone="onPrimary" adjustsFontSizeToFit numberOfLines={1}>
-          {`₹${total.toLocaleString('en-IN')}`}
-        </T>
-      </View>
+      <HeroTotal
+        label={`Total across ${rows.length} ${rows.length === 1 ? unitSingular : unitPlural}`}
+        value={`₹${total.toLocaleString('en-IN')}`}
+      />
 
       <Card padded={false} style={styles.list}>
         {rows.map((row, index) => (
@@ -51,7 +48,7 @@ export function GroupReportBody({
             key={row.key}
             leading={
               <View style={styles.rank}>
-                <T variant="captionStrong" tone="primary">
+                <T variant="smallStrong" tone="primary">
                   {index + 1}
                 </T>
               </View>
@@ -71,18 +68,12 @@ export function GroupReportBody({
 }
 
 const useStyles = makeStyles((colors) => ({
-  total: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
-  },
   list: {
     marginTop: spacing.md,
   },
   rank: {
-    width: 28,
-    height: 28,
+    width: 30,
+    height: 30,
     borderRadius: radius.pill,
     backgroundColor: colors.primarySoft,
     alignItems: 'center',

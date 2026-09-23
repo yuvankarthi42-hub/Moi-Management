@@ -57,7 +57,7 @@ export default function TopContributorsScreen() {
                       </T>
                     ) : (
                       <View style={styles.rank}>
-                        <T variant="captionStrong" tone="secondary">
+                        <T variant="smallStrong" tone="secondary">
                           {row.rank}
                         </T>
                       </View>
@@ -85,8 +85,8 @@ const useStyles = makeStyles((colors) => ({
     lineHeight: 28,
   },
   rank: {
-    width: 28,
-    height: 28,
+    width: 30,
+    height: 30,
     borderRadius: radius.pill,
     backgroundColor: colors.border,
     alignItems: 'center',

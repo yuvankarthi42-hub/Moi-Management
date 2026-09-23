@@ -200,7 +200,7 @@ function ReturnCard({
       ) : (
         <View style={styles.returnedFooter}>
           <Ionicons name="checkmark-circle" size={15} color={colors.success} />
-          <T variant="caption" tone="success">
+          <T variant="smallStrong" tone="success">
             Returned
           </T>
         </View>
@@ -214,7 +214,9 @@ const useStyles = makeStyles((colors) => ({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: colors.primary,
+    // headerGradient[0] is dark in both themes, unlike `primary`, which the
+    // dark palette brightens for use as text.
+    backgroundColor: colors.headerGradient[0],
     borderRadius: radius.lg,
     padding: spacing.lg,
     marginBottom: spacing.lg,

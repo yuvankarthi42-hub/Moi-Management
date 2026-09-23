@@ -1,5 +1,5 @@
 import * as Print from 'expo-print';
-import { Alert, Share } from 'react-native';
+import { Alert, Platform, Share } from 'react-native';
 
 import { paymentTypeMeta } from '../domain/functionTypes';
 import type { FunctionEvent, MoiEntry, Person } from '../domain/models';
@@ -216,23 +216,40 @@ export function buildReceiptText(receipt: ReceiptData): string {
     .join('\n');
 }
 
+/** What actually happened, so the caller can tell the user. */
+export type ShareOutcome = 'shared' | 'copied' | 'unavailable';
+
 /**
  * Shares the receipt as text.
  *
  * Text rather than a PDF attachment: these go to family over WhatsApp, where a
- * message is read immediately and a file has to be opened first. The formatted
- * document is still one tap away through Print, whose dialog offers "save as
- * PDF" on both platforms.
+ * message is read immediately and a file has to be opened first.
+ *
+ * `Share.share` rejects outright in a browser without the Web Share API — most
+ * desktop browsers, and anything not on HTTPS — so the receipt goes to the
+ * clipboard there instead of the share silently doing nothing.
  */
-export async function shareReceipt(receipt: ReceiptData): Promise<void> {
+export async function shareReceipt(receipt: ReceiptData): Promise<ShareOutcome> {
+  const text = buildReceiptText(receipt);
+
   try {
-    await Share.share({
-      message: buildReceiptText(receipt),
-      title: `Moi receipt \u00B7 ${receipt.receiptNo}`,
-    });
+    await Share.share({ message: text, title: `Moi receipt \u00B7 ${receipt.receiptNo}` });
+    return 'shared';
   } catch (error) {
-    // Dismissing the share sheet is not a failure worth reporting.
-    if (error instanceof Error && /cancel|dismiss/i.test(error.message)) return;
-    Alert.alert('Could not share', 'The receipt could not be shared.');
+    // Dismissing the sheet is a normal outcome, not a failure.
+    if (error instanceof Error && /cancel|abort|dismiss/i.test(error.message)) return 'shared';
+
+    if (Platform.OS === 'web') {
+      try {
+        const clipboard = (globalThis as { navigator?: Navigator }).navigator?.clipboard;
+        if (clipboard?.writeText) {
+          await clipboard.writeText(text);
+          return 'copied';
+        }
+      } catch {
+        // Clipboard can be blocked by permissions; fall through.
+      }
+    }
+    return 'unavailable';
   }
 }

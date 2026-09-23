@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { HeroTotal } from '../../src/components/app/HeroTotal';
 import { ReportRow } from '../../src/components/app/ReportRow';
 import { ReportShell } from '../../src/components/app/ReportShell';
 import { Card, EmptyState, IconTile, StatRow, T } from '../../src/components/ui';
@@ -35,14 +36,7 @@ export default function FunctionReportScreen() {
 
         return (
           <>
-            <View style={styles.total}>
-              <T variant="small" color={colors.onPrimaryMuted}>
-                Total Collection
-              </T>
-              <T variant="display" tone="onPrimary" adjustsFontSizeToFit numberOfLines={1}>
-                {formatMoney(report.totalCollection)}
-              </T>
-            </View>
+            <HeroTotal label="Total collection" value={formatMoney(report.totalCollection)} />
 
             <Card style={styles.statsCard}>
               <StatRow
@@ -104,12 +98,6 @@ export default function FunctionReportScreen() {
 }
 
 const useStyles = makeStyles((colors) => ({
-  total: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
-  },
   statsCard: {
     marginTop: spacing.md,
     paddingVertical: spacing.md,
