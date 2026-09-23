@@ -232,7 +232,16 @@ the original mockups.
 > web build is for demos, review and sharing a link; treat it as a preview of
 > the product, not the product itself.
 
-Config lives in [`vercel.json`](vercel.json):
+Config lives in [`vercel.json`](vercel.json). Note it carries **no comments** —
+`vercel.json` is validated against a strict schema that rejects any property it
+does not define, so the reasoning lives here instead:
+
+- The **rewrite** sends any path that is not a real file to the app shell, so a
+  hard refresh on `/function/<id>` resolves in the client router.
+- Fingerprinted bundles under `/_expo/static` are immutable and cached for a
+  year; `index.html` must revalidate every time, or a deploy serves a stale
+  shell pointing at bundles that no longer exist.
+
 
 | Setting | Value |
 | --- | --- |
