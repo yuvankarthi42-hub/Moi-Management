@@ -1,6 +1,4 @@
-import * as FileSystem from 'expo-file-system/legacy';
 import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
 import { Alert, Share } from 'react-native';
 
 import { paymentTypeMeta } from '../domain/functionTypes';
@@ -174,59 +172,62 @@ export async function printReceipt(receipt: ReceiptData): Promise<void> {
   }
 }
 
-/** Plain-text version, for sharing over WhatsApp and the like. */
+/**
+ * The receipt as plain text.
+ *
+ * Carries every line the printed receipt shows, because this is what a guest
+ * actually receives over WhatsApp — a PDF arrives as a file they have to open,
+ * while text is readable the moment it lands.
+ */
 export function buildReceiptText(receipt: ReceiptData): string {
+  const line = (label: string, value?: string) => (value ? `${label}: ${value}` : undefined);
+
   return [
-    `${receipt.functionTitle}`,
+    receipt.functionTitle,
     `${formatDateLong(receipt.functionDate)}${
-      receipt.functionVenue ? ` · ${receipt.functionVenue}` : ''
+      receipt.functionVenue ? ` \u00B7 ${receipt.functionVenue}` : ''
     }`,
     '',
-    `Moi received: ${formatMoney(receipt.amount)}`,
-    `(${receipt.amountWords})`,
+    'MOI RECEIVED WITH GRATITUDE',
+    formatMoney(receipt.amount),
+    receipt.amountWords,
     '',
-    `From: ${receipt.personName}`,
-    receipt.personVillage ? `Village: ${receipt.personVillage}` : undefined,
-    `Payment: ${receipt.paymentLabel}`,
-    `Receipt no: ${receipt.receiptNo}`,
+    line('From', receipt.personName),
+    line('Phone', receipt.personPhone ? formatPhone(receipt.personPhone) : undefined),
+    line('Village', receipt.personVillage),
+    line('Payment', receipt.paymentLabel),
+    line(
+      'Recorded',
+      `${formatDate(receipt.recordedAt.slice(0, 10))}, ${formatTime(receipt.recordedAt)}`,
+    ),
+    line('Receipt no', receipt.receiptNo),
+    line('Note', receipt.notes),
     '',
     'Thank you for your kindness and blessings on this special day.',
-    `— ${receipt.hostName} and family`,
+    `\u2014 ${receipt.hostName} and family`,
+    '',
+    'Recorded with Moi Manager',
   ]
-    .filter((line) => line !== undefined)
+    .filter((entry) => entry !== undefined)
     .join('\n');
 }
 
 /**
- * Shares the receipt as a PDF, falling back to plain text.
+ * Shares the receipt as text.
  *
- * A PDF is what a guest can actually keep, but sharing files is unavailable on
- * web and on some restricted devices — there the message itself carries the
- * same details rather than failing.
+ * Text rather than a PDF attachment: these go to family over WhatsApp, where a
+ * message is read immediately and a file has to be opened first. The formatted
+ * document is still one tap away through Print, whose dialog offers "save as
+ * PDF" on both platforms.
  */
 export async function shareReceipt(receipt: ReceiptData): Promise<void> {
   try {
-    if (await Sharing.isAvailableAsync()) {
-      const { uri } = await Print.printToFileAsync({
-        html: buildReceiptHtml(receipt),
-        base64: false,
-      });
-      const target = `${FileSystem.cacheDirectory}moi-receipt-${receipt.receiptNo}.pdf`;
-      try {
-        await FileSystem.moveAsync({ from: uri, to: target });
-        await Sharing.shareAsync(target, {
-          mimeType: 'application/pdf',
-          dialogTitle: 'Share receipt',
-          UTI: 'com.adobe.pdf',
-        });
-        return;
-      } catch {
-        await Sharing.shareAsync(uri, { mimeType: 'application/pdf' });
-        return;
-      }
-    }
-    await Share.share({ message: buildReceiptText(receipt) });
+    await Share.share({
+      message: buildReceiptText(receipt),
+      title: `Moi receipt \u00B7 ${receipt.receiptNo}`,
+    });
   } catch (error) {
+    // Dismissing the share sheet is not a failure worth reporting.
     if (error instanceof Error && /cancel|dismiss/i.test(error.message)) return;
     Alert.alert('Could not share', 'The receipt could not be shared.');
   }

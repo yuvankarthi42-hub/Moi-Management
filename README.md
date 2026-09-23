@@ -143,7 +143,10 @@ sheet, or later by tapping the entry in a function's moi list. The receipt
 carries a thank-you, the amount in figures and in words (Indian numbering — "One
 Thousand and One Rupees Only"), the giver's details, the function, payment type,
 timestamp and a receipt number taken from the entry's place in that function's
-book. Where file sharing is unavailable, the same details go as plain text.
+book. **Share sends it as text, not a file** — these go to family over WhatsApp,
+where a message is read at once and an attachment has to be opened first; Print
+covers the formatted document, and its dialog offers save-as-PDF on both
+platforms.
 
 **Save feedback** — every add, update and delete confirms. Success is a toast
 rather than a blocking alert, because recording moi at a function means dozens

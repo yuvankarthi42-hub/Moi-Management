@@ -92,15 +92,51 @@ describe('receipt', () => {
     expect(html).toContain('&lt;script&gt;');
   });
 
-  it('builds a plain-text version for messaging apps', () => {
+  it('carries every printed detail into the shared text', () => {
     const receipt = buildReceipt({
       entry, functionEntries: all, person, fn, hostName: 'Karthick',
     });
     const text = buildReceiptText(receipt);
 
-    expect(text).toContain('₹1,001');
-    expect(text).toContain('B. Murugan');
-    expect(text).toContain('MOI-0002');
+    // The shared message must say everything the printed receipt shows —
+    // a guest reading it on WhatsApp gets no second page.
+    for (const expected of [
+      'Karthick Wedding',
+      'Meenakshi Mahal',
+      'MOI RECEIVED WITH GRATITUDE',
+      '₹1,001',
+      'One Thousand and One Rupees Only',
+      'From: B. Murugan',
+      'Phone: 98765 43210',
+      'Village: Tenkasi',
+      'Payment: Cash',
+      'Recorded: 13 May 2026',
+      'Receipt no: MOI-0002',
+      'Note: Happy wishes',
+      'Thank you for your kindness',
+      'Karthick and family',
+      'Recorded with Moi Manager',
+    ]) {
+      expect(text).toContain(expected);
+    }
+
+    // Plain text, no markup leaking through from the html version.
     expect(text).not.toContain('<');
+  });
+
+  it('omits a line rather than printing an empty one', () => {
+    const receipt = buildReceipt({
+      entry: { ...entry, notes: undefined },
+      functionEntries: all,
+      person: { ...person, phone: undefined, village: undefined },
+      fn,
+      hostName: 'Karthick',
+    });
+    const text = buildReceiptText(receipt);
+
+    expect(text).not.toContain('Phone:');
+    expect(text).not.toContain('Village:');
+    expect(text).not.toContain('Note:');
+    expect(text).toContain('From: B. Murugan');
   });
 });
