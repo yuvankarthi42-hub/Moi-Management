@@ -150,6 +150,13 @@ where a message is read at once and an attachment has to be opened first; Print
 covers the formatted document, and its dialog offers save-as-PDF on both
 platforms.
 
+> Both receipt actions need help on the web build, where the Expo modules fall
+> back to no-ops: `expo-print` is `window.print()` and ignores the html it is
+> given, so the receipt is rendered into an offscreen iframe and that frame is
+> printed; `Share.share` rejects outright without the Web Share API, so the
+> receipt goes to the clipboard instead and the toast says so. Both are native
+> behaviour on iOS and Android.
+
 **Save feedback** — every add, update and delete confirms. Success is a toast
 rather than a blocking alert, because recording moi at a function means dozens
 of saves in a row and an OK button on each would be punishing; deletes of a moi
