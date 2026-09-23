@@ -209,10 +209,14 @@ export default function FunctionDetailScreen() {
           <View style={styles.statsWrap}>
             <StatRow
               compactLabels
+              // The three figures that are actually recorded against this
+              // function. A guest count used to sit here, but with the guest
+              // list gone it was only ever a number typed on the form — unlike
+              // these, which are summed from real entries.
               items={[
-                { label: 'Guests', value: formatCount(fn.guestCount ?? 0) },
-                { label: 'Moi Collected', value: formatMoneyCompact(fn.collected), tone: 'success' },
                 { label: 'Moi Entries', value: formatCount(fn.entryCount) },
+                { label: 'Moi Collected', value: formatMoneyCompact(fn.collected), tone: 'success' },
+                { label: 'Expenses', value: formatMoneyCompact(fn.expenses), tone: 'danger' },
               ]}
             />
           </View>
