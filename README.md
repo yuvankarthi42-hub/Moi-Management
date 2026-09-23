@@ -142,8 +142,10 @@ cannot bypass one by rendering a button.
 sheet, or later by tapping the entry in a function's moi list. The receipt
 carries a thank-you, the amount in figures and in words (Indian numbering — "One
 Thousand and One Rupees Only"), the giver's details, the function, payment type,
-timestamp and a receipt number taken from the entry's place in that function's
-book. **Share sends it as text, not a file** — these go to family over WhatsApp,
+timestamp and a receipt number combining the function's date with the entry's
+place in that function's book (`MOI-260513-002`) — the sequence restarts per
+function, so without the date every function's first receipt would read the
+same. **Share sends it as text, not a file** — these go to family over WhatsApp,
 where a message is read at once and an attachment has to be opened first; Print
 covers the formatted document, and its dialog offers save-as-PDF on both
 platforms.

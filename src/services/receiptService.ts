@@ -50,16 +50,20 @@ export function buildReceipt({
   fn?: FunctionEvent;
   hostName: string;
 }): ReceiptData {
-  // A short, stable number from the entry's position in the function's book —
-  // what a paper receipt book would give you.
+  // Position in this function's own book, the way a paper receipt book runs.
   const indexInFunction =
     [...functionEntries]
       .filter((e) => e.functionId === entry.functionId)
       .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt))
       .findIndex((e) => e.id === entry.id) + 1;
 
+  // Prefixed with the function's date, because the sequence restarts for every
+  // function: without it the first entry of every function is "MOI-0001", and
+  // a guest holding one receipt cannot tell which book it came from.
+  const datePart = (fn?.date ?? entry.recordedAt.slice(0, 10)).replace(/-/g, '').slice(2);
+
   return {
-    receiptNo: `MOI-${String(Math.max(indexInFunction, 1)).padStart(4, '0')}`,
+    receiptNo: `MOI-${datePart}-${String(Math.max(indexInFunction, 1)).padStart(3, '0')}`,
     amount: entry.amount,
     amountWords: amountInWords(entry.amount),
     personName: person?.name ?? 'Guest',

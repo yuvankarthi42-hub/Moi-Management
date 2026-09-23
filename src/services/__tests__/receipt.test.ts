@@ -46,7 +46,7 @@ describe('receipt', () => {
     const receipt = buildReceipt({
       entry, functionEntries: all, person, fn, hostName: 'Karthick',
     });
-    expect(receipt.receiptNo).toBe('MOI-0002');
+    expect(receipt.receiptNo).toBe('MOI-260513-002');
     expect(receipt.amount).toBe(1001);
     expect(receipt.amountWords).toBe('One Thousand and One Rupees Only');
     expect(receipt.personName).toBe('B. Murugan');
@@ -72,7 +72,7 @@ describe('receipt', () => {
     expect(html).toContain('B. Murugan');
     expect(html).toContain('98765 43210');
     expect(html).toContain('Tenkasi');
-    expect(html).toContain('MOI-0002');
+    expect(html).toContain('MOI-260513-002');
     expect(html).toContain('One Thousand and One Rupees Only');
     expect(html).toContain('Thank you for your kindness');
     expect(html).toContain('Karthick and family');
@@ -111,7 +111,7 @@ describe('receipt', () => {
       'Village: Tenkasi',
       'Payment: Cash',
       'Recorded: 13 May 2026',
-      'Receipt no: MOI-0002',
+      'Receipt no: MOI-260513-002',
       'Note: Happy wishes',
       'Thank you for your kindness',
       'Karthick and family',
