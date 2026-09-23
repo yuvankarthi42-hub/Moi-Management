@@ -1,7 +1,7 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
 
 import { expenseCategoryMeta } from '../domain/categories';
 import { functionTypeMeta } from '../domain/functionTypes';
@@ -13,6 +13,7 @@ import {
 } from '../domain/selectors';
 import { formatDate, formatMonth } from '../utils/date';
 import { buildCsv, type CsvSection } from './csv';
+import { canWritePdfFile, printHtml } from './printHtml';
 import { buildReportHtml, type ReportKind } from './reportHtml';
 
 export type ExportFormat = 'pdf' | 'csv';
@@ -35,6 +36,9 @@ export async function exportReport(request: ExportRequest): Promise<void> {
     const uri =
       request.format === 'pdf' ? await writePdf(request) : await writeCsv(request);
 
+    // The web PDF path opens the print dialog and produces no file to share.
+    if (!uri) return;
+
     if (await Sharing.isAvailableAsync()) {
       await Sharing.shareAsync(uri, {
         mimeType: request.format === 'pdf' ? 'application/pdf' : 'text/csv',
@@ -53,8 +57,17 @@ export async function exportReport(request: ExportRequest): Promise<void> {
   }
 }
 
-async function writePdf({ kind, data, range }: ExportRequest): Promise<string> {
+async function writePdf({ kind, data, range }: ExportRequest): Promise<string | undefined> {
   const { html, title } = buildReportHtml(kind, data, range);
+
+  // On web `printToFileAsync` is `window.print()`: it returns nothing, so
+  // destructuring its result threw. Send the report to the print dialog
+  // instead, where "save as PDF" produces the file.
+  if (!canWritePdfFile) {
+    await printHtml(html);
+    return undefined;
+  }
+
   const { uri } = await Print.printToFileAsync({ html, base64: false });
 
   // printToFileAsync produces a random filename; rename it so the share sheet
@@ -277,20 +290,6 @@ function buildCsvSections(
       };
     }
   }
-}
-
-/** Opens the platform print dialog for a report, bypassing the share sheet. */
-export async function printReport(
-  kind: ReportKind,
-  data: Dataset,
-  range?: DateRange,
-): Promise<void> {
-  const { html } = buildReportHtml(kind, data, range);
-  if (Platform.OS === 'web') {
-    await Print.printAsync({ html });
-    return;
-  }
-  await Print.printAsync({ html });
 }
 
 export type { ReportKind } from './reportHtml';

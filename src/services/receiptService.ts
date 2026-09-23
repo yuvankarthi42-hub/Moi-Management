@@ -1,6 +1,8 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+
+import { printHtml } from './printHtml';
 import { Alert, Platform, Share } from 'react-native';
 
 import { paymentTypeMeta } from '../domain/functionTypes';
@@ -167,56 +169,10 @@ export function buildReceiptHtml(receipt: ReceiptData): string {
   </body></html>`;
 }
 
-/**
- * Prints the receipt into a hidden frame, on web only.
- *
- * expo-print's web build is `window.print()` and nothing else — it ignores the
- * html it is handed and prints whatever is on screen, which is the app rather
- * than the receipt. Rendering into an offscreen iframe and printing that frame
- * is the only way to get the receipt itself onto the page.
- */
-async function printHtmlOnWeb(html: string): Promise<void> {
-  const doc = (globalThis as { document?: Document }).document;
-  if (!doc?.body) throw new Error('No document to print into');
-
-  const frame = doc.createElement('iframe');
-  frame.setAttribute('aria-hidden', 'true');
-  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
-  doc.body.appendChild(frame);
-
-  try {
-    const inner = frame.contentWindow;
-    const innerDoc = inner?.document;
-    if (!inner || !innerDoc) throw new Error('Print frame unavailable');
-
-    innerDoc.open();
-    innerDoc.write(html);
-    innerDoc.close();
-
-    // Give the frame a tick to lay out; printing an empty document otherwise.
-    await new Promise<void>((resolve) => {
-      if (innerDoc.readyState === 'complete') resolve();
-      else frame.onload = () => resolve();
-      setTimeout(resolve, 400);
-    });
-
-    inner.focus();
-    inner.print();
-  } finally {
-    // The dialog is modal, so the frame can only go once it has been dismissed.
-    setTimeout(() => frame.remove(), 1000);
-  }
-}
-
 /** Opens the platform print dialog for the receipt. */
 export async function printReceipt(receipt: ReceiptData): Promise<void> {
-  const html = buildReceiptHtml(receipt);
   try {
-    if (Platform.OS === 'web') {
-      await printHtmlOnWeb(html);
-      return;
-    }
-    await Print.printAsync({ html });
+    await printHtml(buildReceiptHtml(receipt));
   } catch (error) {
     // Dismissing the print dialog throws on iOS; that is not worth reporting.
     if (error instanceof Error && /cancel|abort/i.test(error.message)) return;
