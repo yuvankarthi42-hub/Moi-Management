@@ -16,6 +16,7 @@ import { PAYMENT_TYPES, functionTypeMeta, paymentTypeMeta } from '../../src/doma
 import type { ID, PaymentType } from '../../src/domain/models';
 import { selectFunctions } from '../../src/domain/selectors';
 import { ValidationError } from '../../src/data';
+import { buildReceipt } from '../../src/services/receiptService';
 import { useAppData } from '../../src/store/AppDataProvider';
 import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { formatDate } from '../../src/utils/date';
@@ -92,6 +93,28 @@ export default function AddMoiScreen() {
     if (!result.canceled && result.assets[0]) setPhotoUri(result.assets[0].uri);
   };
 
+  /**
+   * Reads the entry back from storage so the receipt carries the stored
+   * timestamp and a number based on the function's real entry count.
+   */
+  const buildSavedReceipt = async (entryId: string) => {
+    try {
+      const entries = await repositories.moi.list();
+      const entry = entries.find((e) => e.id === entryId);
+      if (!entry) return undefined;
+      return buildReceipt({
+        entry,
+        functionEntries: entries,
+        person,
+        fn,
+        hostName: data.profile.name,
+      });
+    } catch {
+      // A receipt is a nicety; never let it block the save confirmation.
+      return undefined;
+    }
+  };
+
   const save = async () => {
     const next: Record<string, string> = {};
     if (!functionId) next.functionId = 'Choose which function this is for.';
@@ -113,7 +136,7 @@ export default function AddMoiScreen() {
 
     setSaving(true);
     try {
-      await addMoiEntry({
+      const newId = await addMoiEntry({
         functionId: functionId!,
         personId: personId!,
         amount: numericAmount,
@@ -131,6 +154,7 @@ export default function AddMoiScreen() {
         personName: person?.name ?? 'them',
         functionTitle: fn?.title,
         paymentLabel: paymentTypeMeta(paymentType).label,
+        receipt: await buildSavedReceipt(newId),
       });
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -361,6 +385,8 @@ const useStyles = makeStyles((colors) => ({
     marginBottom: spacing.lg,
   },
   quickChip: {
+    minHeight: 44,
+    justifyContent: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.pill,

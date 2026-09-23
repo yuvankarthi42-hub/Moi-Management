@@ -1,0 +1,106 @@
+import { buildReceipt, buildReceiptHtml, buildReceiptText } from '../receiptService';
+import { amountInWords } from '../../utils/format';
+import type { FunctionEvent, MoiEntry, Person } from '../../domain/models';
+
+const entry: MoiEntry = {
+  id: 'm2',
+  functionId: 'fn1',
+  personId: 'p1',
+  amount: 1001,
+  paymentType: 'cash',
+  recordedAt: '2026-05-13T05:00:00.000Z',
+  notes: 'Happy wishes',
+};
+
+const all: MoiEntry[] = [
+  { ...entry, id: 'm1', recordedAt: '2026-05-13T04:00:00.000Z' },
+  entry,
+];
+
+const person: Person = {
+  id: 'p1', name: 'B. Murugan', phone: '9876543210', village: 'Tenkasi',
+  createdAt: '2026-01-01T00:00:00.000Z',
+};
+
+const fn: FunctionEvent = {
+  id: 'fn1', title: 'Karthick Wedding', type: 'wedding', date: '2026-05-13',
+  venue: 'Meenakshi Mahal', createdAt: '2026-01-01T00:00:00.000Z',
+};
+
+describe('amount in words (Indian numbering)', () => {
+  it('spells amounts the way a cheque reads', () => {
+    expect(amountInWords(1001)).toBe('One Thousand and One Rupees Only');
+    expect(amountInWords(501)).toBe('Five Hundred and One Rupees Only');
+    expect(amountInWords(215500)).toBe('Two Lakh Fifteen Thousand Five Hundred Rupees Only');
+    expect(amountInWords(0)).toBe('Zero Rupees Only');
+  });
+
+  it('uses crore and lakh, not millions', () => {
+    expect(amountInWords(12345678)).toContain('One Crore');
+    expect(amountInWords(12345678)).toContain('Lakh');
+  });
+});
+
+describe('receipt', () => {
+  it('numbers by the entry’s place in that function’s book', () => {
+    const receipt = buildReceipt({
+      entry, functionEntries: all, person, fn, hostName: 'Karthick',
+    });
+    expect(receipt.receiptNo).toBe('MOI-0002');
+    expect(receipt.amount).toBe(1001);
+    expect(receipt.amountWords).toBe('One Thousand and One Rupees Only');
+    expect(receipt.personName).toBe('B. Murugan');
+    expect(receipt.hostName).toBe('Karthick');
+  });
+
+  it('falls back when the person or function is missing', () => {
+    const receipt = buildReceipt({
+      entry, functionEntries: all, person: undefined, fn: undefined, hostName: '',
+    });
+    expect(receipt.personName).toBe('Guest');
+    expect(receipt.functionTitle).toBe('Function');
+    expect(receipt.hostName).toBe('Our family');
+  });
+
+  it('renders every detail into the printable html', () => {
+    const receipt = buildReceipt({
+      entry, functionEntries: all, person, fn, hostName: 'Karthick',
+    });
+    const html = buildReceiptHtml(receipt);
+
+    expect(html).toContain('Karthick Wedding');
+    expect(html).toContain('B. Murugan');
+    expect(html).toContain('98765 43210');
+    expect(html).toContain('Tenkasi');
+    expect(html).toContain('MOI-0002');
+    expect(html).toContain('One Thousand and One Rupees Only');
+    expect(html).toContain('Thank you for your kindness');
+    expect(html).toContain('Karthick and family');
+    expect(html.split('<div').length).toBe(html.split('</div>').length);
+  });
+
+  it('escapes html so a name cannot break the receipt', () => {
+    const receipt = buildReceipt({
+      entry,
+      functionEntries: all,
+      person: { ...person, name: '<script>alert(1)</script>' },
+      fn,
+      hostName: 'Karthick',
+    });
+    const html = buildReceiptHtml(receipt);
+    expect(html).not.toContain('<script>alert(1)</script>');
+    expect(html).toContain('&lt;script&gt;');
+  });
+
+  it('builds a plain-text version for messaging apps', () => {
+    const receipt = buildReceipt({
+      entry, functionEntries: all, person, fn, hostName: 'Karthick',
+    });
+    const text = buildReceiptText(receipt);
+
+    expect(text).toContain('₹1,001');
+    expect(text).toContain('B. Murugan');
+    expect(text).toContain('MOI-0002');
+    expect(text).not.toContain('<');
+  });
+});

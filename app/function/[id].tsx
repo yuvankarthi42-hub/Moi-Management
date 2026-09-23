@@ -10,6 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ExpenseRow } from '../../src/components/app/ExpenseRow';
+import { MoiEntrySheet } from '../../src/components/app/MoiEntrySheet';
 import { MoiEntryRow } from '../../src/components/app/PersonRow';
 import {
   Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll, StatRow, StatusBarScrim, T, useToast,
@@ -48,6 +49,7 @@ export default function FunctionDetailScreen() {
   const { data, loading, removeFunction, addFunctionPhoto, removeFunctionPhoto } = useAppData();
   const { showToast } = useToast();
   const [tab, setTab] = useState<Tab>('overview');
+  const [receiptFor, setReceiptFor] = useState<string | undefined>();
 
   const fn = useMemo(() => (id ? selectFunctionById(data, id) : undefined), [data, id]);
   const entries = useMemo(() => (id ? selectMoiEntriesForFunction(data, id) : []), [data, id]);
@@ -132,6 +134,15 @@ export default function FunctionDetailScreen() {
     <Screen>
       {/* The hero scrolls away, so keep the status-bar strip dark behind it. */}
       <StatusBarScrim color="rgba(12, 6, 32, 0.55)" />
+      <MoiEntrySheet
+        entryId={receiptFor}
+        onClose={() => setReceiptFor(undefined)}
+        onOpenPerson={(personId) => {
+          setReceiptFor(undefined);
+          setTimeout(() => router.push(`/person/${personId}`), 120);
+        }}
+      />
+
       <ScreenScroll extraBottomSpace={72}>
         {/* Hero: cover image when set, otherwise the brand gradient. */}
         <View style={styles.hero}>
@@ -276,7 +287,7 @@ export default function FunctionDetailScreen() {
                   <MoiEntryRow
                     key={entry.id}
                     entry={entry}
-                    onPress={() => router.push(`/person/${entry.personId}`)}
+                    onPress={() => setReceiptFor(entry.id)}
                   />
                 ))}
               </>

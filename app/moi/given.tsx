@@ -423,6 +423,8 @@ const useStyles = makeStyles((colors) => ({
     marginBottom: spacing.lg,
   },
   quickChip: {
+    minHeight: 44,
+    justifyContent: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.pill,

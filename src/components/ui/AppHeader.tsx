@@ -182,12 +182,13 @@ const useStyles = makeStyles((colors) => ({
     marginTop: 2,
   },
   iconButton: {
-    width: 36,
-    height: 36,
+    // 44 is the smallest comfortable touch target on both platforms.
+    width: 44,
+    height: 44,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.xs,
+    marginRight: 0,
   },
   iconSpacer: {
     width: Platform.select({ default: 0 }),

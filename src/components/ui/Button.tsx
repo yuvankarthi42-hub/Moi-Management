@@ -45,10 +45,15 @@ function variantPalette(variant: Variant, colors: Palette): VariantPalette {
   }
 }
 
-const SIZES: Record<Size, { height: number; paddingH: number; font: 13 | 15 | 16 }> = {
-  sm: { height: 36, paddingH: spacing.md, font: 13 },
-  md: { height: 46, paddingH: spacing.lg, font: 15 },
-  lg: { height: 54, paddingH: spacing.xl, font: 16 },
+/**
+ * Heights clear the 44pt minimum comfortable touch target on every size, and
+ * are applied as `minHeight` so a large system font grows the button instead of
+ * clipping its label.
+ */
+const SIZES: Record<Size, { height: number; paddingH: number; font: 14 | 15 | 17 }> = {
+  sm: { height: 44, paddingH: spacing.md, font: 14 },
+  md: { height: 48, paddingH: spacing.lg, font: 15 },
+  lg: { height: 56, paddingH: spacing.xl, font: 17 },
 };
 
 export function Button({
@@ -103,7 +108,7 @@ export function Button({
       style={({ pressed }) => [
         styles.base,
         {
-          height: dims.height,
+          minHeight: dims.height,
           paddingHorizontal: dims.paddingH,
           backgroundColor: palette.bg,
           borderWidth: palette.border ? 1 : 0,
@@ -129,7 +134,13 @@ const useStyles = makeStyles((colors) => ({
     flexDirection: 'row',
   },
   block: {
-    flex: 1,
+    // `flex: 1` would set flex-basis to 0, which is fine in a row (the buttons
+    // share the width) but collapses the height to the text line inside a
+    // column parent such as DockedFooter. An `auto` basis keeps the declared
+    // height in both directions.
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 'auto',
     alignSelf: 'stretch',
   },
   inner: {

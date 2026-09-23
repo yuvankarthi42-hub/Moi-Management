@@ -4,6 +4,7 @@ import { Modal, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { makeStyles, radius, shadow, spacing, useColors } from '../../theme';
+import { printReceipt, shareReceipt, type ReceiptData } from '../../services/receiptService';
 import { formatMoney } from '../../utils/format';
 import { Button } from '../ui/Button';
 import { Confetti } from '../ui/Confetti';
@@ -16,6 +17,8 @@ export interface MoiSavedDetails {
   paymentLabel?: string;
   /** Wording flips for moi given back rather than received. */
   direction?: 'received' | 'given';
+  /** Present for a received entry, which is the only kind with a receipt. */
+  receipt?: ReceiptData;
 }
 
 /**
@@ -73,6 +76,29 @@ export function MoiSavedSheet({
             </T>
           ) : null}
 
+          {/* A guest often asks for something in writing, so the receipt is
+              offered right here rather than hidden behind the entry later. */}
+          {details?.receipt ? (
+            <View style={styles.actions}>
+              <Button
+                label="Print"
+                icon="print-outline"
+                variant="outline"
+                size="md"
+                block
+                onPress={() => printReceipt(details.receipt!)}
+              />
+              <Button
+                label="Share"
+                icon="share-social-outline"
+                variant="outline"
+                size="md"
+                block
+                onPress={() => shareReceipt(details.receipt!)}
+              />
+            </View>
+          ) : null}
+
           <View style={styles.actions}>
             <Button label="Done" variant="outline" block onPress={onDone} />
             <Button label="Add another" icon="add" block onPress={onAddAnother} />
@@ -124,7 +150,7 @@ const useStyles = makeStyles((colors) => ({
   actions: {
     flexDirection: 'row',
     gap: spacing.md,
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
     alignSelf: 'stretch',
   },
   close: {

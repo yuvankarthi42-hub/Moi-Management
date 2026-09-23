@@ -201,7 +201,11 @@ const useStyles = makeStyles((colors) => ({
     marginRight: spacing.xs,
   },
   rightAction: {
-    paddingLeft: spacing.sm,
+    // Padded out to a 44pt target rather than the icon's own 18pt.
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   pickerOpener: {
     flex: 1,

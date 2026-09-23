@@ -138,6 +138,13 @@ multiple and can add the traditional auspicious ₹1 (₹1000 → ₹1001).
 Permissions are enforced in `FamilyMemberRepository`, not in the UI, so a screen
 cannot bypass one by rendering a button.
 
+**Receipts** — a recorded moi can be printed or shared as a PDF from the save
+sheet, or later by tapping the entry in a function's moi list. The receipt
+carries a thank-you, the amount in figures and in words (Indian numbering — "One
+Thousand and One Rupees Only"), the giver's details, the function, payment type,
+timestamp and a receipt number taken from the entry's place in that function's
+book. Where file sharing is unavailable, the same details go as plain text.
+
 **Save feedback** — every add, update and delete confirms. Success is a toast
 rather than a blocking alert, because recording moi at a function means dozens
 of saves in a row and an OK button on each would be punishing; deletes of a moi

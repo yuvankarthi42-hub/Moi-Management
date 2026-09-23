@@ -64,3 +64,56 @@ export function hashToIndex(key: string, buckets: number): number {
   for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
   return h % buckets;
 }
+
+const ONES = [
+  '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+  'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen',
+  'Eighteen', 'Nineteen',
+];
+const TENS = [
+  '', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety',
+];
+
+/** Spells a number under 100. */
+function underHundred(n: number): string {
+  if (n < 20) return ONES[n];
+  const tens = TENS[Math.floor(n / 10)];
+  const ones = ONES[n % 10];
+  return ones ? `${tens} ${ones}` : tens;
+}
+
+/** Spells a number under 1000, joining with "and" the way a cheque reads. */
+function underThousand(n: number): string {
+  const hundreds = Math.floor(n / 100);
+  const rest = n % 100;
+  if (!hundreds) return underHundred(rest);
+  if (!rest) return `${ONES[hundreds]} Hundred`;
+  return `${ONES[hundreds]} Hundred and ${underHundred(rest)}`;
+}
+
+/**
+ * Amount in words using the Indian system — crore, lakh, thousand — as printed
+ * on a receipt: "One Thousand and One Rupees Only".
+ */
+export function amountInWords(value: number): string {
+  const amount = Math.abs(Math.round(value));
+  if (amount === 0) return 'Zero Rupees Only';
+
+  const crore = Math.floor(amount / 10_000_000);
+  const lakh = Math.floor((amount % 10_000_000) / 100_000);
+  const thousand = Math.floor((amount % 100_000) / 1000);
+  const rest = amount % 1000;
+
+  const parts: string[] = [];
+  if (crore) parts.push(`${underThousand(crore)} Crore`);
+  if (lakh) parts.push(`${underThousand(lakh)} Lakh`);
+  if (thousand) parts.push(`${underThousand(thousand)} Thousand`);
+  if (rest) {
+    // "and" reads naturally before a final part under 100, as on a cheque.
+    // "and" only when it is not already inside `underThousand`.
+    parts.push(parts.length > 0 && rest < 100 ? `and ${underHundred(rest)}` : underThousand(rest));
+  }
+
+  const sign = value < 0 ? 'Minus ' : '';
+  return `${sign}${parts.join(' ')} Rupees Only`;
+}
