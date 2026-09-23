@@ -8,7 +8,7 @@ import { functionTypeMeta } from '../domain/functionTypes';
 import type { Dataset } from '../domain/models';
 import {
   buildCollectionReport, buildExpenseReport, buildFamilyReport, buildFunctionReport,
-  buildGuestReport, buildPaymentMethodReport, buildPersonReport, buildReturnMoiReport,
+  buildPaymentMethodReport, buildPersonReport, buildReturnMoiReport,
   buildTopContributors, buildVillageReport, type DateRange,
 } from '../domain/selectors';
 import { formatDate, formatMonth } from '../utils/date';
@@ -225,32 +225,6 @@ function buildCsvSections(
       };
     }
 
-    case 'guest': {
-      const report = buildGuestReport(data, range);
-      return {
-        title: 'Guest Report',
-        sections: [
-          {
-            title: 'By function',
-            headers: ['Function', 'Date', 'Invited', 'Accepted', 'Pending', 'Maybe', 'Declined', 'Attended'],
-            rows: report.rows.map((r) => [
-              r.title, formatDate(r.date), r.invited, r.accepted, r.pending,
-              r.maybe, r.declined, r.checkedIn,
-            ]),
-          },
-          {
-            title: 'Every guest',
-            headers: ['Function', 'Guest', 'Phone', 'Group', 'Village', 'People', 'RSVP', 'Checked in'],
-            rows: data.guests.map((g) => [
-              data.functions.find((f) => f.id === g.functionId)?.title ?? '',
-              g.guestName, g.phone ?? '', g.groupName ?? '', g.village ?? '',
-              g.guestCount, g.rsvpStatus, g.checkedIn ? 'Yes' : 'No',
-            ]),
-          },
-        ],
-      };
-    }
-
     case 'collection': {
       const report = buildCollectionReport(data, range);
       return {
@@ -297,14 +271,6 @@ function buildCsvSections(
               formatDate(e.date),
               e.amount,
               e.paymentType,
-            ]),
-          },
-          {
-            title: 'Guests',
-            headers: ['Function', 'Guest', 'People', 'RSVP', 'Checked in'],
-            rows: data.guests.map((g) => [
-              data.functions.find((f) => f.id === g.functionId)?.title ?? '',
-              g.guestName, g.guestCount, g.rsvpStatus, g.checkedIn ? 'Yes' : 'No',
             ]),
           },
         ],

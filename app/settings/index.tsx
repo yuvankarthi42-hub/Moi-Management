@@ -19,7 +19,6 @@ const REMINDERS: Array<{
 }> = [
   { key: 'upcomingFunction', title: 'Upcoming function', subtitle: 'A week before the date' },
   { key: 'functionTomorrow', title: 'Function tomorrow', subtitle: 'The evening before' },
-  { key: 'pendingRsvp', title: 'Pending RSVPs', subtitle: 'Guests who have not replied' },
   { key: 'returnMoi', title: 'Return moi due', subtitle: 'When a guest hosts their own function' },
   { key: 'backupReminder', title: 'Backup reminder', subtitle: 'Monthly, if you have not saved one' },
 ];
@@ -120,7 +119,7 @@ export default function AppSettingsScreen() {
             onPress={() =>
               Alert.alert(
                 'Your data',
-                'Every function, person, moi entry, expense and guest is stored on this phone. Nothing is sent to a server. Use Backup & Restore to keep your own copy.',
+                'Every function, person, moi entry and expense is stored on this phone. Nothing is sent to a server. Use Backup & Restore to keep your own copy.',
               )
             }
           />

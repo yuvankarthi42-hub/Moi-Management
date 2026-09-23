@@ -109,20 +109,16 @@ and a duplicate-entry warning when someone is recorded twice at one function.
 amount or recency; filter by village. Each profile shows lifetime total, moi
 history, their upcoming functions, and call / message shortcuts.
 
-**Guests** — a per-function guest list where one row is an invitation covering a
-household, with RSVP (accepted / pending / maybe / declined), head-count and
-check-in. The same `Person` is reused across functions rather than duplicated.
-
 **Expenses** — recorded against a function, with category, payment type, who
 paid, date, notes and a receipt photo. There is deliberately **no budget
 module**: expenses are secondary to moi and never exist outside a function.
 
-**Reports** — all ten: Function, Person, Village, Family, Return Moi, Top
-Contributors, Moi Collection, Expense, Payment Method and Guest — each with a
-period filter and **PDF / Excel (CSV) export** via the native share sheet.
+**Reports** — nine: Function, Person, Village, Family, Return Moi, Top
+Contributors, Moi Collection, Expense and Payment Method — each with a period
+filter and **PDF / Excel (CSV) export** via the native share sheet.
 
-**Search** — one box across functions, people, moi entries and guests, with
-results grouped by kind.
+**Search** — one box across functions, people and moi entries, with results
+grouped by kind.
 
 **Return Moi** — the distinctive one. It lists guests whose own function is
 coming up, how much they last gave, and a suggested amount to return; mark one
@@ -142,10 +138,15 @@ palette up front and hands back the active one, because `StyleSheet.create`
 captures colour *values* and a module-scope sheet can otherwise never react to a
 theme change.
 
-> Per the brief, the **Invitation** and **QR Check-in** modules are deliberately
-> not implemented. The data model leaves room for both: `Guest` already carries
-> `rsvpStatus` and `checkedIn`, so QR check-in only needs a scanner screen that
-> calls `GuestRepository.setCheckedIn`.
+> **Invitation, QR Check-in and Guest management are deliberately not
+> implemented**, at the product owner's direction. Guest *numbers* survive:
+> each function carries an "Expected guests" figure that feeds the dashboard
+> total and the Function Report. What was dropped is the per-guest invitation
+> list — RSVP tracking and attendance check-in.
+>
+> A function's detail screen also has no "People" tab. It listed the function's
+> unique contributors, which duplicated the Moi tab; tapping a moi row now opens
+> that person's profile instead, which is the only thing the tab really added.
 
 ---
 

@@ -3,7 +3,6 @@ import { MockDataSource } from './mock/MockDataSource';
 import { ExpenseRepository } from './repositories/ExpenseRepository';
 import { FamilyMemberRepository } from './repositories/FamilyMemberRepository';
 import { FunctionRepository } from './repositories/FunctionRepository';
-import { GuestRepository } from './repositories/GuestRepository';
 import { MoiRepository } from './repositories/MoiRepository';
 import { PeopleRepository } from './repositories/PeopleRepository';
 import { SettingsRepository } from './repositories/SettingsRepository';
@@ -28,7 +27,6 @@ export interface Repositories {
   functions: FunctionRepository;
   moi: MoiRepository;
   expenses: ExpenseRepository;
-  guests: GuestRepository;
   familyMembers: FamilyMemberRepository;
   settings: SettingsRepository;
 }
@@ -45,7 +43,6 @@ export function getRepositories(): Repositories {
       functions: new FunctionRepository(source),
       moi: new MoiRepository(source),
       expenses: new ExpenseRepository(source),
-      guests: new GuestRepository(source),
       familyMembers: new FamilyMemberRepository(source),
       settings: new SettingsRepository(source),
     };

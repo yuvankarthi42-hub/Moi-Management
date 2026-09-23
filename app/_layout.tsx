@@ -80,10 +80,6 @@ function AppChrome() {
           name="expense/new"
           options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
         />
-        <Stack.Screen
-          name="guest/new"
-          options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
-        />
       </Stack>
     </>
   );

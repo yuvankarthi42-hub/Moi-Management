@@ -53,7 +53,6 @@ export function describeBackup(json: string): string | undefined {
       `${payload.people?.length ?? 0} people`,
       `${payload.moiEntries?.length ?? 0} moi entries`,
       `${payload.expenses?.length ?? 0} expenses`,
-      `${payload.guests?.length ?? 0} guests`,
     ];
     return counts.join(', ');
   } catch {

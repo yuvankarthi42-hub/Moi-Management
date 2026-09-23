@@ -48,8 +48,6 @@ export type ExpenseCategory =
   | 'transport'
   | 'other';
 
-export type RsvpStatus = 'pending' | 'accepted' | 'declined' | 'maybe';
-
 /** Family collaboration roles, most privileged first. */
 export type FamilyRole = 'owner' | 'admin' | 'editor' | 'viewer';
 
@@ -87,10 +85,7 @@ export interface FunctionEvent {
   village?: string;
   notes?: string;
   coverImage?: string;
-  /**
-   * The host's own estimate of attendance, entered when creating the function.
-   * The *actual* figure is summed from guest records — see `selectFunctions`.
-   */
+  /** How many people are expected to attend. Entered by the host. */
   guestCount?: number;
   /** Who is hosting, when it is not the profile owner. */
   host?: string;
@@ -134,32 +129,6 @@ export interface Expense {
   createdAt: ISODateTime;
 }
 
-/**
- * An invitee on one function's guest list.
- *
- * A guest row is per-function; the underlying `Person` is global and reused, so
- * someone invited to three functions is one Person and three Guests.
- */
-export interface Guest {
-  id: ID;
-  functionId: ID;
-  /** Links to the global directory when the guest is a known person. */
-  personId?: ID;
-  /** Denormalised so a guest can be added before the person record exists. */
-  guestName: string;
-  phone?: string;
-  relationship?: string;
-  /** Free-form grouping, e.g. "Bride's side", "Office". */
-  groupName?: string;
-  village?: string;
-  /** How many people this invitation covers. At least 1. */
-  guestCount: number;
-  rsvpStatus: RsvpStatus;
-  checkedIn: boolean;
-  notes?: string;
-  createdAt: ISODateTime;
-}
-
 /** A person who can work on the household's records, with their permissions. */
 export interface FamilyMember {
   id: ID;
@@ -199,7 +168,6 @@ export type LanguagePreference = 'en' | 'ta';
 export interface NotificationSettings {
   upcomingFunction: boolean;
   functionTomorrow: boolean;
-  pendingRsvp: boolean;
   returnMoi: boolean;
   backupReminder: boolean;
 }
@@ -230,7 +198,6 @@ export interface Dataset {
   functions: FunctionEvent[];
   moiEntries: MoiEntry[];
   expenses: Expense[];
-  guests: Guest[];
   personEvents: PersonEvent[];
   familyMembers: FamilyMember[];
   profile: UserProfile;
@@ -243,7 +210,6 @@ export const EMPTY_DATASET: Dataset = {
   functions: [],
   moiEntries: [],
   expenses: [],
-  guests: [],
   personEvents: [],
   familyMembers: [],
   profile: { id: 'me', name: '' },
@@ -255,7 +221,6 @@ export const EMPTY_DATASET: Dataset = {
     notifications: {
       upcomingFunction: true,
       functionTomorrow: true,
-      pendingRsvp: false,
       returnMoi: true,
       backupReminder: true,
     },

@@ -10,17 +10,13 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ExpenseRow } from '../../src/components/app/ExpenseRow';
-import { GuestRow } from '../../src/components/app/GuestRow';
-import { MoiEntryRow, PersonRow } from '../../src/components/app/PersonRow';
+import { MoiEntryRow } from '../../src/components/app/PersonRow';
 import {
   Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll, StatRow, StatusBarScrim, T,
 } from '../../src/components/ui';
-import { rsvpMeta } from '../../src/domain/categories';
 import { functionTypeMeta } from '../../src/domain/functionTypes';
-import type { RsvpStatus } from '../../src/domain/models';
 import {
-  selectExpensesForFunction, selectFunctionById, selectGuestStats,
-  selectGuestsForFunction, selectMoiEntriesForFunction, selectPeople,
+  selectExpensesForFunction, selectFunctionById, selectMoiEntriesForFunction,
   splitByPaymentType, type FunctionWithStats,
 } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
@@ -28,24 +24,19 @@ import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme'
 import { countdownLabel, formatDate, formatDateLong } from '../../src/utils/date';
 import { formatCount, formatMoney, formatMoneyCompact } from '../../src/utils/format';
 
-type Tab = 'overview' | 'moi' | 'guests' | 'expenses' | 'people' | 'photos';
+type Tab = 'overview' | 'moi' | 'expenses' | 'photos';
 
+/**
+ * A "People" tab used to list this function's unique contributors, but it
+ * duplicated the Moi tab — the same names, minus the amounts. Tapping a moi
+ * row now opens that person's profile, which is the only thing the extra tab
+ * really offered.
+ */
 const TABS: Array<{ key: Tab; label: string; icon: keyof typeof Ionicons.glyphMap }> = [
   { key: 'overview', label: 'Overview', icon: 'information-circle-outline' },
   { key: 'moi', label: 'Moi', icon: 'list-outline' },
-  { key: 'guests', label: 'Guests', icon: 'people-circle-outline' },
   { key: 'expenses', label: 'Expenses', icon: 'receipt-outline' },
-  { key: 'people', label: 'People', icon: 'people-outline' },
   { key: 'photos', label: 'Photos', icon: 'images-outline' },
-];
-
-/** RSVP filters for the guest tab. */
-const GUEST_FILTERS: Array<{ value: RsvpStatus | 'all'; label: string }> = [
-  { value: 'all', label: 'All' },
-  { value: 'accepted', label: 'Accepted' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'maybe', label: 'Maybe' },
-  { value: 'declined', label: 'Declined' },
 ];
 
 export default function FunctionDetailScreen() {
@@ -54,27 +45,13 @@ export default function FunctionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {
-    data, loading, removeFunction, addFunctionPhoto, removeFunctionPhoto, setGuestCheckedIn,
-  } = useAppData();
+  const { data, loading, removeFunction, addFunctionPhoto, removeFunctionPhoto } = useAppData();
   const [tab, setTab] = useState<Tab>('overview');
-  const [guestFilter, setGuestFilter] = useState<RsvpStatus | 'all'>('all');
 
   const fn = useMemo(() => (id ? selectFunctionById(data, id) : undefined), [data, id]);
   const entries = useMemo(() => (id ? selectMoiEntriesForFunction(data, id) : []), [data, id]);
   const expenses = useMemo(() => (id ? selectExpensesForFunction(data, id) : []), [data, id]);
-  const guests = useMemo(() => (id ? selectGuestsForFunction(data, id) : []), [data, id]);
-  const guestStats = useMemo(() => selectGuestStats(guests), [guests]);
   const expenseSplit = useMemo(() => splitByPaymentType(expenses), [expenses]);
-  const visibleGuests = useMemo(
-    () => (guestFilter === 'all' ? guests : guests.filter((g) => g.rsvpStatus === guestFilter)),
-    [guests, guestFilter],
-  );
-
-  const contributors = useMemo(() => {
-    const ids = new Set(entries.map((e) => e.personId));
-    return selectPeople(data).filter((p) => ids.has(p.id));
-  }, [data, entries]);
 
   if (!fn) {
     return (
@@ -290,7 +267,11 @@ export default function FunctionDetailScreen() {
                   />
                 </Card>
                 {entries.map((entry) => (
-                  <MoiEntryRow key={entry.id} entry={entry} />
+                  <MoiEntryRow
+                    key={entry.id}
+                    entry={entry}
+                    onPress={() => router.push(`/person/${entry.personId}`)}
+                  />
                 ))}
               </>
             ) : (
@@ -302,75 +283,6 @@ export default function FunctionDetailScreen() {
                 onAction={() => router.push(`/moi/add?functionId=${fn.id}`)}
               />
             )
-          ) : null}
-
-          {tab === 'guests' ? (
-            <>
-              <Card style={styles.totalsCard}>
-                <StatRow
-                  compactLabels
-                  items={[
-                    { label: 'Invited', value: formatCount(guestStats.total) },
-                    { label: 'Accepted', value: formatCount(guestStats.accepted), tone: 'success' },
-                    { label: 'Pending', value: formatCount(guestStats.pending) },
-                    {
-                      label: 'Checked In',
-                      value: formatCount(guestStats.checkedIn),
-                      tone: 'primary',
-                    },
-                  ]}
-                />
-              </Card>
-
-              {guests.length > 0 ? (
-                <>
-                  <View style={styles.filterRow}>
-                    {GUEST_FILTERS.map((filter) => {
-                      const active = filter.value === guestFilter;
-                      return (
-                        <Pressable
-                          key={filter.value}
-                          onPress={() => setGuestFilter(filter.value)}
-                          accessibilityRole="tab"
-                          accessibilityState={{ selected: active }}
-                          style={[styles.filterChip, active && styles.filterChipActive]}
-                        >
-                          <T variant="caption" tone={active ? 'onPrimary' : 'secondary'}>
-                            {filter.label}
-                          </T>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-
-                  {visibleGuests.map((guest) => (
-                    <GuestRow
-                      key={guest.id}
-                      guest={guest}
-                      onPress={() => router.push(`/guest/new?id=${guest.id}`)}
-                      onToggleCheckIn={() => setGuestCheckedIn(guest.id, !guest.checkedIn)}
-                    />
-                  ))}
-
-                  <Button
-                    label="Add Guest"
-                    icon="person-add-outline"
-                    variant="secondary"
-                    block
-                    style={styles.addRowButton}
-                    onPress={() => router.push(`/guest/new?functionId=${fn.id}`)}
-                  />
-                </>
-              ) : (
-                <EmptyState
-                  icon="people-circle-outline"
-                  title="No guests yet"
-                  message="Build the guest list so you can track RSVPs and who actually came."
-                  actionLabel="Add Guest"
-                  onAction={() => router.push(`/guest/new?functionId=${fn.id}`)}
-                />
-              )}
-            </>
           ) : null}
 
           {tab === 'expenses' ? (
@@ -412,24 +324,6 @@ export default function FunctionDetailScreen() {
                 message="Record what this function costs so you can see it against the moi collected."
                 actionLabel="Add Expense"
                 onAction={() => router.push(`/expense/new?functionId=${fn.id}`)}
-              />
-            )
-          ) : null}
-
-          {tab === 'people' ? (
-            contributors.length > 0 ? (
-              contributors.map((person) => (
-                <PersonRow
-                  key={person.id}
-                  person={person}
-                  onPress={() => router.push(`/person/${person.id}`)}
-                />
-              ))
-            ) : (
-              <EmptyState
-                icon="people-outline"
-                title="Nobody recorded yet"
-                message="People appear here once you record their moi."
               />
             )
           ) : null}
@@ -532,34 +426,6 @@ function OverviewTab({ fn }: { fn: FunctionWithStats }) {
         </View>
       </View>
 
-      {fn.guestRowCount > 0 ? (
-        <View style={styles.moneyBlock}>
-          <View style={styles.moneyRow}>
-            <T variant="small" tone="secondary">
-              Guests invited
-            </T>
-            <T variant="bodyStrong">{fn.guests}</T>
-          </View>
-          <View style={styles.moneyRow}>
-            <T variant="small" tone="secondary">
-              Accepted
-            </T>
-            <T variant="bodyStrong" tone="success">
-              {fn.acceptedGuests}
-            </T>
-          </View>
-          {fn.status === 'completed' ? (
-            <View style={styles.moneyRow}>
-              <T variant="small" tone="secondary">
-                Attended
-              </T>
-              <T variant="bodyStrong" tone="primary">
-                {fn.checkedInGuests}
-              </T>
-            </View>
-          ) : null}
-        </View>
-      ) : null}
     </Card>
   );
 }

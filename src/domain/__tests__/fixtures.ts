@@ -37,11 +37,6 @@ export function makeDataset(overrides: Partial<Dataset> = {}): Dataset {
       { id: 'e1', functionId: 'fn1', category: 'food', amount: 1200, paymentType: 'cash', date: '2026-01-09', createdAt: T },
       { id: 'e2', functionId: 'fn1', category: 'hall', amount: 800, paymentType: 'upi', date: '2026-01-08', createdAt: T },
     ],
-    guests: [
-      { id: 'g1', functionId: 'fn1', personId: 'p1', guestName: 'Murugan', guestCount: 3, rsvpStatus: 'accepted', checkedIn: true, createdAt: T },
-      { id: 'g2', functionId: 'fn1', personId: 'p2', guestName: 'Selvam', guestCount: 2, rsvpStatus: 'pending', checkedIn: false, createdAt: T },
-      { id: 'g3', functionId: 'fn1', guestName: 'Kumar', guestCount: 1, rsvpStatus: 'declined', checkedIn: false, createdAt: T },
-    ],
     personEvents: [],
     familyMembers: [],
     profile: { id: 'me', name: 'Karthick' },

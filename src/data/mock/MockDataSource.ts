@@ -1,11 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type {
-  AppSettings, Expense, Family, FamilyMember, FunctionEvent, Guest, ID, MoiEntry, Person,
+  AppSettings, Expense, Family, FamilyMember, FunctionEvent, ID, MoiEntry, Person,
   PersonEvent, UserProfile,
 } from '../../domain/models';
 import type {
-  BackupPayload, DataSource, NewExpense, NewFamily, NewFamilyMember, NewFunction, NewGuest,
+  BackupPayload, DataSource, NewExpense, NewFamily, NewFamilyMember, NewFunction,
   NewMoiEntry, NewPerson, NewPersonEvent,
 } from '../DataSource';
 import { buildSeed } from './seed';
@@ -36,7 +36,6 @@ function migrate(stored: Partial<BackupPayload>): BackupPayload {
     functions: stored.functions ?? [],
     moiEntries: stored.moiEntries ?? [],
     expenses: stored.expenses ?? [],
-    guests: stored.guests ?? [],
     personEvents: stored.personEvents ?? [],
     // A store predating family members gets the default owner row, so the
     // permission checks always have someone to resolve against.
@@ -129,10 +128,6 @@ export class MockDataSource implements DataSource {
     // Cascade: a person's moi entries and their own events go with them.
     this.db.moiEntries = this.db.moiEntries.filter((m) => m.personId !== id);
     this.db.personEvents = this.db.personEvents.filter((e) => e.personId !== id);
-    // Guest rows keep their denormalised name, but lose the broken link.
-    this.db.guests = this.db.guests.map((g) =>
-      g.personId === id ? { ...g, personId: undefined } : g,
-    );
     await this.flush();
   }
 
@@ -198,10 +193,9 @@ export class MockDataSource implements DataSource {
 
   async deleteFunction(id: ID): Promise<void> {
     this.db.functions = this.db.functions.filter((f) => f.id !== id);
-    // Moi, expenses and guests cannot outlive their function (spec §38).
+    // Moi and expenses cannot outlive their function (spec §38).
     this.db.moiEntries = this.db.moiEntries.filter((m) => m.functionId !== id);
     this.db.expenses = this.db.expenses.filter((e) => e.functionId !== id);
-    this.db.guests = this.db.guests.filter((g) => g.functionId !== id);
     await this.flush();
   }
 
@@ -262,34 +256,6 @@ export class MockDataSource implements DataSource {
 
   async deleteExpense(id: ID): Promise<void> {
     this.db.expenses = this.db.expenses.filter((e) => e.id !== id);
-    await this.flush();
-  }
-
-  // --------------------------------------------------------------- guests
-
-  async listGuests(): Promise<Guest[]> {
-    await delay();
-    return [...this.db.guests];
-  }
-
-  async createGuest(input: NewGuest): Promise<Guest> {
-    const guest: Guest = { ...input, id: newId('gst'), createdAt: this.nowISO() };
-    this.db.guests = [...this.db.guests, guest];
-    await this.flush();
-    return guest;
-  }
-
-  async updateGuest(id: ID, patch: Partial<NewGuest>): Promise<Guest> {
-    const index = this.db.guests.findIndex((g) => g.id === id);
-    if (index < 0) throw new Error(`Guest ${id} not found`);
-    const updated = { ...this.db.guests[index], ...patch };
-    this.db.guests = this.db.guests.map((g, i) => (i === index ? updated : g));
-    await this.flush();
-    return updated;
-  }
-
-  async deleteGuest(id: ID): Promise<void> {
-    this.db.guests = this.db.guests.filter((g) => g.id !== id);
     await this.flush();
   }
 

@@ -6,12 +6,10 @@ import type {
   FamilyMember,
   FunctionEvent,
   FunctionType,
-  Guest,
   MoiEntry,
   PaymentType,
   Person,
   PersonEvent,
-  RsvpStatus,
   UserProfile,
 } from '../../domain/models';
 import type { BackupPayload } from '../DataSource';
@@ -106,16 +104,6 @@ const EXPENSE_MIX: Array<{ category: ExpenseCategory; share: number; note: strin
 
 const PAID_BY = ['Karthick', 'Appa', 'Mama', 'Anna', 'Chithappa'];
 
-const RSVP_MIX: RsvpStatus[] = [
-  'accepted', 'accepted', 'accepted', 'accepted', 'accepted',
-  'pending', 'pending', 'maybe', 'declined',
-];
-
-const GUEST_GROUPS = [
-  "Bride's side", "Groom's side", 'Neighbours', 'Office', 'School friends',
-  'Village elders', 'Relatives',
-];
-
 const MOI_NOTES = [
   undefined, undefined, undefined,
   'Happy wishes to Harthick',
@@ -135,50 +123,49 @@ const FUNCTION_BLUEPRINT: Array<{
   entries: number;
   guestCount: number;
   budget?: number;
-  guests?: number;
   notes?: string;
 }> = [
   {
     title: 'Harthick Ear Piercing', type: 'ear_piercing', inDays: 10, time: '10:00 AM',
     village: 'Tenkasi', venue: 'Sri Lakshmi Mahal, Tenkasi', entries: 0, guestCount: 156,
-    budget: 125000, guests: 156,
+    budget: 125000,
     notes: 'We are happy to invite you and your family to bless Harthick.',
   },
   {
     title: 'Mahesh Upanayanam', type: 'upanayanam', inDays: 34, time: '07:30 AM',
     village: 'Madurai', venue: 'Vinayaka Thirumana Mandapam, Madurai', entries: 0, guestCount: 90,
-    budget: 74000, guests: 90,
+    budget: 74000,
     notes: 'Thread ceremony followed by lunch.',
   },
   {
     title: 'Karthick Wedding', type: 'wedding', inDays: -133, time: '09:15 AM',
     village: 'Madurai', venue: 'Meenakshi Thirumana Mahal, Madurai', entries: 188, guestCount: 220,
-    budget: 320000, guests: 220,
+    budget: 320000,
   },
   {
     title: 'House Warming', type: 'house_warming', inDays: -172, time: '06:00 AM',
     village: 'Tenkasi', venue: 'New House, Bharathi Nagar, Tenkasi', entries: 118, guestCount: 132,
-    budget: 96000, guests: 132,
+    budget: 96000,
   },
   {
     title: 'Baby Shower', type: 'baby_shower', inDays: -216, time: '11:00 AM',
     village: 'Madurai', venue: 'Home, Anna Nagar, Madurai', entries: 64, guestCount: 70,
-    budget: 42000, guests: 70,
+    budget: 42000,
   },
   {
     title: 'Harthick Birthday Party', type: 'birthday', inDays: -260, time: '05:00 PM',
     village: 'Tenkasi', venue: 'Home, Tenkasi', entries: 58, guestCount: 65,
-    budget: 28000, guests: 65,
+    budget: 28000,
   },
   {
     title: 'Deepa Puberty Function', type: 'puberty', inDays: -318, time: '08:30 AM',
     village: 'Sankarankoil', venue: 'Community Hall, Sankarankoil', entries: 72, guestCount: 85,
-    budget: 54000, guests: 85,
+    budget: 54000,
   },
   {
     title: 'Vetri Engagement', type: 'engagement', inDays: -402, time: '10:45 AM',
     village: 'Courtallam', venue: 'Falls View Mahal, Courtallam', entries: 49, guestCount: 60,
-    budget: 38000, guests: 60,
+    budget: 38000,
   },
 ];
 
@@ -239,7 +226,6 @@ export function buildSeed(now = new Date()): BackupPayload {
   const functions: FunctionEvent[] = [];
   const moiEntries: MoiEntry[] = [];
   const expenses: Expense[] = [];
-  const guests: Guest[] = [];
 
   FUNCTION_BLUEPRINT.forEach((bp, fi) => {
     const date = toISODate(addDays(now, bp.inDays));
@@ -300,36 +286,6 @@ export function buildSeed(now = new Date()): BackupPayload {
       });
     }
 
-    // Guest list: invitations rather than individuals, so each row covers a
-    // household of one to five people.
-    if (bp.guests) {
-      const invitees = [...people].sort(() => r() - 0.5);
-      let remaining = bp.guests;
-      let gi = 0;
-      while (remaining > 0 && gi < invitees.length) {
-        const person = invitees[gi];
-        const headCount = Math.min(remaining, 1 + Math.floor(r() * 4));
-        // Guests of a past function were all, in effect, accepted and present.
-        const past = bp.inDays < 0;
-        const rsvp: RsvpStatus = past ? 'accepted' : pick(RSVP_MIX, r);
-        guests.push({
-          id: `gst_${fi + 1}_${gi + 1}`,
-          functionId: fn.id,
-          personId: person.id,
-          guestName: person.name,
-          phone: person.phone,
-          relationship: person.relation,
-          groupName: pick(GUEST_GROUPS, r),
-          village: person.village,
-          guestCount: headCount,
-          rsvpStatus: rsvp,
-          checkedIn: past ? r() > 0.12 : false,
-          createdAt: nowISO,
-        });
-        remaining -= headCount;
-        gi += 1;
-      }
-    }
   });
 
   const personEvents: PersonEvent[] = PERSON_EVENT_BLUEPRINT.map((bp, i) => ({
@@ -365,7 +321,6 @@ export function buildSeed(now = new Date()): BackupPayload {
     notifications: {
       upcomingFunction: true,
       functionTomorrow: true,
-      pendingRsvp: false,
       returnMoi: true,
       backupReminder: true,
     },
@@ -380,7 +335,6 @@ export function buildSeed(now = new Date()): BackupPayload {
     functions,
     moiEntries,
     expenses,
-    guests,
     personEvents,
     familyMembers,
     profile,

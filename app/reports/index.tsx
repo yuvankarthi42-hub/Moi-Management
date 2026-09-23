@@ -75,13 +75,6 @@ const REPORTS = [
     title: 'Payment Method Report',
     subtitle: 'Cash, UPI and other splits',
   },
-  {
-    href: '/reports/guest',
-    icon: 'people-circle-outline' as const,
-    tint: '#9333EA',
-    title: 'Guest Report',
-    subtitle: 'Invited, accepted and attended',
-  },
 ];
 
 export default function ReportsScreen() {

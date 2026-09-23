@@ -3,7 +3,7 @@ import { functionTypeMeta } from '../domain/functionTypes';
 import { expenseCategoryMeta } from '../domain/categories';
 import {
   buildCollectionReport, buildExpenseReport, buildFamilyReport, buildFunctionReport,
-  buildGuestReport, buildPaymentMethodReport, buildPersonReport, buildReturnMoiReport,
+  buildPaymentMethodReport, buildPersonReport, buildReturnMoiReport,
   buildTopContributors, buildVillageReport, selectOverview, type DateRange,
 } from '../domain/selectors';
 import { formatDate, formatDateLong, formatMonth } from '../utils/date';
@@ -91,7 +91,7 @@ function rangeLabel(range?: DateRange): string {
 
 export type ReportKind =
   | 'summary' | 'function' | 'person' | 'village' | 'family' | 'return-moi'
-  | 'top-contributors' | 'expense' | 'payment-method' | 'guest' | 'collection';
+  | 'top-contributors' | 'expense' | 'payment-method' | 'collection';
 
 /** Renders any report as printable HTML, used for both PDF export and preview. */
 export function buildReportHtml(
@@ -269,27 +269,6 @@ export function buildReportHtml(
         html: page('Payment Method Report', period, body, who),
         title: 'Payment Method Report',
       };
-    }
-
-    case 'guest': {
-      const report = buildGuestReport(data, range);
-      const body =
-        tiles([
-          { k: 'Invited', v: String(report.totals.total) },
-          { k: 'Accepted', v: String(report.totals.accepted) },
-          { k: 'Pending', v: String(report.totals.pending) },
-          { k: 'Attended', v: String(report.totals.checkedIn) },
-        ]) +
-        '<h2>By function</h2>' +
-        table(
-          ['Function', 'Date', 'Invited', 'Accepted', 'Pending', 'Declined', 'Attended'],
-          report.rows.map((r) => [
-            r.title, formatDate(r.date), String(r.invited), String(r.accepted),
-            String(r.pending), String(r.declined), String(r.checkedIn),
-          ]),
-          2,
-        );
-      return { html: page('Guest Report', period, body, who), title: 'Guest Report' };
     }
 
     case 'collection': {

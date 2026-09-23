@@ -5,7 +5,6 @@ import type {
   Family,
   FamilyMember,
   FunctionEvent,
-  Guest,
   ID,
   MoiEntry,
   Person,
@@ -33,7 +32,6 @@ export type NewFunction = Omit<FunctionEvent, 'id' | 'createdAt'>;
 export type NewMoiEntry = Omit<MoiEntry, 'id' | 'recordedAt'> & { recordedAt?: string };
 export type NewPersonEvent = Omit<PersonEvent, 'id' | 'createdAt'>;
 export type NewExpense = Omit<Expense, 'id' | 'createdAt'>;
-export type NewGuest = Omit<Guest, 'id' | 'createdAt'>;
 export type NewFamilyMember = Omit<FamilyMember, 'id' | 'createdAt'>;
 
 export interface DataSource {
@@ -71,12 +69,6 @@ export interface DataSource {
   createExpense(input: NewExpense): Promise<Expense>;
   updateExpense(id: ID, patch: Partial<NewExpense>): Promise<Expense>;
   deleteExpense(id: ID): Promise<void>;
-
-  // Guest lists (always scoped to a function)
-  listGuests(): Promise<Guest[]>;
-  createGuest(input: NewGuest): Promise<Guest>;
-  updateGuest(id: ID, patch: Partial<NewGuest>): Promise<Guest>;
-  deleteGuest(id: ID): Promise<void>;
 
   // Family collaboration
   listFamilyMembers(): Promise<FamilyMember[]>;

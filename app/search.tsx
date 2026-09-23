@@ -19,15 +19,14 @@ const GROUPS: Array<{
   { kind: 'function', label: 'Functions', icon: 'calendar-outline', tint: '#E8912A' },
   { kind: 'person', label: 'People', icon: 'person-outline', tint: '#2563EB' },
   { kind: 'moi', label: 'Moi entries', icon: 'cash-outline', tint: '#0FA968' },
-  { kind: 'guest', label: 'Guests', icon: 'people-circle-outline', tint: '#9333EA' },
 ];
 
 /**
  * One search box across every record type (spec §17).
  *
  * Results are grouped by kind rather than interleaved, so a search for a name
- * shows the person, their moi entries and their guest rows as separate
- * answers instead of a single ambiguous list.
+ * shows the person and their moi entries as separate answers instead of a
+ * single ambiguous list.
  */
 export default function SearchScreen() {
   const styles = useStyles();
@@ -56,7 +55,7 @@ export default function SearchScreen() {
         <SearchBar
           value={query}
           onChangeText={setQuery}
-          placeholder="Search functions, people, moi, guests"
+          placeholder="Search functions, people or moi"
           autoFocus
           onDark
         />
@@ -67,7 +66,7 @@ export default function SearchScreen() {
           <EmptyState
             icon="search-outline"
             title="Search everything"
-            message="Find a function, a person, a moi entry or a guest — type a name, a village or an amount."
+            message="Find a function, a person or a moi entry — type a name, a village or an amount."
           />
         ) : results.length === 0 ? (
           <EmptyState

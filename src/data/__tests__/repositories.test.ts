@@ -1,7 +1,6 @@
 import { MockDataSource } from '../mock/MockDataSource';
 import { ExpenseRepository } from '../repositories/ExpenseRepository';
 import { FunctionRepository } from '../repositories/FunctionRepository';
-import { GuestRepository } from '../repositories/GuestRepository';
 import { MoiRepository } from '../repositories/MoiRepository';
 import { PeopleRepository, normalisePhone } from '../repositories/PeopleRepository';
 import { ValidationError } from '../repositories/errors';
@@ -15,7 +14,6 @@ function makeRepos() {
     functions: new FunctionRepository(source),
     moi: new MoiRepository(source),
     expenses: new ExpenseRepository(source),
-    guests: new GuestRepository(source),
   };
 }
 
@@ -102,49 +100,9 @@ describe('ExpenseRepository (spec §38)', () => {
   });
 });
 
-describe('GuestRepository', () => {
-  const base = {
-    functionId: 'fn1',
-    guestName: 'Murugan',
-    guestCount: 1,
-    rsvpStatus: 'pending' as const,
-    checkedIn: false,
-  };
-
-  it('requires a name and at least one person', async () => {
-    const { guests } = makeRepos();
-    await expect(guests.create({ ...base, guestName: ' ' })).rejects.toThrow(/name/i);
-    await expect(guests.create({ ...base, guestCount: 0 })).rejects.toThrow(/at least 1/i);
-  });
-
-  it('refuses the same person twice on one guest list', async () => {
-    const { source, guests } = makeRepos();
-    await source.init();
-    await guests.create({ ...base, functionId: 'fnA', personId: 'pA' });
-
-    await expect(guests.create({ ...base, functionId: 'fnA', personId: 'pA' })).rejects.toThrow(
-      /already on this guest list/i,
-    );
-    // The same person at a different function is perfectly normal.
-    await expect(
-      guests.create({ ...base, functionId: 'fnB', personId: 'pA' }),
-    ).resolves.toBeDefined();
-  });
-
-  it('settles the RSVP when someone is checked in', async () => {
-    const { source, guests } = makeRepos();
-    await source.init();
-    const guest = await guests.create({ ...base, functionId: 'fnC', guestName: 'Selvam' });
-
-    const updated = await guests.setCheckedIn(guest.id, true);
-    expect(updated.checkedIn).toBe(true);
-    expect(updated.rsvpStatus).toBe('accepted');
-  });
-});
-
 describe('cascade deletes (spec §38)', () => {
-  it('removes a function’s moi, expenses and guests with it', async () => {
-    const { source, functions, moi, expenses, guests } = makeRepos();
+  it('removes a function’s moi and expenses with it', async () => {
+    const { source, functions, moi, expenses } = makeRepos();
     await source.init();
 
     const fn = await functions.create({ title: 'Test', type: 'other', date: '2026-01-01' });
@@ -152,32 +110,10 @@ describe('cascade deletes (spec §38)', () => {
     await expenses.create({
       functionId: fn.id, category: 'food', amount: 100, paymentType: 'cash', date: '2026-01-01',
     });
-    await guests.create({
-      functionId: fn.id, guestName: 'Kumar', guestCount: 1, rsvpStatus: 'pending', checkedIn: false,
-    });
-
     await functions.remove(fn.id);
 
     expect((await moi.list()).filter((m) => m.functionId === fn.id)).toHaveLength(0);
     expect((await expenses.list()).filter((e) => e.functionId === fn.id)).toHaveLength(0);
-    expect((await guests.list()).filter((g) => g.functionId === fn.id)).toHaveLength(0);
   });
 
-  it('keeps guest rows when their person is deleted, but clears the link', async () => {
-    const { source, people, guests } = makeRepos();
-    await source.init();
-
-    const person = await people.create({ name: 'Anand' });
-    const guest = await guests.create({
-      functionId: 'fnZ', personId: person.id, guestName: 'Anand',
-      guestCount: 1, rsvpStatus: 'pending', checkedIn: false,
-    });
-
-    await people.remove(person.id);
-
-    const after = (await guests.list()).find((g) => g.id === guest.id);
-    expect(after).toBeDefined();
-    expect(after!.personId).toBeUndefined();
-    expect(after!.guestName).toBe('Anand');
-  });
 });

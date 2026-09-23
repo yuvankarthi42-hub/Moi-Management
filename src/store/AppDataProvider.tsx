@@ -4,12 +4,12 @@ import React, {
 
 import { getRepositories, type Repositories } from '../data';
 import type {
-  NewExpense, NewFamily, NewFamilyMember, NewFunction, NewGuest, NewMoiEntry, NewPerson,
+  NewExpense, NewFamily, NewFamilyMember, NewFunction, NewMoiEntry, NewPerson,
   NewPersonEvent,
 } from '../data/DataSource';
 import {
   EMPTY_DATASET, type AppSettings, type Dataset, type FamilyRole, type ID,
-  type RsvpStatus, type UserProfile,
+  type UserProfile,
 } from '../domain/models';
 
 /**
@@ -54,14 +54,6 @@ interface AppDataValue {
   editExpense: (id: ID, patch: Partial<NewExpense>) => Promise<void>;
   removeExpense: (id: ID) => Promise<void>;
 
-  // Guests
-  addGuest: (input: NewGuest) => Promise<string>;
-  editGuest: (id: ID, patch: Partial<NewGuest>) => Promise<void>;
-  removeGuest: (id: ID) => Promise<void>;
-  setGuestRsvp: (id: ID, status: RsvpStatus) => Promise<void>;
-  setGuestCheckedIn: (id: ID, checkedIn: boolean) => Promise<void>;
-  addGuestsBulk: (inputs: NewGuest[]) => Promise<{ added: number; skipped: number }>;
-
   // Family collaboration
   addFamilyMember: (input: NewFamilyMember) => Promise<string>;
   setMemberRole: (id: ID, role: FamilyRole) => Promise<void>;
@@ -99,7 +91,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const load = useCallback(async () => {
     const { source } = repositories;
     const [
-      people, families, functions, moiEntries, expenses, guests, personEvents,
+      people, families, functions, moiEntries, expenses, personEvents,
       familyMembers, profile, settings,
     ] = await Promise.all([
       source.listPeople(),
@@ -107,7 +99,6 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       source.listFunctions(),
       source.listMoiEntries(),
       source.listExpenses(),
-      source.listGuests(),
       source.listPersonEvents(),
       source.listFamilyMembers(),
       source.getProfile(),
@@ -115,7 +106,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     ]);
     if (!mounted.current) return;
     setData({
-      people, families, functions, moiEntries, expenses, guests, personEvents,
+      people, families, functions, moiEntries, expenses, personEvents,
       familyMembers, profile, settings,
     });
   }, [repositories]);
@@ -152,7 +143,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<AppDataValue>(() => {
     const {
-      people, functions, moi, expenses, guests, familyMembers, settings,
+      people, functions, moi, expenses, familyMembers, settings,
     } = repositories;
     return {
       data,
@@ -182,14 +173,6 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       addExpense: (input) => mutate(() => expenses.create(input)).then((e) => e.id),
       editExpense: (id, patch) => mutate(() => expenses.update(id, patch)).then(() => undefined),
       removeExpense: (id) => mutate(() => expenses.remove(id)),
-
-      addGuest: (input) => mutate(() => guests.create(input)).then((g) => g.id),
-      editGuest: (id, patch) => mutate(() => guests.update(id, patch)).then(() => undefined),
-      removeGuest: (id) => mutate(() => guests.remove(id)),
-      setGuestRsvp: (id, status) => mutate(() => guests.setRsvp(id, status)).then(() => undefined),
-      setGuestCheckedIn: (id, checkedIn) =>
-        mutate(() => guests.setCheckedIn(id, checkedIn)).then(() => undefined),
-      addGuestsBulk: (inputs) => mutate(() => guests.bulkCreate(inputs)),
 
       addFamilyMember: (input) => mutate(() => familyMembers.create(input)).then((m) => m.id),
       setMemberRole: (id, role) =>

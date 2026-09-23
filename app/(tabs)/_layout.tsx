@@ -71,13 +71,6 @@ export default function TabsLayout() {
             subtitle="Save a guest to your contact book"
             onPress={() => go('/person/new')}
           />
-          <RowDivider />
-          <ListRow
-            icon="people-circle-outline"
-            title="Add Guest"
-            subtitle="Invite someone to a function"
-            onPress={() => go('/guest/new')}
-          />
         </Sheet>
       </View>
     </DataGate>

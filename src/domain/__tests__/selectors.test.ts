@@ -1,7 +1,7 @@
 import {
-  buildExpenseReport, buildFunctionReport, buildGuestReport, buildPaymentMethodReport,
+  buildExpenseReport, buildFunctionReport, buildPaymentMethodReport,
   buildPersonReport, buildReturnMoiReport, buildTopContributors, buildVillageReport,
-  searchAll, selectFunctionById, selectFunctions, selectGuestStats, selectOverview,
+  searchAll, selectFunctionById, selectFunctions, selectOverview,
   selectPeople, suggestReturnAmount,
 } from '../selectors';
 import { makeDataset, NOW } from './fixtures';
@@ -14,15 +14,11 @@ describe('function totals (spec §39)', () => {
     expect(fn.entryCount).toBe(3);
     expect(fn.expenses).toBe(1200 + 800);
     expect(fn.expenseCount).toBe(2);
-    expect(fn.guests).toBe(3 + 2 + 1);
     expect(fn.net).toBe(3502 - 2000);
   });
 
-  it('falls back to the host estimate when no guest list exists yet', () => {
-    // fn2 has guestCount 30 but no guest rows — a planned function must not
-    // read as "0 guests".
+  it('reports the head-count the host entered for the function', () => {
     const fn = selectFunctionById(makeDataset(), 'fn2', NOW)!;
-    expect(fn.guestRowCount).toBe(0);
     expect(fn.guests).toBe(30);
   });
 
@@ -44,8 +40,8 @@ describe('overview', () => {
     expect(overview.totalMoi).toBe(3502);
     expect(overview.totalExpenses).toBe(2000);
     expect(overview.balance).toBe(1502);
-    // fn1 has 6 guests on its list; fn2 falls back to its estimate of 30.
-    expect(overview.totalGuests).toBe(36);
+    // The two functions expect 50 and 30 guests respectively.
+    expect(overview.totalGuests).toBe(80);
     expect(overview.averageMoi).toBe(Math.round(3502 / 3));
   });
 });
@@ -64,20 +60,6 @@ describe('people', () => {
     const priya = selectPeople(makeDataset()).find((p) => p.id === 'p3')!;
     expect(priya.totalGiven).toBe(0);
     expect(priya.functionCount).toBe(0);
-  });
-});
-
-describe('guest statistics', () => {
-  it('counts heads, not rows', () => {
-    const data = makeDataset();
-    const stats = selectGuestStats(data.guests);
-
-    expect(stats.rows).toBe(3);
-    expect(stats.total).toBe(6);
-    expect(stats.accepted).toBe(3);
-    expect(stats.pending).toBe(2);
-    expect(stats.declined).toBe(1);
-    expect(stats.checkedIn).toBe(3);
   });
 });
 
@@ -133,13 +115,6 @@ describe('reports', () => {
     expect(report.moiCounts.cash).toBe(1);
   });
 
-  it('reports guests per function and skips functions with no list', () => {
-    const report = buildGuestReport(makeDataset());
-
-    expect(report.rows).toHaveLength(1);
-    expect(report.rows[0]).toMatchObject({ functionId: 'fn1', invited: 6, checkedIn: 3 });
-  });
-
   it('restricts a report to its date range', () => {
     // fn1 is in January; a February-onwards range should exclude it entirely.
     const report = buildFunctionReport(makeDataset(), { from: '2026-02-01' });
@@ -189,13 +164,12 @@ describe('return moi', () => {
 });
 
 describe('global search (spec §17)', () => {
-  it('finds a person, their moi entries and their guest row in one pass', () => {
+  it('finds a person and their moi entries in one pass', () => {
     const results = searchAll(makeDataset(), 'murugan');
     const kinds = new Set(results.map((r) => r.kind));
 
     expect(kinds.has('person')).toBe(true);
     expect(kinds.has('moi')).toBe(true);
-    expect(kinds.has('guest')).toBe(true);
   });
 
   it('matches functions by village as well as name', () => {

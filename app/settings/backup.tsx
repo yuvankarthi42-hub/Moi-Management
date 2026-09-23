@@ -93,7 +93,7 @@ export default function BackupScreen() {
   const confirmReset = () => {
     Alert.alert(
       'Reset to demo data?',
-      'Every function, person, moi entry, expense and guest you have added will be replaced with the sample records. This cannot be undone.',
+      'Every function, person, moi entry and expense you have added will be replaced with the sample records. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Reset', style: 'destructive', onPress: () => resetDemoData() },
@@ -116,7 +116,7 @@ export default function BackupScreen() {
               { label: 'Functions', value: formatCount(overview.functionCount) },
               { label: 'People', value: formatCount(overview.peopleCount) },
               { label: 'Moi', value: formatCount(overview.entryCount) },
-              { label: 'Guests', value: formatCount(overview.totalGuests) },
+              { label: 'Expenses', value: formatCount(overview.totalExpenses) },
             ]}
           />
           <View style={styles.valueRow}>

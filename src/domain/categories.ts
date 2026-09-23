@@ -1,4 +1,4 @@
-import type { ExpenseCategory, FamilyRole, RsvpStatus } from './models';
+import type { ExpenseCategory, FamilyRole } from './models';
 
 /** Presentation metadata for expense categories (spec §14). */
 export interface ExpenseCategoryMeta {
@@ -29,24 +29,6 @@ export function expenseCategoryMeta(category: ExpenseCategory): ExpenseCategoryM
   return EXPENSE_BY_VALUE.get(category) ?? EXPENSE_BY_VALUE.get('other')!;
 }
 
-/** RSVP statuses (spec §11). Tone maps onto the shared `Badge` palette. */
-export interface RsvpMeta {
-  value: RsvpStatus;
-  label: string;
-  tone: 'success' | 'warning' | 'danger' | 'info';
-}
-
-export const RSVP_STATUSES: RsvpMeta[] = [
-  { value: 'accepted', label: 'Accepted', tone: 'success' },
-  { value: 'pending', label: 'Pending', tone: 'warning' },
-  { value: 'maybe', label: 'Maybe', tone: 'info' },
-  { value: 'declined', label: 'Declined', tone: 'danger' },
-];
-
-export function rsvpMeta(status: RsvpStatus): RsvpMeta {
-  return RSVP_STATUSES.find((s) => s.value === status) ?? RSVP_STATUSES[1];
-}
-
 /** Family roles, with the permissions each one implies (spec §16). */
 export interface RoleMeta {
   value: FamilyRole;
@@ -57,7 +39,7 @@ export interface RoleMeta {
 export const FAMILY_ROLES: RoleMeta[] = [
   { value: 'owner', label: 'Owner', description: 'Full control, including family management' },
   { value: 'admin', label: 'Admin', description: 'Everything except removing the owner' },
-  { value: 'editor', label: 'Editor', description: 'Add and edit functions, moi, guests and expenses' },
+  { value: 'editor', label: 'Editor', description: 'Add and edit functions, moi and expenses' },
   { value: 'viewer', label: 'Viewer', description: 'Can only view records and reports' },
 ];
 
@@ -70,22 +52,21 @@ export type Permission =
   | 'functions.view' | 'functions.edit'
   | 'moi.view' | 'moi.edit' | 'moi.delete'
   | 'expenses.view' | 'expenses.edit'
-  | 'guests.manage'
   | 'reports.view'
   | 'family.manage';
 
 const ROLE_PERMISSIONS: Record<FamilyRole, Permission[]> = {
   owner: [
     'functions.view', 'functions.edit', 'moi.view', 'moi.edit', 'moi.delete',
-    'expenses.view', 'expenses.edit', 'guests.manage', 'reports.view', 'family.manage',
+    'expenses.view', 'expenses.edit', 'reports.view', 'family.manage',
   ],
   admin: [
     'functions.view', 'functions.edit', 'moi.view', 'moi.edit', 'moi.delete',
-    'expenses.view', 'expenses.edit', 'guests.manage', 'reports.view', 'family.manage',
+    'expenses.view', 'expenses.edit', 'reports.view', 'family.manage',
   ],
   editor: [
     'functions.view', 'functions.edit', 'moi.view', 'moi.edit',
-    'expenses.view', 'expenses.edit', 'guests.manage', 'reports.view',
+    'expenses.view', 'expenses.edit', 'reports.view',
   ],
   viewer: ['functions.view', 'moi.view', 'expenses.view', 'reports.view'],
 };

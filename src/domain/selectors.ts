@@ -1,6 +1,6 @@
 import type {
-  Dataset, Expense, ExpenseCategory, FunctionEvent, FunctionStatus, Guest, ID, ISODate,
-  MoiEntry, PaymentType, Person, PersonEvent, RsvpStatus,
+  Dataset, Expense, ExpenseCategory, FunctionEvent, FunctionStatus, ID, ISODate,
+  MoiEntry, PaymentType, Person, PersonEvent,
 } from './models';
 import { expenseCategoryMeta } from './categories';
 import { daysUntil, fromISODate, isUpcoming } from '../utils/date';
@@ -23,14 +23,8 @@ export interface FunctionWithStats extends FunctionEvent {
   expenses: number;
   /** Number of expense rows. */
   expenseCount: number;
-  /** Head-count — summed from guest rows, falling back to the host's estimate. */
+  /** Expected head-count, as entered by the host. */
   guests: number;
-  /** Number of guest-list rows (invitations, not people). */
-  guestRowCount: number;
-  /** Guests who have confirmed. */
-  acceptedGuests: number;
-  /** Guests marked present. */
-  checkedInGuests: number;
   /** Days until the function; negative once it has passed. */
   daysAway: number;
   /** collected − expenses. */
@@ -43,16 +37,14 @@ export function functionStatus(fn: FunctionEvent, now = new Date()): FunctionSta
 
 export function withFunctionStats(
   fn: FunctionEvent,
-  data: Pick<Dataset, 'moiEntries' | 'expenses' | 'guests'>,
+  data: Pick<Dataset, 'moiEntries' | 'expenses'>,
   now = new Date(),
 ): FunctionWithStats {
   const entries = data.moiEntries.filter((e) => e.functionId === fn.id);
   const expenseRows = data.expenses.filter((e) => e.functionId === fn.id);
-  const guestRows = data.guests.filter((g) => g.functionId === fn.id);
 
   const collected = sumAmount(entries);
   const expenses = expenseRows.reduce((total, e) => total + e.amount, 0);
-  const guestHeads = guestRows.reduce((total, g) => total + g.guestCount, 0);
 
   return {
     ...fn,
@@ -61,16 +53,7 @@ export function withFunctionStats(
     entryCount: entries.length,
     expenses,
     expenseCount: expenseRows.length,
-    // Before anyone is added to the list, the host's own estimate is the best
-    // number we have — otherwise a planned function would read "0 guests".
-    guests: guestRows.length > 0 ? guestHeads : fn.guestCount ?? 0,
-    guestRowCount: guestRows.length,
-    acceptedGuests: guestRows
-      .filter((g) => g.rsvpStatus === 'accepted')
-      .reduce((total, g) => total + g.guestCount, 0),
-    checkedInGuests: guestRows
-      .filter((g) => g.checkedIn)
-      .reduce((total, g) => total + g.guestCount, 0),
+    guests: fn.guestCount ?? 0,
     daysAway: daysUntil(fn.date, now),
     net: collected - expenses,
   };
@@ -206,7 +189,7 @@ export interface OverviewStats {
   entryCount: number;
   totalExpenses: number;
   averageMoi: number;
-  /** Head-count across every guest list. */
+  /** Expected head-count across every function. */
   totalGuests: number;
   /** Moi collected minus everything spent. */
   balance: number;
@@ -218,19 +201,7 @@ export function selectOverview(data: Dataset, now = new Date()): OverviewStats {
   const entryCount = data.moiEntries.length;
   const totalExpenses = data.expenses.reduce((sum, e) => sum + e.amount, 0);
 
-  // Guest head-count falls back to the host's estimate for functions whose
-  // list has not been built yet, matching the per-function rule.
-  const guestRowsByFunction = new Map<ID, number>();
-  for (const guest of data.guests) {
-    guestRowsByFunction.set(
-      guest.functionId,
-      (guestRowsByFunction.get(guest.functionId) ?? 0) + guest.guestCount,
-    );
-  }
-  const totalGuests = data.functions.reduce(
-    (sum, fn) => sum + (guestRowsByFunction.get(fn.id) ?? fn.guestCount ?? 0),
-    0,
-  );
+  const totalGuests = data.functions.reduce((sum, fn) => sum + (fn.guestCount ?? 0), 0);
 
   return {
     functionCount: data.functions.length,
@@ -291,62 +262,6 @@ export function splitByPaymentType(
   return split;
 }
 
-// ---------------------------------------------------------------- guests
-
-export interface GuestView extends Guest {
-  person?: Person;
-}
-
-export function selectGuestsForFunction(data: Dataset, functionId: ID): GuestView[] {
-  const peopleById = indexBy(data.people, (p) => p.id);
-  return data.guests
-    .filter((g) => g.functionId === functionId)
-    .sort((a, b) => a.guestName.localeCompare(b.guestName))
-    .map((g) => ({ ...g, person: g.personId ? peopleById.get(g.personId) : undefined }));
-}
-
-export interface GuestStats {
-  /** Number of invitations on the list. */
-  rows: number;
-  /** Total head-count across those invitations. */
-  total: number;
-  accepted: number;
-  pending: number;
-  declined: number;
-  maybe: number;
-  checkedIn: number;
-}
-
-export function selectGuestStats(guests: Guest[]): GuestStats {
-  const stats: GuestStats = {
-    rows: guests.length,
-    total: 0,
-    accepted: 0,
-    pending: 0,
-    declined: 0,
-    maybe: 0,
-    checkedIn: 0,
-  };
-  for (const guest of guests) {
-    stats.total += guest.guestCount;
-    stats[guest.rsvpStatus] += guest.guestCount;
-    if (guest.checkedIn) stats.checkedIn += guest.guestCount;
-  }
-  return stats;
-}
-
-export function matchesGuest(guest: Guest, query: string): boolean {
-  const q = query.trim().toLowerCase();
-  if (!q) return true;
-  return (
-    guest.guestName.toLowerCase().includes(q) ||
-    (guest.phone ?? '').includes(q) ||
-    (guest.groupName ?? '').toLowerCase().includes(q) ||
-    (guest.village ?? '').toLowerCase().includes(q) ||
-    (guest.relationship ?? '').toLowerCase().includes(q)
-  );
-}
-
 // ---------------------------------------------------------------- reports
 
 export interface DateRange {
@@ -373,7 +288,6 @@ export function filterByRange(data: Dataset, range?: DateRange): Dataset {
     functions,
     moiEntries: data.moiEntries.filter((e) => ids.has(e.functionId)),
     expenses: data.expenses.filter((e) => ids.has(e.functionId)),
-    guests: data.guests.filter((g) => ids.has(g.functionId)),
   };
 }
 
@@ -658,7 +572,7 @@ export function selectVillages(data: Dataset): string[] {
 }
 
 
-// --- expense, payment-method, guest and collection reports (spec §15) ---
+// --- expense, payment-method and collection reports (spec §15) ---
 
 export interface ExpenseReportRow {
   key: ExpenseCategory;
@@ -732,46 +646,6 @@ export function buildPaymentMethodReport(
   };
 }
 
-export interface GuestReportRow {
-  functionId: ID;
-  title: string;
-  date: ISODate;
-  invited: number;
-  accepted: number;
-  pending: number;
-  declined: number;
-  maybe: number;
-  checkedIn: number;
-}
-
-export interface GuestReport {
-  rows: GuestReportRow[];
-  totals: GuestStats;
-}
-
-export function buildGuestReport(data: Dataset, range?: DateRange): GuestReport {
-  const scoped = filterByRange(data, range);
-  const rows: GuestReportRow[] = scoped.functions
-    .map((fn) => {
-      const stats = selectGuestStats(scoped.guests.filter((g) => g.functionId === fn.id));
-      return {
-        functionId: fn.id,
-        title: fn.title,
-        date: fn.date,
-        invited: stats.total,
-        accepted: stats.accepted,
-        pending: stats.pending,
-        declined: stats.declined,
-        maybe: stats.maybe,
-        checkedIn: stats.checkedIn,
-      };
-    })
-    .filter((row) => row.invited > 0)
-    .sort((a, b) => b.date.localeCompare(a.date));
-
-  return { rows, totals: selectGuestStats(scoped.guests) };
-}
-
 export interface CollectionReportRow {
   /** `YYYY-MM`, so rows sort chronologically as strings. */
   month: string;
@@ -822,7 +696,7 @@ export function buildCollectionReport(data: Dataset, range?: DateRange): Collect
 
 // ---------------------------------------------------------- global search
 
-export type SearchResultKind = 'function' | 'person' | 'moi' | 'guest';
+export type SearchResultKind = 'function' | 'person' | 'moi';
 
 export interface SearchResult {
   kind: SearchResultKind;
@@ -835,7 +709,7 @@ export interface SearchResult {
 }
 
 /**
- * One search across functions, people, moi entries and guests (spec §17).
+ * One search across functions, people and moi entries (spec §17).
  * Results are grouped by kind at the call site; ordering here is by relevance
  * within each kind (exact prefix first, then any substring match).
  */
@@ -899,20 +773,6 @@ export function searchAll(data: Dataset, query: string, limitPerKind = 8): Searc
       subtitle: functionsById.get(entry.functionId)?.title ?? 'Function',
       amount: entry.amount,
       href: `/function/${entry.functionId}`,
-    });
-  }
-
-  const guests = data.guests
-    .filter((guest) => matchesGuest(guest, q))
-    .sort((a, b) => rank(a.guestName) - rank(b.guestName))
-    .slice(0, limitPerKind);
-  for (const guest of guests) {
-    results.push({
-      kind: 'guest',
-      id: guest.id,
-      title: guest.guestName,
-      subtitle: `${functionsById.get(guest.functionId)?.title ?? 'Function'} · ${guest.rsvpStatus}`,
-      href: `/function/${guest.functionId}`,
     });
   }
 
