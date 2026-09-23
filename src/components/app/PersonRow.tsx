@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { paymentTypeMeta } from '../../domain/functionTypes';
 import type { MoiEntryView, PersonWithStats } from '../../domain/selectors';
 import { colors, makeStyles, spacing, useColors } from '../../theme';
-import { formatPhone } from '../../utils/format';
+import { formatMoney, formatPhone } from '../../utils/format';
 import { formatTime } from '../../utils/date';
 import { Avatar } from '../ui/Avatar';
 import { Card } from '../ui/Card';
@@ -46,10 +46,19 @@ export function PersonRow({
         </View>
 
         <View style={styles.trailing}>
-          <Money value={person.totalGiven} flow="out" variant="bodyStrong" />
-          <T variant="caption" tone="muted" style={styles.trailingSub}>
-            {person.functionCount} {person.functionCount === 1 ? 'Function' : 'Functions'}
-          </T>
+          {/* The headline figure stays what they have given us; the line below
+              flags an outstanding return so the list answers "who do I still
+              owe?" without opening each profile. */}
+          <Money value={person.totalReceived} flow="out" variant="bodyStrong" />
+          {person.balance > 0 ? (
+            <T variant="caption" tone="warning" style={styles.trailingSub}>
+              {formatMoney(person.balance)} to return
+            </T>
+          ) : (
+            <T variant="caption" tone="muted" style={styles.trailingSub}>
+              {person.functionCount} {person.functionCount === 1 ? 'Function' : 'Functions'}
+            </T>
+          )}
         </View>
       </View>
     </Card>

@@ -33,7 +33,7 @@ export default function PeopleScreen() {
       (p) => matchesPerson(p, query) && (village === 'all' || p.village === village),
     );
     const sorted = [...filtered];
-    if (sort === 'amount') sorted.sort((a, b) => b.totalGiven - a.totalGiven);
+    if (sort === 'amount') sorted.sort((a, b) => b.totalReceived - a.totalReceived);
     else if (sort === 'recent') {
       sorted.sort((a, b) => (b.lastDate ?? '').localeCompare(a.lastDate ?? ''));
     }
@@ -41,7 +41,7 @@ export default function PeopleScreen() {
   }, [people, query, village, sort]);
 
   const totalShown = useMemo(
-    () => visible.reduce((sum, p) => sum + p.totalGiven, 0),
+    () => visible.reduce((sum, p) => sum + p.totalReceived, 0),
     [visible],
   );
 

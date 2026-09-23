@@ -7,14 +7,17 @@ import {
   AppHeader, Avatar, Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll,
   SectionHeader, StatRow, T,
 } from '../../src/components/ui';
-import { functionTypeMeta } from '../../src/domain/functionTypes';
+import { functionTypeMeta, paymentTypeMeta } from '../../src/domain/functionTypes';
 import {
-  buildReturnMoiReport, selectMoiEntriesForPerson, selectPersonById,
+  buildReturnMoiReport, describeBalance, selectMoiTimelineForPerson, selectPersonById,
+  type MoiTimelineRow,
 } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, spacing, useColors } from '../../src/theme';
+import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { countdownLabel, formatDate } from '../../src/utils/date';
-import { formatCount, formatMoneyCompact, formatPhone } from '../../src/utils/format';
+import {
+  formatCount, formatMoney, formatMoneyCompact, formatPhone,
+} from '../../src/utils/format';
 
 export default function PersonProfileScreen() {
   const styles = useStyles();
@@ -24,7 +27,8 @@ export default function PersonProfileScreen() {
   const { data, loading, removePerson } = useAppData();
 
   const person = useMemo(() => (id ? selectPersonById(data, id) : undefined), [data, id]);
-  const history = useMemo(() => (id ? selectMoiEntriesForPerson(data, id) : []), [data, id]);
+  const history = useMemo(() => (id ? selectMoiTimelineForPerson(data, id) : []), [data, id]);
+  const balance = useMemo(() => describeBalance(person?.balance ?? 0), [person?.balance]);
   const upcoming = useMemo(
     () => buildReturnMoiReport(data, { withinDays: 365 }).filter((r) => r.person.id === id),
     [data, id],
@@ -149,17 +153,72 @@ export default function PersonProfileScreen() {
           <StatRow
             compactLabels
             items={[
-              { label: 'Total Given', value: formatMoneyCompact(person.totalGiven), tone: 'danger' },
-              { label: 'Functions', value: formatCount(person.functionCount) },
               {
-                label: 'Average',
-                value: formatMoneyCompact(
-                  history.length ? Math.round(person.totalGiven / history.length) : 0,
-                ),
+                label: 'Moi Received',
+                value: formatMoneyCompact(person.totalReceived),
+                tone: 'success',
+              },
+              {
+                label: 'Moi Given',
+                value: formatMoneyCompact(person.totalGiven),
+                tone: 'danger',
+              },
+              {
+                label: 'Balance',
+                value: formatMoneyCompact(balance.amount),
+                tone: balance.state === 'to-return' ? 'warning' : 'default',
               },
             ]}
           />
         </Card>
+
+        {/* States the balance in words — a signed number alone leaves the
+            reader working out which side of the exchange is ahead. */}
+        <View
+          style={[
+            styles.balanceStrip,
+            balance.state === 'to-return'
+              ? styles.balanceWarn
+              : balance.state === 'ahead'
+                ? styles.balanceAhead
+                : styles.balanceSettled,
+          ]}
+        >
+          <Ionicons
+            name={
+              balance.state === 'to-return'
+                ? 'gift-outline'
+                : balance.state === 'ahead'
+                  ? 'checkmark-done-outline'
+                  : 'checkmark-circle-outline'
+            }
+            size={17}
+            color={
+              balance.state === 'to-return'
+                ? colors.warning
+                : balance.state === 'ahead'
+                  ? colors.success
+                  : colors.textSecondary
+            }
+          />
+          <T
+            variant="small"
+            tone={
+              balance.state === 'to-return'
+                ? 'warning'
+                : balance.state === 'ahead'
+                  ? 'success'
+                  : 'secondary'
+            }
+            style={styles.balanceText}
+          >
+            {balance.state === 'to-return'
+              ? `${formatMoney(balance.amount)} still to return to ${person.name}`
+              : balance.state === 'ahead'
+                ? `You have given ${formatMoney(balance.amount)} more than received`
+                : 'Settled — both sides match'}
+          </T>
+        </View>
 
         <Card style={styles.detailCard}>
           {person.phone ? (
@@ -174,6 +233,11 @@ export default function PersonProfileScreen() {
           {person.relation ? (
             <DetailRow icon="people-outline" label="Relation" value={person.relation} />
           ) : null}
+          <DetailRow
+            icon="calendar-outline"
+            label="Functions"
+            value={`${person.functionCount} attended`}
+          />
           {person.notes ? (
             <DetailRow icon="document-text-outline" label="Notes" value={person.notes} />
           ) : null}
@@ -208,9 +272,17 @@ export default function PersonProfileScreen() {
                     />
                   </View>
                   <View style={styles.suggestRow}>
-                    <T variant="small" tone="secondary">
-                      Suggested return
-                    </T>
+                    {/* The suggestion matches their most recent moi, while the
+                        balance above is the lifetime net — two different
+                        questions, so each says which basis it uses. */}
+                    <View style={styles.suggestLabel}>
+                      <T variant="small" tone="secondary">
+                        Suggested return
+                      </T>
+                      <T variant="caption" tone="muted">
+                        Matches their last moi of {formatMoney(row.lastReceived)}
+                      </T>
+                    </View>
                     <Money value={row.suggested} flow="out" variant="h3" />
                   </View>
                 </Card>
@@ -219,35 +291,21 @@ export default function PersonProfileScreen() {
           </>
         ) : null}
 
-        <SectionHeader title="Moi History" />
+        <SectionHeader title="Moi History" actionLabel="Both directions" onAction={() => undefined} />
         <View style={styles.sideMargin}>
           {history.length > 0 ? (
             <Card padded={false}>
               {history.map((entry, index) => (
-                <Pressable
-                  key={entry.id}
-                  onPress={() => router.push(`/function/${entry.functionId}`)}
-                  accessibilityRole="button"
-                  android_ripple={{ color: colors.primarySoft }}
-                  style={({ pressed }) => [
-                    styles.historyRow,
-                    index > 0 && styles.historyDivider,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View style={styles.historyBody}>
-                    <T variant="body" numberOfLines={1}>
-                      {entry.functionTitle ?? 'Function'}
-                    </T>
-                    <T variant="caption" tone="muted">
-                      {formatDate(
-                        data.functions.find((f) => f.id === entry.functionId)?.date ??
-                          entry.recordedAt.slice(0, 10),
-                      )}
-                    </T>
-                  </View>
-                  <Money value={entry.amount} flow="out" />
-                </Pressable>
+                <HistoryRow
+                  key={`${entry.direction}-${entry.id}`}
+                  row={entry}
+                  divider={index > 0}
+                  onPress={
+                    entry.functionId
+                      ? () => router.push(`/function/${entry.functionId}`)
+                      : undefined
+                  }
+                />
               ))}
             </Card>
           ) : (
@@ -263,20 +321,81 @@ export default function PersonProfileScreen() {
           )}
         </View>
 
-        {history.length > 0 ? (
-          <View style={styles.sideMargin}>
-            <Button
-              label="Add Moi for this person"
-              icon="add"
-              variant="secondary"
-              block
-              style={styles.addButton}
-              onPress={() => router.push(`/moi/add?personId=${person.id}`)}
-            />
-          </View>
-        ) : null}
+        <View style={[styles.sideMargin, styles.footerActions]}>
+          <Button
+            label="Add received"
+            icon="arrow-down-circle-outline"
+            variant="outline"
+            block
+            onPress={() => router.push(`/moi/add?personId=${person.id}`)}
+          />
+          <Button
+            label="Record given"
+            icon="arrow-up-circle-outline"
+            block
+            onPress={() => router.push(`/moi/given?personId=${person.id}`)}
+          />
+        </View>
       </ScreenScroll>
     </Screen>
+  );
+}
+
+/**
+ * One line of the two-way history. Received and given sit on the same
+ * timeline, so the arrow and colour carry the direction rather than the row
+ * living in a separate list.
+ */
+function HistoryRow({
+  row,
+  divider,
+  onPress,
+}: {
+  row: MoiTimelineRow;
+  divider: boolean;
+  onPress?: () => void;
+}) {
+  const styles = useStyles();
+  const colors = useColors();
+  const received = row.direction === 'received';
+
+  const body = (
+    <>
+      <Ionicons
+        name={received ? 'arrow-down-circle' : 'arrow-up-circle'}
+        size={20}
+        color={received ? colors.success : colors.danger}
+      />
+      <View style={styles.historyBody}>
+        <T variant="body" numberOfLines={1}>
+          {row.title}
+        </T>
+        <T variant="caption" tone="muted" numberOfLines={1}>
+          {formatDate(row.date)} · {paymentTypeMeta(row.paymentType).label} ·{' '}
+          {received ? 'received' : 'you gave'}
+        </T>
+      </View>
+      <T variant="bodyStrong" tone={received ? 'success' : 'danger'}>
+        {received ? '+' : '\u2212'}
+        {formatMoney(row.amount)}
+      </T>
+    </>
+  );
+
+  const style = [styles.historyRow, divider && styles.historyDivider];
+
+  if (!onPress) return <View style={style}>{body}</View>;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${row.title}, ${received ? 'received' : 'given'}`}
+      android_ripple={{ color: colors.primarySoft }}
+      style={({ pressed }) => [...style, pressed && styles.pressed]}
+    >
+      {body}
+    </Pressable>
   );
 }
 
@@ -396,6 +515,28 @@ const useStyles = makeStyles((colors) => ({
   sideMargin: {
     marginHorizontal: spacing.lg,
   },
+  balanceStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: radius.md,
+  },
+  balanceWarn: {
+    backgroundColor: colors.warningSoft,
+  },
+  balanceAhead: {
+    backgroundColor: colors.successSoft,
+  },
+  balanceSettled: {
+    backgroundColor: colors.surfaceAlt,
+  },
+  balanceText: {
+    flex: 1,
+  },
   upcomingCard: {
     marginBottom: spacing.md,
   },
@@ -410,6 +551,10 @@ const useStyles = makeStyles((colors) => ({
   },
   upcomingBody: {
     flex: 1,
+  },
+  suggestLabel: {
+    flex: 1,
+    marginRight: spacing.md,
   },
   suggestRow: {
     flexDirection: 'row',
@@ -434,7 +579,9 @@ const useStyles = makeStyles((colors) => ({
   historyBody: {
     flex: 1,
   },
-  addButton: {
+  footerActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
     marginTop: spacing.lg,
   },
   pressed: {

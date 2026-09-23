@@ -66,14 +66,6 @@ export class FunctionRepository {
     return this.source.deletePersonEvent(id);
   }
 
-  /** Records the moi the household gave back at a guest's function. */
-  async markReturned(eventId: ID, amount: number): Promise<PersonEvent> {
-    if (!Number.isFinite(amount) || amount < 0) {
-      throw new ValidationError('Enter a valid amount.', 'amount');
-    }
-    return this.source.updatePersonEvent(eventId, { returnedAmount: Math.round(amount) });
-  }
-
   private validate(input: NewFunction): NewFunction {
     const title = input.title?.trim();
     if (!title) throw new ValidationError('Enter a function name.', 'title');

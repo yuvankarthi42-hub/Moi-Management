@@ -1,4 +1,5 @@
 import {
+  describeBalance, selectMoiTimelineForPerson,
   buildExpenseReport, buildFunctionReport, buildPaymentMethodReport,
   buildPersonReport, buildReturnMoiReport, buildTopContributors, buildVillageReport,
   searchAll, selectFunctionById, selectFunctions, selectOverview,
@@ -44,7 +45,7 @@ describe('people', () => {
   it('aggregates a person across every function they gave at', () => {
     const murugan = selectPeople(makeDataset()).find((p) => p.id === 'p1')!;
 
-    expect(murugan.totalGiven).toBe(1001 + 500);
+    expect(murugan.totalReceived).toBe(1001 + 500);
     // Two entries, but both at the same function.
     expect(murugan.functionCount).toBe(1);
     expect(murugan.familyName).toBe('Murugan Family');
@@ -52,8 +53,64 @@ describe('people', () => {
 
   it('gives people with no entries a zero total rather than omitting them', () => {
     const priya = selectPeople(makeDataset()).find((p) => p.id === 'p3')!;
-    expect(priya.totalGiven).toBe(0);
+    expect(priya.totalReceived).toBe(0);
     expect(priya.functionCount).toBe(0);
+  });
+});
+
+describe('moi return tracking', () => {
+  it('tracks both directions and the balance between them', () => {
+    const people = selectPeople(makeDataset());
+    const murugan = people.find((p) => p.id === 'p1')!;
+    const selvam = people.find((p) => p.id === 'p2')!;
+
+    // Received 1001 + 500, given back 500.
+    expect(murugan.totalReceived).toBe(1501);
+    expect(murugan.totalGiven).toBe(500);
+    expect(murugan.balance).toBe(1001);
+
+    // Given back more than they gave.
+    expect(selvam.totalReceived).toBe(2001);
+    expect(selvam.totalGiven).toBe(2500);
+    expect(selvam.balance).toBe(-499);
+  });
+
+  it('leaves someone with no records on a zero balance', () => {
+    const priya = selectPeople(makeDataset()).find((p) => p.id === 'p3')!;
+    expect(priya.totalReceived).toBe(0);
+    expect(priya.totalGiven).toBe(0);
+    expect(priya.balance).toBe(0);
+  });
+
+  it('words the balance by direction, always as a positive amount', () => {
+    expect(describeBalance(1001)).toEqual({ state: 'to-return', amount: 1001 });
+    expect(describeBalance(-499)).toEqual({ state: 'ahead', amount: 499 });
+    expect(describeBalance(0)).toEqual({ state: 'settled', amount: 0 });
+  });
+
+  it('merges both directions into one timeline, newest first', () => {
+    const rows = selectMoiTimelineForPerson(makeDataset(), 'p1');
+
+    expect(rows).toHaveLength(3);
+    expect(rows.filter((r) => r.direction === 'given')).toHaveLength(1);
+    expect(rows.filter((r) => r.direction === 'received')).toHaveLength(2);
+
+    const dates = rows.map((r) => r.date);
+    expect([...dates].sort((a, b) => b.localeCompare(a))).toEqual(dates);
+  });
+
+  it('counts a return against the event it was given for', () => {
+    const data = makeDataset({
+      personEvents: [
+        { id: 'pe1', personId: 'p1', title: 'Marriage', type: 'wedding', date: '2026-06-10', createdAt: '2026-01-01T00:00:00.000Z' },
+      ],
+      moiGiven: [
+        { id: 'g9', personId: 'p1', personEventId: 'pe1', amount: 700, paymentType: 'cash', date: '2026-06-09', createdAt: '2026-01-01T00:00:00.000Z' },
+      ],
+    });
+
+    const [row] = buildReturnMoiReport(data, { withinDays: 30, now: NOW });
+    expect(row.returned).toBe(700);
   });
 });
 

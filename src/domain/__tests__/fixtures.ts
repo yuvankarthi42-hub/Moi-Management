@@ -33,6 +33,12 @@ export function makeDataset(overrides: Partial<Dataset> = {}): Dataset {
       { id: 'm2', functionId: 'fn1', personId: 'p2', amount: 2001, paymentType: 'upi', recordedAt: '2026-01-10T05:00:00.000Z' },
       { id: 'm3', functionId: 'fn1', personId: 'p1', amount: 500, paymentType: 'other', recordedAt: '2026-01-10T06:00:00.000Z' },
     ],
+    // p1 received 1501 and has had 500 back; p2 received 2001 and has had
+    // 2500 back, so the two sit on opposite sides of the balance.
+    moiGiven: [
+      { id: 'g1', personId: 'p1', amount: 500, paymentType: 'cash', date: '2026-03-01', createdAt: T },
+      { id: 'g2', personId: 'p2', amount: 2500, paymentType: 'upi', date: '2026-03-02', createdAt: T },
+    ],
     expenses: [
       { id: 'e1', functionId: 'fn1', category: 'food', amount: 1200, paymentType: 'cash', date: '2026-01-09', createdAt: T },
       { id: 'e2', functionId: 'fn1', category: 'hall', amount: 800, paymentType: 'upi', date: '2026-01-08', createdAt: T },

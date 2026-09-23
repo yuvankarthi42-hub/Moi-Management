@@ -52,6 +52,13 @@ export default function TabsLayout() {
           />
           <RowDivider />
           <ListRow
+            icon="arrow-up-circle-outline"
+            title="Record Moi Given"
+            subtitle="Moi you gave back to someone"
+            onPress={() => go('/moi/given')}
+          />
+          <RowDivider />
+          <ListRow
             icon="calendar-outline"
             title="Add Function"
             subtitle="Wedding, ear piercing, house warming…"

@@ -4,8 +4,8 @@ import React, {
 
 import { getRepositories, type Repositories } from '../data';
 import type {
-  NewExpense, NewFamily, NewFamilyMember, NewFunction, NewMoiEntry, NewPerson,
-  NewPersonEvent,
+  NewExpense, NewFamily, NewFamilyMember, NewFunction, NewMoiEntry, NewMoiGiven,
+  NewPerson, NewPersonEvent,
 } from '../data/DataSource';
 import {
   EMPTY_DATASET, type AppSettings, type Dataset, type FamilyRole, type ID,
@@ -49,6 +49,11 @@ interface AppDataValue {
   editMoiEntry: (id: ID, patch: Partial<NewMoiEntry>) => Promise<void>;
   removeMoiEntry: (id: ID) => Promise<void>;
 
+  // Moi given back to a person
+  addMoiGiven: (input: NewMoiGiven) => Promise<string>;
+  editMoiGiven: (id: ID, patch: Partial<NewMoiGiven>) => Promise<void>;
+  removeMoiGiven: (id: ID) => Promise<void>;
+
   // Expenses
   addExpense: (input: NewExpense) => Promise<string>;
   editExpense: (id: ID, patch: Partial<NewExpense>) => Promise<void>;
@@ -91,13 +96,14 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const load = useCallback(async () => {
     const { source } = repositories;
     const [
-      people, families, functions, moiEntries, expenses, personEvents,
+      people, families, functions, moiEntries, moiGiven, expenses, personEvents,
       familyMembers, profile, settings,
     ] = await Promise.all([
       source.listPeople(),
       source.listFamilies(),
       source.listFunctions(),
       source.listMoiEntries(),
+      source.listMoiGiven(),
       source.listExpenses(),
       source.listPersonEvents(),
       source.listFamilyMembers(),
@@ -106,7 +112,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     ]);
     if (!mounted.current) return;
     setData({
-      people, families, functions, moiEntries, expenses, personEvents,
+      people, families, functions, moiEntries, moiGiven, expenses, personEvents,
       familyMembers, profile, settings,
     });
   }, [repositories]);
@@ -143,7 +149,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<AppDataValue>(() => {
     const {
-      people, functions, moi, expenses, familyMembers, settings,
+      people, functions, moi, moiGiven, expenses, familyMembers, settings,
     } = repositories;
     return {
       data,
@@ -170,6 +176,10 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       editMoiEntry: (id, patch) => mutate(() => moi.update(id, patch)).then(() => undefined),
       removeMoiEntry: (id) => mutate(() => moi.remove(id)),
 
+      addMoiGiven: (input) => mutate(() => moiGiven.create(input)).then((g) => g.id),
+      editMoiGiven: (id, patch) => mutate(() => moiGiven.update(id, patch)).then(() => undefined),
+      removeMoiGiven: (id) => mutate(() => moiGiven.remove(id)),
+
       addExpense: (input) => mutate(() => expenses.create(input)).then((e) => e.id),
       editExpense: (id, patch) => mutate(() => expenses.update(id, patch)).then(() => undefined),
       removeExpense: (id) => mutate(() => expenses.remove(id)),
@@ -182,7 +192,18 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       addPersonEvent: (input) => mutate(() => functions.createPersonEvent(input)).then((e) => e.id),
       removePersonEvent: (id) => mutate(() => functions.removePersonEvent(id)),
       markMoiReturned: (eventId, amount) =>
-        mutate(() => functions.markReturned(eventId, amount)).then(() => undefined),
+        mutate(async () => {
+          const event = data.personEvents.find((e) => e.id === eventId);
+          if (!event) throw new Error('That function could not be found.');
+          return moiGiven.create({
+            personId: event.personId,
+            personEventId: event.id,
+            occasion: event.title,
+            amount,
+            paymentType: 'cash',
+            date: event.date,
+          });
+        }).then(() => undefined),
 
       saveProfile: (patch) => mutate(() => settings.updateProfile(patch)).then(() => undefined),
       saveSettings: (patch) => mutate(() => settings.updateSettings(patch)).then(() => undefined),

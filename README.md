@@ -106,8 +106,17 @@ optional photo. Quick-amount chips, the person's previous amount shown inline,
 and a duplicate-entry warning when someone is recorded twice at one function.
 
 **People** — contact book with phone, village, relation and family. Sort by name,
-amount or recency; filter by village. Each profile shows lifetime total, moi
-history, their upcoming functions, and call / message shortcuts.
+amount or recency; filter by village. Each profile shows call / message
+shortcuts, contact details, and their upcoming functions.
+
+**Moi return tracking** — moi runs both ways, so a person's profile reports
+**received**, **given** and the **balance** between them, over one timeline that
+interleaves both directions. A positive balance is worded as "still to return",
+a negative one as "given more than received", and zero as "settled"; the People
+list flags anyone still owed. Returns are full records — amount, payment type,
+date, occasion, notes and a photo — not a single number, so
+`MoiGiven` is kept separate from `MoiEntry`: a received moi must belong to one
+of *our* functions (§38), a given one belongs to somebody else's.
 
 **Expenses** — recorded against a function, with category, payment type, who
 paid, date, notes and a receipt photo. There is deliberately **no budget

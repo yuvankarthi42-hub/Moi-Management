@@ -1,6 +1,6 @@
 import type {
   Dataset, Expense, ExpenseCategory, FunctionEvent, FunctionStatus, ID, ISODate,
-  MoiEntry, PaymentType, Person, PersonEvent,
+  MoiEntry, MoiGiven, PaymentType, Person, PersonEvent,
 } from './models';
 import { expenseCategoryMeta } from './categories';
 import { daysUntil, fromISODate, isUpcoming } from '../utils/date';
@@ -125,11 +125,85 @@ export function selectMoiEntriesForPerson(data: Dataset, personId: ID): MoiEntry
     .map((e) => ({ ...e, functionTitle: functionsById.get(e.functionId)?.title }));
 }
 
+/** One row of a person's moi history, in either direction. */
+export interface MoiTimelineRow {
+  id: ID;
+  direction: 'received' | 'given';
+  amount: number;
+  date: ISODate;
+  paymentType: PaymentType;
+  /** The function it relates to — ours when received, theirs when given. */
+  title: string;
+  notes?: string;
+  /** Set on received rows, so the row can open the function. */
+  functionId?: ID;
+}
+
+/**
+ * A person's moi in both directions on one timeline, newest first.
+ *
+ * Received and given are separate records, but the host thinks of them as one
+ * running account with that person — so the profile shows them interleaved
+ * rather than in two disconnected lists.
+ */
+export function selectMoiTimelineForPerson(data: Dataset, personId: ID): MoiTimelineRow[] {
+  const functionsById = indexBy(data.functions, (f) => f.id);
+
+  const received: MoiTimelineRow[] = data.moiEntries
+    .filter((e) => e.personId === personId)
+    .map((e) => ({
+      id: e.id,
+      direction: 'received' as const,
+      amount: e.amount,
+      date: functionsById.get(e.functionId)?.date ?? e.recordedAt.slice(0, 10),
+      paymentType: e.paymentType,
+      title: functionsById.get(e.functionId)?.title ?? 'Function',
+      notes: e.notes,
+      functionId: e.functionId,
+    }));
+
+  const given: MoiTimelineRow[] = data.moiGiven
+    .filter((g) => g.personId === personId)
+    .map((g) => ({
+      id: g.id,
+      direction: 'given' as const,
+      amount: g.amount,
+      date: g.date,
+      paymentType: g.paymentType,
+      title: g.occasion || 'Moi given',
+      notes: g.notes,
+    }));
+
+  return [...received, ...given].sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export type BalanceState = 'to-return' | 'ahead' | 'settled';
+
+export interface BalanceSummary {
+  state: BalanceState;
+  /** Always positive — the wording carries the direction. */
+  amount: number;
+}
+
+/** Turns a signed balance into the state the UI words it with. */
+export function describeBalance(balance: number): BalanceSummary {
+  if (balance > 0) return { state: 'to-return', amount: balance };
+  if (balance < 0) return { state: 'ahead', amount: Math.abs(balance) };
+  return { state: 'settled', amount: 0 };
+}
+
 // ---------------------------------------------------------------- people
 
 export interface PersonWithStats extends Person {
   /** Total rupees this person has given the household. */
+  totalReceived: number;
+  /** Total rupees the household has given back to them. */
   totalGiven: number;
+  /**
+   * `totalReceived - totalGiven`. Positive means they have given more than
+   * they have had back, so the household still owes a return.
+   */
+  balance: number;
   /** How many of our functions they contributed to. */
   functionCount: number;
   /** Their most recent contribution, if any. */
@@ -152,6 +226,13 @@ export function selectPeople(data: Dataset): PersonWithStats[] {
     else byPerson.set(entry.personId, [entry]);
   }
 
+  const givenByPerson = new Map<ID, MoiGiven[]>();
+  for (const given of data.moiGiven) {
+    const list = givenByPerson.get(given.personId);
+    if (list) list.push(given);
+    else givenByPerson.set(given.personId, [given]);
+  }
+
   return data.people
     .map((person) => {
       const entries = byPerson.get(person.id) ?? [];
@@ -159,9 +240,16 @@ export function selectPeople(data: Dataset): PersonWithStats[] {
         .map((e) => ({ entry: e, date: functionsById.get(e.functionId)?.date ?? '' }))
         .sort((a, b) => b.date.localeCompare(a.date));
       const latest = dated[0];
+      const totalReceived = sumAmount(entries);
+      const totalGiven = (givenByPerson.get(person.id) ?? []).reduce(
+        (total, g) => total + g.amount,
+        0,
+      );
       return {
         ...person,
-        totalGiven: sumAmount(entries),
+        totalReceived,
+        totalGiven,
+        balance: totalReceived - totalGiven,
         functionCount: new Set(entries.map((e) => e.functionId)).size,
         lastAmount: latest?.entry.amount,
         lastFunctionId: latest?.entry.functionId,
@@ -473,6 +561,17 @@ export function buildReturnMoiReport(
   const functionsById = indexBy(data.functions, (f) => f.id);
   const { suggestionRounding, auspiciousRupee } = data.settings;
 
+  // What has already been given towards each of their functions, summed from
+  // the moi-given records rather than stored on the event.
+  const givenByEvent = new Map<ID, number>();
+  for (const given of data.moiGiven) {
+    if (!given.personEventId) continue;
+    givenByEvent.set(
+      given.personEventId,
+      (givenByEvent.get(given.personEventId) ?? 0) + given.amount,
+    );
+  }
+
   const rows: ReturnMoiRow[] = [];
 
   for (const event of data.personEvents) {
@@ -503,7 +602,7 @@ export function buildReturnMoiReport(
       lastReceived,
       totalReceived: sumAmount(given),
       suggested: suggestReturnAmount(lastReceived, suggestionRounding, auspiciousRupee),
-      returned: event.returnedAmount ?? 0,
+      returned: givenByEvent.get(event.id) ?? 0,
       familyName: person.familyId ? familiesById.get(person.familyId)?.name : undefined,
     });
   }
@@ -737,7 +836,7 @@ export function searchAll(data: Dataset, query: string, limitPerKind = 8): Searc
       id: person.id,
       title: person.name,
       subtitle: [person.village, person.phone].filter(Boolean).join(' · ') || 'No details',
-      amount: person.totalGiven,
+      amount: person.totalReceived,
       href: `/person/${person.id}`,
     });
   }

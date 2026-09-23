@@ -1,12 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type {
-  AppSettings, Expense, Family, FamilyMember, FunctionEvent, ID, MoiEntry, Person,
+  AppSettings, Expense, Family, FamilyMember, FunctionEvent, ID, MoiEntry, MoiGiven, Person,
   PersonEvent, UserProfile,
 } from '../../domain/models';
 import type {
   BackupPayload, DataSource, NewExpense, NewFamily, NewFamilyMember, NewFunction,
-  NewMoiEntry, NewPerson, NewPersonEvent,
+  NewMoiEntry, NewMoiGiven, NewPerson, NewPersonEvent,
 } from '../DataSource';
 import { buildSeed } from './seed';
 
@@ -35,6 +35,7 @@ function migrate(stored: Partial<BackupPayload>): BackupPayload {
     families: stored.families ?? [],
     functions: stored.functions ?? [],
     moiEntries: stored.moiEntries ?? [],
+    moiGiven: stored.moiGiven ?? [],
     expenses: stored.expenses ?? [],
     personEvents: stored.personEvents ?? [],
     // A store predating family members gets the default owner row, so the
@@ -128,6 +129,7 @@ export class MockDataSource implements DataSource {
     // Cascade: a person's moi entries and their own events go with them.
     this.db.moiEntries = this.db.moiEntries.filter((m) => m.personId !== id);
     this.db.personEvents = this.db.personEvents.filter((e) => e.personId !== id);
+    this.db.moiGiven = this.db.moiGiven.filter((g) => g.personId !== id);
     await this.flush();
   }
 
@@ -228,6 +230,34 @@ export class MockDataSource implements DataSource {
 
   async deleteMoiEntry(id: ID): Promise<void> {
     this.db.moiEntries = this.db.moiEntries.filter((m) => m.id !== id);
+    await this.flush();
+  }
+
+  // ------------------------------------------------------------ moi given
+
+  async listMoiGiven(): Promise<MoiGiven[]> {
+    await delay();
+    return [...this.db.moiGiven];
+  }
+
+  async createMoiGiven(input: NewMoiGiven): Promise<MoiGiven> {
+    const given: MoiGiven = { ...input, id: newId('giv'), createdAt: this.nowISO() };
+    this.db.moiGiven = [...this.db.moiGiven, given];
+    await this.flush();
+    return given;
+  }
+
+  async updateMoiGiven(id: ID, patch: Partial<NewMoiGiven>): Promise<MoiGiven> {
+    const index = this.db.moiGiven.findIndex((g) => g.id === id);
+    if (index < 0) throw new Error(`Moi given ${id} not found`);
+    const updated = { ...this.db.moiGiven[index], ...patch };
+    this.db.moiGiven = this.db.moiGiven.map((g, i) => (i === index ? updated : g));
+    await this.flush();
+    return updated;
+  }
+
+  async deleteMoiGiven(id: ID): Promise<void> {
+    this.db.moiGiven = this.db.moiGiven.filter((g) => g.id !== id);
     await this.flush();
   }
 

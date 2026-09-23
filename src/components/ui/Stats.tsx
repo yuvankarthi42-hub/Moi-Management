@@ -7,7 +7,7 @@ import { T } from './Text';
 export interface StatItem {
   label: string;
   value: string;
-  tone?: 'default' | 'primary' | 'success' | 'danger';
+  tone?: 'default' | 'primary' | 'success' | 'danger' | 'warning';
 }
 
 /**

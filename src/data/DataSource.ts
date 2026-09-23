@@ -7,6 +7,7 @@ import type {
   FunctionEvent,
   ID,
   MoiEntry,
+  MoiGiven,
   Person,
   PersonEvent,
   UserProfile,
@@ -32,6 +33,7 @@ export type NewFunction = Omit<FunctionEvent, 'id' | 'createdAt'>;
 export type NewMoiEntry = Omit<MoiEntry, 'id' | 'recordedAt'> & { recordedAt?: string };
 export type NewPersonEvent = Omit<PersonEvent, 'id' | 'createdAt'>;
 export type NewExpense = Omit<Expense, 'id' | 'createdAt'>;
+export type NewMoiGiven = Omit<MoiGiven, 'id' | 'createdAt'>;
 export type NewFamilyMember = Omit<FamilyMember, 'id' | 'createdAt'>;
 
 export interface DataSource {
@@ -63,6 +65,12 @@ export interface DataSource {
   createMoiEntry(input: NewMoiEntry): Promise<MoiEntry>;
   updateMoiEntry(id: ID, patch: Partial<NewMoiEntry>): Promise<MoiEntry>;
   deleteMoiEntry(id: ID): Promise<void>;
+
+  // Moi the household has given to someone, at that person's own function
+  listMoiGiven(): Promise<MoiGiven[]>;
+  createMoiGiven(input: NewMoiGiven): Promise<MoiGiven>;
+  updateMoiGiven(id: ID, patch: Partial<NewMoiGiven>): Promise<MoiGiven>;
+  deleteMoiGiven(id: ID): Promise<void>;
 
   // Expenses (always scoped to a function)
   listExpenses(): Promise<Expense[]>;

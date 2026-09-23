@@ -69,6 +69,10 @@ function AppChrome() {
           options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
         />
         <Stack.Screen
+          name="moi/given"
+          options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+        />
+        <Stack.Screen
           name="function/new"
           options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
         />

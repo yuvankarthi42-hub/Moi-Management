@@ -69,9 +69,9 @@ export function PersonPicker({
             .join(' · ') || 'No details yet'}
         </T>
       </View>
-      {item.totalGiven > 0 ? (
+      {item.totalReceived > 0 ? (
         <T variant="captionStrong" tone="secondary">
-          {formatMoney(item.totalGiven)}
+          {formatMoney(item.totalReceived)}
         </T>
       ) : null}
     </Pressable>

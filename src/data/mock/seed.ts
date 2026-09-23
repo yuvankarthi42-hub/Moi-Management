@@ -7,6 +7,7 @@ import type {
   FunctionEvent,
   FunctionType,
   MoiEntry,
+  MoiGiven,
   PaymentType,
   Person,
   PersonEvent,
@@ -296,6 +297,28 @@ export function buildSeed(now = new Date()): BackupPayload {
     createdAt: nowISO,
   }));
 
+  /**
+   * Moi already returned. Only the first few guest events are settled, so the
+   * demo shows all three balance states: still to return, given ahead, settled.
+   */
+  const moiGiven: MoiGiven[] = personEvents.slice(0, 3).map((event, i) => {
+    const received = moiEntries
+      .filter((m) => m.personId === event.personId)
+      .reduce((total, m) => total + m.amount, 0);
+    // The middle one is deliberately generous so a "given ahead" row exists.
+    const amount = i === 1 ? received + 1000 : Math.max(Math.round(received / 2), 101);
+    return {
+      id: `giv_${i + 1}`,
+      personId: event.personId,
+      personEventId: event.id,
+      occasion: event.title,
+      amount,
+      paymentType: pick(PAYMENT_TYPES, r),
+      date: toISODate(addDays(fromISODate(event.date), -1)),
+      createdAt: nowISO,
+    };
+  });
+
   const familyMembers: FamilyMember[] = [
     { id: 'mem_1', name: 'Karthick', phone: '9876543210', role: 'owner', isSelf: true, createdAt: nowISO },
     { id: 'mem_2', name: 'Meena', phone: '9876543211', role: 'admin', createdAt: nowISO },
@@ -332,6 +355,7 @@ export function buildSeed(now = new Date()): BackupPayload {
     families,
     functions,
     moiEntries,
+    moiGiven,
     expenses,
     personEvents,
     familyMembers,

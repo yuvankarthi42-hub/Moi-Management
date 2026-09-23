@@ -105,6 +105,30 @@ export interface MoiEntry {
 }
 
 /**
+ * Moi the household has *given* to someone, at that person's own function.
+ *
+ * Deliberately a separate record from `MoiEntry` rather than a direction flag
+ * on it: a `MoiEntry` must belong to one of our own functions (spec §38),
+ * while a given moi belongs to somebody else's. Keeping them apart lets each
+ * stay strict about its own link.
+ */
+export interface MoiGiven {
+  id: ID;
+  personId: ID;
+  /** The guest's function it was given at, when that event is in the app. */
+  personEventId?: ID;
+  /** What it was for, when there is no `PersonEvent` — e.g. "Murugan Marriage". */
+  occasion?: string;
+  /** Whole rupees. */
+  amount: number;
+  paymentType: PaymentType;
+  date: ISODate;
+  notes?: string;
+  photoUri?: string;
+  createdAt: ISODateTime;
+}
+
+/**
  * A function hosted by *someone else* that the household has been invited to.
  * Drives the return-moi report: when this date is near, we owe them a moi.
  */
@@ -145,8 +169,6 @@ export interface PersonEvent {
   type: FunctionType;
   date: ISODate;
   village?: string;
-  /** Moi the household has already given for this event, if any. */
-  returnedAmount?: number;
   createdAt: ISODateTime;
 }
 
@@ -195,6 +217,7 @@ export interface Dataset {
   families: Family[];
   functions: FunctionEvent[];
   moiEntries: MoiEntry[];
+  moiGiven: MoiGiven[];
   expenses: Expense[];
   personEvents: PersonEvent[];
   familyMembers: FamilyMember[];
@@ -207,6 +230,7 @@ export const EMPTY_DATASET: Dataset = {
   families: [],
   functions: [],
   moiEntries: [],
+  moiGiven: [],
   expenses: [],
   personEvents: [],
   familyMembers: [],
