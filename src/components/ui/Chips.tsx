@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, ScrollView, Text, View, ViewStyle } from 'react-native';
 
-import { colors, makeStyles, radius, spacing, typography } from '../../theme';
+import { makeStyles, radius, spacing, typography, useColors } from '../../theme';
 
 export interface ChipOption<T extends string = string> {
   value: T;
@@ -29,6 +29,7 @@ export function ChipBar<T extends string>({
   contentStyle?: ViewStyle;
 }) {
   const styles = useStyles();
+  const colors = useColors();
   return (
     <ScrollView
       horizontal
@@ -83,6 +84,7 @@ export function Segmented<T extends string>({
   style?: ViewStyle;
 }) {
   const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={[styles.segmented, style]}>
       {options.map((option) => {
@@ -126,6 +128,7 @@ export function Badge({
   style?: ViewStyle;
 }) {
   const styles = useStyles();
+  const colors = useColors();
   const palette = {
     primary: { bg: colors.primarySoft, fg: colors.primary },
     success: { bg: colors.successSoft, fg: colors.success },

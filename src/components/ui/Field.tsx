@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { forwardRef } from 'react';
 import { Pressable, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
 
-import { colors, makeStyles, radius, spacing, typography } from '../../theme';
+import { makeStyles, radius, spacing, typography, useColors } from '../../theme';
 import { T } from './Text';
 
 export interface FieldProps extends TextInputProps {
@@ -25,6 +25,7 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
   ref,
 ) {
   const styles = useStyles();
+  const colors = useColors();
 
   return (
     <View style={[styles.wrap, containerStyle]}>
@@ -104,6 +105,7 @@ export function PickerField({
   containerStyle?: ViewStyle;
 }) {
   const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={[styles.wrap, containerStyle]}>
       {label ? (

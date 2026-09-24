@@ -3,16 +3,17 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
 
-import { AppHeader, Avatar, Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll, SectionHeader, StatRow, T, useToast } from '../../src/components/ui';
+import { AppHeader, Avatar, Badge, Button, Card, DockedFooter, EmptyState, Money, Screen, ScreenScroll, SectionHeader, StatRow, T, useToast } from '../../src/components/ui';
 import { functionTypeMeta, paymentTypeMeta } from '../../src/domain/functionTypes';
 import { buildReturnMoiReport, describeBalance, selectMoiTimelineForPerson, selectPersonById, type MoiTimelineRow } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing } from '../../src/theme';
+import { makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { countdownLabel, formatDate } from '../../src/utils/date';
 import { formatMoney, formatMoneyCompact, formatPhone } from '../../src/utils/format';
 
 export default function PersonProfileScreen() {
   const styles = useStyles();
+  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { data, loading, removePerson } = useAppData();
@@ -114,7 +115,7 @@ export default function PersonProfileScreen() {
         </View>
       </AppHeader>
 
-      <ScreenScroll>
+      <ScreenScroll extraBottomSpace={72}>
         <Card style={styles.actionCard} elevation={2} padded={false}>
           <View style={styles.actionRow}>
             <ActionButton
@@ -314,7 +315,12 @@ export default function PersonProfileScreen() {
           )}
         </View>
 
-        <View style={[styles.sideMargin, styles.footerActions]}>
+      </ScreenScroll>
+
+      {/* Docked rather than tacked onto the end of the scroll: a person with a
+          long moi history would otherwise push both actions off-screen. */}
+      <DockedFooter>
+        <View style={styles.footerActions}>
           <Button
             label="Add received"
             icon="arrow-down-circle-outline"
@@ -329,7 +335,7 @@ export default function PersonProfileScreen() {
             onPress={() => router.push(`/moi/given?personId=${person.id}`)}
           />
         </View>
-      </ScreenScroll>
+      </DockedFooter>
     </Screen>
   );
 }
@@ -349,6 +355,7 @@ function HistoryRow({
   onPress?: () => void;
 }) {
   const styles = useStyles();
+  const colors = useColors();
   const received = row.direction === 'received';
 
   const body = (
@@ -405,6 +412,7 @@ function ActionButton({
   disabled?: boolean;
 }) {
   const styles = useStyles();
+  const colors = useColors();
   return (
     <Pressable
       onPress={onPress}
@@ -433,6 +441,7 @@ function DetailRow({
   value: string;
 }) {
   const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={styles.detailRow}>
       <Ionicons name={icon} size={17} color={colors.textMuted} />
@@ -572,7 +581,6 @@ const useStyles = makeStyles((colors) => ({
   footerActions: {
     flexDirection: 'row',
     gap: spacing.md,
-    marginTop: spacing.lg,
   },
   pressed: {
     opacity: 0.7,

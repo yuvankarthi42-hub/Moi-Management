@@ -4,7 +4,7 @@ import { FlatList, View } from 'react-native';
 
 import { PersonRow } from '../../src/components/app/PersonRow';
 import { Button, ChipBar, EmptyState, HeaderCanvas, Screen, SearchBar, T, useListBottomPadding, useListContentStyle } from '../../src/components/ui';
-import { matchesPerson, selectPeople, selectVillages, type PersonWithStats } from '../../src/domain/selectors';
+import { matchesPerson, selectPeople, type PersonWithStats } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
 import { makeStyles, spacing } from '../../src/theme';
 import { formatMoneyCompact } from '../../src/utils/format';
@@ -16,17 +16,15 @@ export default function PeopleScreen() {
   const { data } = useAppData();
   const router = useRouter();
   const [query, setQuery] = useState('');
-  const [village, setVillage] = useState<string>('all');
   const [sort, setSort] = useState<Sort>('name');
   const listContentStyle = useListContentStyle();
   const bottomPadding = useListBottomPadding(true);
 
   const people = useMemo(() => selectPeople(data), [data]);
-  const villages = useMemo(() => selectVillages(data), [data]);
 
   const visible = useMemo(() => {
     const filtered = people.filter(
-      (p) => matchesPerson(p, query) && (village === 'all' || p.village === village),
+      (p) => matchesPerson(p, query),
     );
     const sorted = [...filtered];
     if (sort === 'amount') sorted.sort((a, b) => b.totalReceived - a.totalReceived);
@@ -34,7 +32,7 @@ export default function PeopleScreen() {
       sorted.sort((a, b) => (b.lastDate ?? '').localeCompare(a.lastDate ?? ''));
     }
     return sorted;
-  }, [people, query, village, sort]);
+  }, [people, query, sort]);
 
   const totalShown = useMemo(
     () => visible.reduce((sum, p) => sum + p.totalReceived, 0),
@@ -80,17 +78,6 @@ export default function PeopleScreen() {
         style={styles.chips}
       />
 
-      {villages.length > 1 ? (
-        <ChipBar
-          options={[
-            { value: 'all', label: 'All villages' },
-            ...villages.map((v) => ({ value: v, label: v })),
-          ]}
-          value={village}
-          onChange={setVillage}
-        />
-      ) : null}
-
       <View style={styles.summary}>
         <T variant="caption" tone="muted">
           {visible.length} {visible.length === 1 ? 'person' : 'people'}
@@ -110,14 +97,14 @@ export default function PeopleScreen() {
         ListEmptyComponent={
           <EmptyState
             icon="people-outline"
-            title={query || village !== 'all' ? 'No matching people' : 'No people yet'}
+            title={query ? 'No matching people' : 'No people yet'}
             message={
-              query || village !== 'all'
-                ? 'Try another search or clear the village filter.'
+              query
+                ? 'Try a different name, phone or village.'
                 : 'Add the guests you invite so their moi history builds up over time.'
             }
-            actionLabel={query || village !== 'all' ? undefined : 'Add Person'}
-            onAction={query || village !== 'all' ? undefined : () => router.push('/person/new')}
+            actionLabel={query ? undefined : 'Add Person'}
+            onAction={query ? undefined : () => router.push('/person/new')}
           />
         }
       />

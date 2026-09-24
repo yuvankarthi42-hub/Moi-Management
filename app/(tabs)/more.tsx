@@ -8,7 +8,7 @@ import type { LanguagePreference, ThemePreference } from '../../src/domain/model
 import { selectOverview } from '../../src/domain/selectors';
 
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing } from '../../src/theme';
+import { makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 
 const THEME_LABELS: Record<ThemePreference, string> = {
@@ -30,6 +30,7 @@ const LANGUAGE_LABELS: Record<LanguagePreference, string> = {
  */
 export default function MoreScreen() {
   const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const { data, saveSettings, repositories } = useAppData();
   const [themeOpen, setThemeOpen] = useState(false);
@@ -88,14 +89,14 @@ export default function MoreScreen() {
           <ListRow
             icon="bar-chart-outline"
             title="Reports"
-            subtitle="Ten reports across moi, expenses and guests"
+            subtitle="Eight reports across moi, expenses and people"
             onPress={() => router.push('/reports')}
           />
           <RowDivider />
           <ListRow
             icon="search-outline"
             title="Search everything"
-            subtitle="Functions, people, moi and guests"
+            subtitle="Functions, people and moi entries"
             onPress={() => router.push('/search')}
           />
           <RowDivider />
@@ -217,6 +218,7 @@ export default function MoreScreen() {
 
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={styles.group}>
       <T variant="captionStrong" tone="muted" style={styles.groupTitle}>

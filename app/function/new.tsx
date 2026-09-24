@@ -13,7 +13,7 @@ import { FUNCTION_TYPES, functionTypeMeta } from '../../src/domain/functionTypes
 import type { FunctionType, ISODate } from '../../src/domain/models';
 import { selectVillages } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing } from '../../src/theme';
+import { makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { toISODate } from '../../src/utils/date';
 
 /**
@@ -23,6 +23,7 @@ import { toISODate } from '../../src/utils/date';
  */
 export default function FunctionFormScreen() {
   const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { data, addFunction, editFunction } = useAppData();

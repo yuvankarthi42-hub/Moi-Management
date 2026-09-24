@@ -4,7 +4,7 @@ import { View } from 'react-native';
 
 import { paymentTypeMeta } from '../../domain/functionTypes';
 import type { MoiEntryView, PersonWithStats } from '../../domain/selectors';
-import { colors, makeStyles, spacing } from '../../theme';
+import { makeStyles, spacing, useColors } from '../../theme';
 import { formatMoney, formatPhone } from '../../utils/format';
 import { formatTime } from '../../utils/date';
 import { Avatar } from '../ui/Avatar';
@@ -20,6 +20,7 @@ export function PersonRow({
   onPress: () => void;
 }) {
   const styles = useStyles();
+  const colors = useColors();
   return (
     <Card onPress={onPress} style={styles.card} padded={false}>
       <View style={styles.row}>
@@ -73,6 +74,7 @@ export function MoiEntryRow({
   onPress?: () => void;
 }) {
   const styles = useStyles();
+  const colors = useColors();
   const payment = paymentTypeMeta(entry.paymentType);
   const name = entry.person?.name ?? 'Unknown';
 

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 
-import { colors, makeStyles, radius, spacing } from '../../theme';
+import { makeStyles, radius, spacing, useColors } from '../../theme';
 import { T } from './Text';
 
 /** Settings-style row: icon, title, optional value, chevron. */
@@ -31,6 +31,7 @@ export function ListRow({
   style?: ViewStyle;
 }) {
   const styles = useStyles();
+  const colors = useColors();
   const tint = iconTint ?? colors.primary;
 
   const body = (
@@ -88,6 +89,7 @@ export function ListRow({
 /** Hairline divider aligned to the text column, not the icon. */
 export function RowDivider({ inset = true }: { inset?: boolean }) {
   const styles = useStyles();
+  const colors = useColors();
   return <View style={[styles.divider, inset && styles.dividerInset]} />;
 }
 

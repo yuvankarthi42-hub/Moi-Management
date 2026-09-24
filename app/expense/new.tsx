@@ -14,7 +14,7 @@ import { PAYMENT_TYPES, functionTypeMeta } from '../../src/domain/functionTypes'
 import type { ExpenseCategory, ID, ISODate, PaymentType } from '../../src/domain/models';
 import { selectFunctions } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, spacing } from '../../src/theme';
+import { makeStyles, spacing, useColors } from '../../src/theme';
 import { formatDate, toISODate } from '../../src/utils/date';
 import { formatMoney } from '../../src/utils/format';
 
@@ -26,6 +26,7 @@ import { formatMoney } from '../../src/utils/format';
  */
 export default function ExpenseFormScreen() {
   const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string; functionId?: string }>();
   const { data, addExpense, editExpense, removeExpense } = useAppData();

@@ -16,7 +16,7 @@ import { selectFunctions } from '../../src/domain/selectors';
 import { ValidationError } from '../../src/data';
 import { buildReceipt } from '../../src/services/receiptService';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing } from '../../src/theme';
+import { makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { formatDate } from '../../src/utils/date';
 import { formatMoney } from '../../src/utils/format';
 
@@ -25,6 +25,7 @@ const QUICK_AMOUNTS = [101, 501, 1001, 2001, 5001];
 
 export default function AddMoiScreen() {
   const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const { data, addMoiEntry, repositories } = useAppData();
   const params = useLocalSearchParams<{ functionId?: string; personId?: string }>();

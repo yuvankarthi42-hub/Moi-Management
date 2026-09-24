@@ -10,7 +10,7 @@ import { AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, PickerFie
 import { ValidationError } from '../../src/data';
 import { selectVillages } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, spacing } from '../../src/theme';
+import { makeStyles, spacing, useColors } from '../../src/theme';
 
 const RELATIONS = [
   'Mama', 'Athai', 'Chithappa', 'Periappa', 'Cousin', 'Friend',
@@ -20,6 +20,7 @@ const RELATIONS = [
 /** Creates a person, or edits one when `?id=` is present. */
 export default function PersonFormScreen() {
   const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string; name?: string }>();
   const { data, addPerson, editPerson } = useAppData();

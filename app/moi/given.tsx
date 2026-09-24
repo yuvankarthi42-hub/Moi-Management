@@ -15,7 +15,7 @@ import { PAYMENT_TYPES, functionTypeMeta, paymentTypeMeta } from '../../src/doma
 import type { ID, ISODate, PaymentType } from '../../src/domain/models';
 import { describeBalance, selectPersonById } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing } from '../../src/theme';
+import { makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { formatDate, toISODate } from '../../src/utils/date';
 import { formatMoney } from '../../src/utils/format';
 
@@ -34,6 +34,7 @@ export default function MoiGivenScreen() {
   const params = useLocalSearchParams<{ id?: string; personId?: string; eventId?: string }>();
   const { data, addMoiGiven, editMoiGiven, removeMoiGiven } = useAppData();
   const styles = useStyles();
+  const colors = useColors();
   const { showToast } = useToast();
 
   const existing = useMemo(

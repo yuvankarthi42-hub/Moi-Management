@@ -8,10 +8,11 @@ import { Alert, Pressable, View } from 'react-native';
 import { AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, Screen, useToast } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, spacing } from '../../src/theme';
+import { makeStyles, spacing, useColors } from '../../src/theme';
 
 export default function ProfileScreen() {
   const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const { data, saveProfile } = useAppData();
   const { showToast } = useToast();

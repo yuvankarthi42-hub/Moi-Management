@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { functionTypeMeta } from '../../domain/functionTypes';
 import type { FunctionWithStats } from '../../domain/selectors';
-import { colors, makeStyles, radius, spacing } from '../../theme';
+import { makeStyles, radius, spacing, useColors } from '../../theme';
 import { countdownLabel, formatDate } from '../../utils/date';
 import { formatMoney } from '../../utils/format';
 import { Badge } from '../ui/Chips';
@@ -26,6 +26,7 @@ export function FunctionCard({
   showCountdown?: boolean;
 }) {
   const styles = useStyles();
+  const colors = useColors();
   const meta = functionTypeMeta(fn.type);
   const upcoming = fn.status === 'upcoming';
 
@@ -85,6 +86,7 @@ export function UpcomingFunctionCard({
   onPress: () => void;
 }) {
   const styles = useStyles();
+  const colors = useColors();
   const meta = functionTypeMeta(fn.type);
 
   return (

@@ -5,7 +5,7 @@ import { View } from 'react-native';
 import { DataGate } from '../../src/components/app/DataGate';
 import { TabBar } from '../../src/components/app/TabBar';
 import { ListRow, RowDivider, Sheet } from '../../src/components/ui';
-import { colors, makeStyles } from '../../src/theme';
+import { makeStyles, useColors } from '../../src/theme';
 
 /**
  * The four main tabs plus the raised centre action.
@@ -16,6 +16,7 @@ import { colors, makeStyles } from '../../src/theme';
  */
 export default function TabsLayout() {
   const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const [addOpen, setAddOpen] = useState(false);
 

@@ -5,7 +5,7 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { T } from '../src/components/ui';
 import { useAppData } from '../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing } from '../src/theme';
+import { makeStyles, radius, spacing, useColors } from '../src/theme';
 
 /**
  * Launch screen. Holds the branded splash until the dataset has loaded, then
@@ -13,6 +13,7 @@ import { colors, makeStyles, radius, spacing } from '../src/theme';
  */
 export default function Launch() {
   const styles = useStyles();
+  const colors = useColors();
   const { loading, error } = useAppData();
 
   if (!loading && !error) return <Redirect href="/(tabs)" />;

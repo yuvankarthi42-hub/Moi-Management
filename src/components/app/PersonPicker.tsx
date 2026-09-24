@@ -4,7 +4,7 @@ import { FlatList, Pressable, View } from 'react-native';
 import type { ID } from '../../domain/models';
 import { matchesPerson, selectPeople, type PersonWithStats } from '../../domain/selectors';
 import { useAppData } from '../../store/AppDataProvider';
-import { colors, makeStyles, spacing } from '../../theme';
+import { makeStyles, spacing, useColors } from '../../theme';
 import { formatMoney, formatPhone } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
@@ -36,6 +36,7 @@ export function PersonPicker({
   excludeIds?: ID[];
 }) {
   const styles = useStyles();
+  const colors = useColors();
   const { data } = useAppData();
   const [query, setQuery] = useState('');
 

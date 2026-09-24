@@ -2,7 +2,7 @@ import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useAppData } from '../../store/AppDataProvider';
-import { colors, makeStyles, spacing } from '../../theme';
+import { makeStyles, spacing, useColors } from '../../theme';
 import { EmptyState } from '../ui/EmptyState';
 import { T } from '../ui/Text';
 
@@ -15,6 +15,7 @@ import { T } from '../ui/Text';
  */
 export function DataGate({ children }: { children: React.ReactNode }) {
   const styles = useStyles();
+  const colors = useColors();
   const { loading, error, refresh } = useAppData();
 
   if (error) {

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, TextInput, View, ViewStyle } from 'react-native';
 
-import { colors, makeStyles, radius, spacing, typography } from '../../theme';
+import { makeStyles, radius, spacing, typography, useColors } from '../../theme';
 
 export function SearchBar({
   value,
@@ -23,6 +23,7 @@ export function SearchBar({
   onDark?: boolean;
 }) {
   const styles = useStyles();
+  const colors = useColors();
   const fg = onDark ? colors.onPrimary : colors.text;
   const muted = onDark ? colors.onPrimaryMuted : colors.textMuted;
 
