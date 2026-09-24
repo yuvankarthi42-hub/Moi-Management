@@ -1,15 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
-import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
+import React, { useMemo, useRef } from 'react';
+import {
+  ActivityIndicator, Alert, Animated, Linking, Pressable, StyleSheet, View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppHeader, Avatar, Badge, Button, Card, DockedFooter, EmptyState, Money, Screen, ScreenScroll, SectionHeader, StatRow, T, useToast } from '../../src/components/ui';
+import { AppHeader, Avatar, Badge, Button, Card, DockedFooter, EmptyState, Money, Screen, ScreenScroll, SectionHeader, StatRow, StatusBarScrim, T, useToast } from '../../src/components/ui';
 import { functionTypeMeta, paymentTypeMeta } from '../../src/domain/functionTypes';
 import { buildReturnMoiReport, describeBalance, selectMoiTimelineForPerson, selectPersonById, type MoiTimelineRow } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { makeStyles, radius, spacing, useColors } from '../../src/theme';
+import { makeStyles, radius, spacing, typography, useColors } from '../../src/theme';
 import { countdownLabel, formatDate } from '../../src/utils/date';
 import { formatMoney, formatMoneyCompact, formatPhone } from '../../src/utils/format';
+
+/** Kept in sync with `styles.hero`, since the collapse threshold derives from it. */
+const HERO_HEIGHT = 200;
+
+/** Height of the collapsed bar, below the status bar inset. */
+const BAR_HEIGHT = 56;
 
 export default function PersonProfileScreen() {
   const styles = useStyles();
@@ -18,6 +28,16 @@ export default function PersonProfileScreen() {
   const router = useRouter();
   const { data, loading, removePerson } = useAppData();
   const { showToast } = useToast();
+  const insets = useSafeAreaInsets();
+
+  // Drives the collapsed bar's fade. Opacity runs on the native thread, so the
+  // bar keeps up with a fast flick the way the function screen's does.
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const barProgress = scrollY.interpolate({
+    inputRange: [HERO_HEIGHT - 120, HERO_HEIGHT - 40],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
 
   const person = useMemo(() => (id ? selectPersonById(data, id) : undefined), [data, id]);
   const history = useMemo(() => (id ? selectMoiTimelineForPerson(data, id) : []), [data, id]);
@@ -78,44 +98,83 @@ export default function PersonProfileScreen() {
 
   return (
     <Screen>
-      <AppHeader
-        title="Person Profile"
-        showBack
-        onBack={() => router.back()}
-        bleed={56}
-        actions={[
-          {
-            icon: 'create-outline',
-            onPress: () => router.push(`/person/new?id=${person.id}`),
-            accessibilityLabel: 'Edit person',
-          },
-          {
-            icon: 'trash-outline',
-            onPress: confirmDelete,
-            accessibilityLabel: 'Delete person',
-          },
-        ]}
-      >
-        <View style={styles.identity}>
-          <Avatar
-            name={person.name}
-            uri={person.photoUri}
-            seed={person.id}
-            size={76}
-            style={styles.avatar}
-          />
-          <View style={styles.identityText}>
-            <T variant="h2" tone="onPrimary" numberOfLines={1}>
-              {person.name}
-            </T>
-            <T variant="small" color={colors.onPrimaryMuted} numberOfLines={1}>
-              {[person.village, person.relation].filter(Boolean).join(' · ') || 'No details yet'}
-            </T>
-          </View>
-        </View>
-      </AppHeader>
+      {/* The hero scrolls away, so keep the status-bar strip dark behind it. */}
+      <StatusBarScrim color="rgba(12, 6, 32, 0.55)" />
 
-      <ScreenScroll extraBottomSpace={72}>
+      <Animated.View
+        style={[styles.pinnedBar, { height: insets.top + BAR_HEIGHT, opacity: barProgress }]}
+        pointerEvents="none"
+      />
+
+      <View style={[styles.controls, { paddingTop: insets.top + spacing.xs }]}>
+        <Pressable
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/people'))}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          style={styles.controlButton}
+        >
+          <Ionicons name="arrow-back" size={22} color={colors.onPrimary} />
+        </Pressable>
+
+        {/* Takes over from the hero as it scrolls out, the way Contacts keeps
+            the name in reach once the photo is gone. */}
+        <Animated.Text
+          numberOfLines={1}
+          style={[styles.barTitle, { color: colors.onPrimary, opacity: barProgress }]}
+        >
+          {person.name}
+        </Animated.Text>
+
+        <View style={styles.controlActions}>
+          <Pressable
+            onPress={() => router.push(`/person/new?id=${person.id}`)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Edit person"
+            style={styles.controlButton}
+          >
+            <Ionicons name="create-outline" size={20} color={colors.onPrimary} />
+          </Pressable>
+          <Pressable
+            onPress={confirmDelete}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Delete person"
+            style={styles.controlButton}
+          >
+            <Ionicons name="trash-outline" size={19} color={colors.onPrimary} />
+          </Pressable>
+        </View>
+      </View>
+
+      <ScreenScroll
+        extraBottomSpace={72}
+        scrollEventThrottle={16}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+          useNativeDriver: true,
+        })}
+      >
+        <LinearGradient colors={colors.headerGradient} style={styles.hero}>
+          <View style={styles.identity}>
+            <Avatar
+              name={person.name}
+              uri={person.photoUri}
+              seed={person.id}
+              size={76}
+              style={styles.avatar}
+            />
+            <View style={styles.identityText}>
+              <T variant="h2" tone="onPrimary" numberOfLines={1}>
+                {person.name}
+              </T>
+              <T variant="small" color={colors.onPrimaryMuted} numberOfLines={1}>
+                {[person.village, person.relation].filter(Boolean).join(' · ') || 'No details yet'}
+              </T>
+            </View>
+          </View>
+        </LinearGradient>
+
         <Card style={styles.actionCard} elevation={2} padded={false}>
           <View style={styles.actionRow}>
             <ActionButton
@@ -459,6 +518,45 @@ const useStyles = makeStyles((colors) => ({
   loading: {
     marginTop: spacing.xxxl,
   },
+  hero: {
+    height: HERO_HEIGHT,
+    justifyContent: 'flex-end',
+    paddingBottom: spacing.xxl,
+  },
+  pinnedBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.headerGradient[0],
+    zIndex: 5,
+  },
+  controls: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
+  },
+  controlButton: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    // A scrim so the icons stay legible over the hero before the bar has
+    // faded in behind them.
+    backgroundColor: 'rgba(0,0,0,0.28)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  controlActions: { flexDirection: 'row', gap: spacing.sm },
+  barTitle: {
+    flex: 1,
+    ...typography.h3,
+  },
   identity: {
     alignItems: 'center',
   },
@@ -472,6 +570,7 @@ const useStyles = makeStyles((colors) => ({
   },
   actionCard: {
     marginHorizontal: spacing.lg,
+    marginTop: -spacing.xxl,
   },
   actionRow: {
     flexDirection: 'row',

@@ -17,7 +17,7 @@ import { functionTypeMeta } from '../../src/domain/functionTypes';
 import { selectExpensesForFunction, selectFunctionById, selectMoiEntriesForFunction, splitByPaymentType, type FunctionWithStats } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
 import {
-  colors, makeStyles, radius, spacing, typography,
+  makeStyles, radius, spacing, typography, useColors,
 } from '../../src/theme';
 import { countdownLabel, formatDate, formatDateLong } from '../../src/utils/date';
 import { formatCount, formatMoney, formatMoneyCompact } from '../../src/utils/format';
@@ -45,6 +45,7 @@ const TABS: Array<{ key: Tab; label: string; icon: keyof typeof Ionicons.glyphMa
 
 export default function FunctionDetailScreen() {
   const styles = useStyles();
+  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -484,6 +485,7 @@ function OverviewTab({ fn }: { fn: FunctionWithStats }) {
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={styles.detailRow}>
       <T variant="small" tone="muted" style={styles.detailLabel}>
