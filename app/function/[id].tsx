@@ -3,8 +3,10 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
+import React, { useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator, Alert, Animated, Pressable, ScrollView, Share, StyleSheet, View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ExpenseRow } from '../../src/components/app/ExpenseRow';
@@ -14,9 +16,17 @@ import { Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll, StatRow, 
 import { functionTypeMeta } from '../../src/domain/functionTypes';
 import { selectExpensesForFunction, selectFunctionById, selectMoiEntriesForFunction, splitByPaymentType, type FunctionWithStats } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing } from '../../src/theme';
+import {
+  colors, makeStyles, radius, spacing, typography,
+} from '../../src/theme';
 import { countdownLabel, formatDate, formatDateLong } from '../../src/utils/date';
 import { formatCount, formatMoney, formatMoneyCompact } from '../../src/utils/format';
+
+/** Kept in sync with `styles.hero`, since the collapse threshold derives from it. */
+const HERO_HEIGHT = 210;
+
+/** Height of the collapsed bar, below the status bar inset. */
+const BAR_HEIGHT = 56;
 
 type Tab = 'overview' | 'moi' | 'expenses' | 'photos';
 
@@ -42,6 +52,19 @@ export default function FunctionDetailScreen() {
   const { showToast } = useToast();
   const [tab, setTab] = useState<Tab>('overview');
   const [receiptFor, setReceiptFor] = useState<string | undefined>();
+
+  /**
+   * The hero scrolls away, so the controls live in a bar pinned over it. The
+   * bar is transparent to begin with — the icons sit on their own scrims above
+   * the image — and fades to the solid header once the hero is nearly gone,
+   * which is the collapsing-toolbar behaviour of any native detail screen.
+   */
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const barProgress = scrollY.interpolate({
+    inputRange: [HERO_HEIGHT - 120, HERO_HEIGHT - 40],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
 
   const fn = useMemo(() => (id ? selectFunctionById(data, id) : undefined), [data, id]);
   const entries = useMemo(() => (id ? selectMoiEntriesForFunction(data, id) : []), [data, id]);
@@ -135,7 +158,60 @@ export default function FunctionDetailScreen() {
         }}
       />
 
-      <ScreenScroll extraBottomSpace={72}>
+      <Animated.View
+        style={[styles.pinnedBar, { height: insets.top + BAR_HEIGHT, opacity: barProgress }]}
+        pointerEvents="none"
+      />
+
+      <View style={[styles.controls, { paddingTop: insets.top + spacing.xs }]}>
+        <Pressable
+          onPress={() =>
+            router.canGoBack() ? router.back() : router.replace('/(tabs)/functions')
+          }
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          style={styles.controlButton}
+        >
+          <Ionicons name="arrow-back" size={22} color={colors.onPrimary} />
+        </Pressable>
+
+        <Animated.Text
+          numberOfLines={1}
+          style={[styles.barTitle, { color: colors.onPrimary, opacity: barProgress }]}
+        >
+          {fn.title}
+        </Animated.Text>
+
+        <View style={styles.controlActions}>
+          <Pressable
+            onPress={() => router.push(`/function/new?id=${fn.id}`)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Edit function"
+            style={styles.controlButton}
+          >
+            <Ionicons name="create-outline" size={20} color={colors.onPrimary} />
+          </Pressable>
+          <Pressable
+            onPress={confirmDelete}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Delete function"
+            style={styles.controlButton}
+          >
+            <Ionicons name="trash-outline" size={19} color={colors.onPrimary} />
+          </Pressable>
+        </View>
+      </View>
+
+      <ScreenScroll
+        extraBottomSpace={72}
+        scrollEventThrottle={16}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+          useNativeDriver: true,
+        })}
+      >
         {/* Hero: cover image when set, otherwise the brand gradient. */}
         <View style={styles.hero}>
           {fn.coverImage ? (
@@ -148,39 +224,6 @@ export default function FunctionDetailScreen() {
             </LinearGradient>
           )}
 
-          <View style={[styles.heroBar, { paddingTop: insets.top + spacing.sm }]}>
-            <Pressable
-              onPress={() =>
-                router.canGoBack() ? router.back() : router.replace('/(tabs)/functions')
-              }
-              hitSlop={12}
-              accessibilityRole="button"
-              accessibilityLabel="Go back"
-              style={styles.heroButton}
-            >
-              <Ionicons name="arrow-back" size={21} color={colors.onPrimary} />
-            </Pressable>
-            <View style={styles.heroActions}>
-              <Pressable
-                onPress={() => router.push(`/function/new?id=${fn.id}`)}
-                hitSlop={12}
-                accessibilityRole="button"
-                accessibilityLabel="Edit function"
-                style={styles.heroButton}
-              >
-                <Ionicons name="create-outline" size={20} color={colors.onPrimary} />
-              </Pressable>
-              <Pressable
-                onPress={confirmDelete}
-                hitSlop={12}
-                accessibilityRole="button"
-                accessibilityLabel="Delete function"
-                style={styles.heroButton}
-              >
-                <Ionicons name="trash-outline" size={19} color={colors.onPrimary} />
-              </Pressable>
-            </View>
-          </View>
         </View>
 
         <Card style={styles.summaryCard} elevation={2}>
@@ -462,21 +505,40 @@ const useStyles = makeStyles((colors) => ({
     justifyContent: 'center',
   },
   heroEmoji: { fontSize: 64, lineHeight: 76 },
-  heroBar: {
+  pinnedBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.headerGradient[0],
+    zIndex: 5,
+  },
+  controls: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 6,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
+    gap: spacing.sm,
   },
-  heroButton: {
+  controlButton: {
     width: 44,
     height: 44,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(0,0,0,0.32)',
+    // A scrim so the icons stay legible over the hero image before the bar
+    // has faded in behind them.
+    backgroundColor: 'rgba(0,0,0,0.28)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroActions: { flexDirection: 'row', gap: spacing.sm },
+  controlActions: { flexDirection: 'row', gap: spacing.sm },
+  barTitle: {
+    flex: 1,
+    ...typography.h3,
+  },
   summaryCard: { marginHorizontal: spacing.lg, marginTop: -spacing.xxl },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
   titleText: { flex: 1 },

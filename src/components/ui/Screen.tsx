@@ -1,5 +1,7 @@
 import React from 'react';
-import { Platform, ScrollView, ScrollViewProps, StyleSheet, View, ViewStyle } from 'react-native';
+import {
+  Animated, Platform, ScrollViewProps, StyleSheet, View, ViewStyle,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TAB_BAR_HEIGHT, colors, contentColumn, makeStyles, spacing } from '../../theme';
@@ -56,7 +58,10 @@ export function ScreenScroll({
     insets.bottom + spacing.xxl + extraBottomSpace + (withTabBar ? TAB_BAR_HEIGHT : 0);
 
   return (
-    <ScrollView
+    // Animated.ScrollView so a screen can drive a collapsing header off the
+    // scroll position on the native thread. It takes every ScrollView prop, so
+    // screens that do not animate anything behave exactly as before.
+    <Animated.ScrollView
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       // Lets a swipe dismiss the keyboard on iOS the way users expect.
@@ -71,7 +76,7 @@ export function ScreenScroll({
       ]}
     >
       {children}
-    </ScrollView>
+    </Animated.ScrollView>
   );
 }
 

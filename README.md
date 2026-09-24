@@ -208,6 +208,12 @@ alike:
   (`ScreenScroll`, `useListBottomPadding`) so nothing hides behind the bar.
 - **Docked actions** — `DockedFooter` pads by `max(insets.bottom, 12)`, so "Save
   Entry" sits above the home indicator and above the gesture bar.
+- **A detail screen's controls never scroll away.** The function screen's hero
+  image scrolls, but back, edit and delete sit in a bar pinned over it:
+  transparent at the top with the icons on their own scrims, fading to the solid
+  header — and showing the function's name — once the hero is nearly gone. That
+  is the collapsing-toolbar behaviour of a native detail screen, and it means
+  back is reachable at any scroll position.
 - **Keyboard** — `KeyboardForm` uses `padding` behaviour on iOS only; Android's
   `adjustResize` already handles it and doubling up would shift content twice.
 - **Android edge-to-edge** is enabled (`app.json`), which is why insets are read
