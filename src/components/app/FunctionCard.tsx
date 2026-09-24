@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { functionTypeMeta } from '../../domain/functionTypes';
 import type { FunctionWithStats } from '../../domain/selectors';
-import { colors, makeStyles, radius, spacing, useColors } from '../../theme';
+import { colors, makeStyles, radius, spacing } from '../../theme';
 import { countdownLabel, formatDate } from '../../utils/date';
 import { formatMoney } from '../../utils/format';
 import { Badge } from '../ui/Chips';
@@ -85,7 +85,6 @@ export function UpcomingFunctionCard({
   onPress: () => void;
 }) {
   const styles = useStyles();
-  const colors = useColors();
   const meta = functionTypeMeta(fn.type);
 
   return (

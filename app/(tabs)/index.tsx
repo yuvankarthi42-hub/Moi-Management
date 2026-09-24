@@ -5,15 +5,10 @@ import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { FunctionCard, UpcomingFunctionCard } from '../../src/components/app/FunctionCard';
 import { MoiEntryRow } from '../../src/components/app/PersonRow';
-import {
-  Avatar, Card, EmptyState, HeaderCanvas, Screen, ScreenScroll, SectionHeader, StatRow,
-  StatusBarScrim, T,
-} from '../../src/components/ui';
-import {
-  buildReturnMoiReport, selectFunctions, selectNextFunction, selectOverview, selectRecentMoi,
-} from '../../src/domain/selectors';
+import { Avatar, Card, EmptyState, HeaderCanvas, Screen, ScreenScroll, SectionHeader, StatRow, StatusBarScrim, T } from '../../src/components/ui';
+import { selectFunctions, selectNextFunction, selectOverview, selectRecentMoi } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, shadow, spacing, useColors } from '../../src/theme';
+import { makeStyles, spacing, useColors } from '../../src/theme';
 import { greeting } from '../../src/utils/date';
 import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 
@@ -31,7 +26,6 @@ export default function HomeScreen() {
     () => selectFunctions(data).filter((f) => f.status === 'completed').slice(0, RECENT_LIMIT),
     [data],
   );
-  const dueSoon = useMemo(() => buildReturnMoiReport(data, { withinDays: 14 }), [data]);
   const recentMoi = useMemo(() => selectRecentMoi(data, 4), [data]);
 
   return (
@@ -121,40 +115,6 @@ export default function HomeScreen() {
           </>
         )}
 
-        {dueSoon.length > 0 ? (
-          <>
-            <SectionHeader
-              title="Moi to Return"
-              actionLabel="View All"
-              onAction={() => router.push('/reports/return-moi')}
-            />
-            <Pressable
-              onPress={() => router.push('/reports/return-moi')}
-              accessibilityRole="button"
-              style={({ pressed }) => [styles.sideMargin, pressed && styles.pressed]}
-            >
-              <View style={[styles.returnBanner, shadow(1)]}>
-                <View style={styles.returnIcon}>
-                  <T style={styles.returnEmoji} allowFontScaling={false}>
-                    🎁
-                  </T>
-                </View>
-                <View style={styles.returnText}>
-                  <T variant="bodyStrong" numberOfLines={1}>
-                    {dueSoon.length} {dueSoon.length === 1 ? 'function' : 'functions'} in the next
-                    two weeks
-                  </T>
-                  <T variant="caption" tone="muted" numberOfLines={1}>
-                    {dueSoon[0].person.name}
-                    {dueSoon.length > 1 ? ` and ${dueSoon.length - 1} more` : ''} — tap to see
-                    suggested amounts
-                  </T>
-                </View>
-              </View>
-            </Pressable>
-          </>
-        ) : null}
-
         {recentMoi.length > 0 ? (
           <>
             <SectionHeader
@@ -235,29 +195,6 @@ const useStyles = makeStyles((colors) => ({
   },
   sideMargin: {
     marginHorizontal: spacing.lg,
-  },
-  returnBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-  },
-  returnIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    backgroundColor: colors.warningSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  returnEmoji: {
-    fontSize: 21,
-    lineHeight: 26,
-  },
-  returnText: {
-    flex: 1,
   },
   pressed: {
     opacity: 0.8,

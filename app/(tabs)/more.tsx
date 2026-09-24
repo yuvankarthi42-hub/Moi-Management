@@ -3,15 +3,12 @@ import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 
 import { OptionPicker } from '../../src/components/app/OptionPicker';
-import {
-  Avatar, Card, HeaderCanvas, ListRow, RowDivider, Screen, ScreenScroll, StatRow,
-  StatusBarScrim, T,
-} from '../../src/components/ui';
+import { Avatar, Card, HeaderCanvas, ListRow, RowDivider, Screen, ScreenScroll, StatRow, StatusBarScrim, T } from '../../src/components/ui';
 import type { LanguagePreference, ThemePreference } from '../../src/domain/models';
 import { selectOverview } from '../../src/domain/selectors';
-import { backupToFile } from '../../src/services/backupService';
+
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
+import { colors, makeStyles, radius, spacing } from '../../src/theme';
 import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 
 const THEME_LABELS: Record<ThemePreference, string> = {
@@ -33,7 +30,6 @@ const LANGUAGE_LABELS: Record<LanguagePreference, string> = {
  */
 export default function MoreScreen() {
   const styles = useStyles();
-  const colors = useColors();
   const router = useRouter();
   const { data, saveSettings, repositories } = useAppData();
   const [themeOpen, setThemeOpen] = useState(false);
@@ -221,7 +217,6 @@ export default function MoreScreen() {
 
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   const styles = useStyles();
-  const colors = useColors();
   return (
     <View style={styles.group}>
       <T variant="captionStrong" tone="muted" style={styles.groupTitle}>

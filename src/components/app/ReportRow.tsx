@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { colors, makeStyles, radius, spacing, useColors } from '../../theme';
+import { makeStyles, radius, spacing } from '../../theme';
 import { Money, T } from '../ui/Text';
 
 /**
@@ -27,7 +27,6 @@ export function ReportRow({
   last?: boolean;
 }) {
   const styles = useStyles();
-  const colors = useColors();
   return (
     <View style={[styles.row, !last && styles.divider]}>
       <View style={styles.main}>

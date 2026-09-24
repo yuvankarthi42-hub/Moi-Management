@@ -1,12 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import {
-  ActivityIndicator, Pressable, StyleSheet, Text, View, ViewStyle,
-} from 'react-native';
+import { ActivityIndicator, Pressable, Text, View, ViewStyle } from 'react-native';
 
-import {
-  makeStyles, radius, shadow, spacing, typography, useColors, type Palette,
-} from '../../theme';
+import { colors, makeStyles, radius, shadow, spacing, type Palette, typography } from '../../theme';
 
 type Variant = 'primary' | 'secondary' | 'success' | 'danger' | 'ghost' | 'outline';
 type Size = 'sm' | 'md' | 'lg';
@@ -69,7 +65,6 @@ export function Button({
   style,
 }: ButtonProps) {
   const styles = useStyles();
-  const colors = useColors();
   const palette = variantPalette(variant, colors);
   const dims = SIZES[size];
   const inactive = disabled || loading;

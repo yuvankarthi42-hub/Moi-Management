@@ -3,21 +3,16 @@ import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 
-import {
-  AppHeader, Button, Card, ListRow, RowDivider, Screen, ScreenScroll, StatRow, T, useToast,
-} from '../../src/components/ui';
+import { AppHeader, Button, Card, ListRow, RowDivider, Screen, ScreenScroll, StatRow, T, useToast } from '../../src/components/ui';
 import { selectOverview } from '../../src/domain/selectors';
-import {
-  backupToFile, describeBackup, readBackupFile, shareBackup,
-} from '../../src/services/backupService';
+import { backupToFile, describeBackup, readBackupFile, shareBackup } from '../../src/services/backupService';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, spacing, useColors } from '../../src/theme';
+import { makeStyles, spacing } from '../../src/theme';
 import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 
 /** Export and import the whole database (spec §21). */
 export default function BackupScreen() {
   const styles = useStyles();
-  const colors = useColors();
   const router = useRouter();
   const { data, repositories, restoreBackup, resetDemoData } = useAppData();
   const { showToast } = useToast();

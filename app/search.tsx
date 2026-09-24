@@ -3,12 +3,10 @@ import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import {
-  AppHeader, Card, EmptyState, Money, Screen, ScreenScroll, SearchBar, T,
-} from '../src/components/ui';
+import { AppHeader, Card, EmptyState, Money, Screen, ScreenScroll, SearchBar, T } from '../src/components/ui';
 import { searchAll, type SearchResult, type SearchResultKind } from '../src/domain/selectors';
 import { useAppData } from '../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing, useColors } from '../src/theme';
+import { colors, makeStyles, radius, spacing } from '../src/theme';
 
 const GROUPS: Array<{
   kind: SearchResultKind;
@@ -30,7 +28,6 @@ const GROUPS: Array<{
  */
 export default function SearchScreen() {
   const styles = useStyles();
-  const colors = useColors();
   const router = useRouter();
   const { data } = useAppData();
   const [query, setQuery] = useState('');

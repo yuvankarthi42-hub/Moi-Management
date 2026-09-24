@@ -1,14 +1,12 @@
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
-import {
-  AppHeader, Button, Card, ListRow, RowDivider, Screen, ScreenScroll, StatRow, T,
-} from '../../src/components/ui';
+import { AppHeader, Button, Card, ListRow, RowDivider, Screen, ScreenScroll, StatRow, T } from '../../src/components/ui';
 import { selectOverview } from '../../src/domain/selectors';
 import { exportReport, type ExportFormat } from '../../src/services/exportService';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing } from '../../src/theme';
+import { makeStyles, radius, spacing } from '../../src/theme';
 import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 
 const REPORTS = [
@@ -39,13 +37,6 @@ const REPORTS = [
     tint: '#9333EA',
     title: 'Family Report',
     subtitle: 'Family wise collection summary',
-  },
-  {
-    href: '/reports/return-moi',
-    icon: 'gift-outline' as const,
-    tint: '#DB2777',
-    title: 'Return Moi Report',
-    subtitle: 'People to whom you may give',
   },
   {
     href: '/reports/top-contributors',

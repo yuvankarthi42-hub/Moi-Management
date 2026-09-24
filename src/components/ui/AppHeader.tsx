@@ -2,14 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import {
-  Platform, Pressable, StyleSheet, Text, View, ViewStyle,
-} from 'react-native';
+import { Platform, Pressable, Text, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import {
-  colors, contentColumn, makeStyles, radius, spacing, typography, useColors,
-} from '../../theme';
+import { colors, contentColumn, makeStyles, radius, spacing, typography } from '../../theme';
 
 export interface HeaderAction {
   icon: keyof typeof Ionicons.glyphMap;
@@ -52,7 +48,6 @@ export function AppHeader({
   style,
 }: AppHeaderProps) {
   const styles = useStyles();
-  const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -134,7 +129,6 @@ export function HeaderCanvas({
   style?: ViewStyle;
 }) {
   const styles = useStyles();
-  const colors = useColors();
   const insets = useSafeAreaInsets();
   return (
     <LinearGradient

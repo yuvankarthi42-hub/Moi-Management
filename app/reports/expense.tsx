@@ -4,16 +4,15 @@ import { StyleSheet, View } from 'react-native';
 import { HeroTotal } from '../../src/components/app/HeroTotal';
 import { ReportRow } from '../../src/components/app/ReportRow';
 import { ReportShell } from '../../src/components/app/ReportShell';
-import { Card, EmptyState, IconTile, StatRow, T } from '../../src/components/ui';
+import { Card, EmptyState, IconTile, StatRow } from '../../src/components/ui';
 import { buildExpenseReport } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
+import { makeStyles, spacing } from '../../src/theme';
 import { formatMoney, formatMoneyCompact } from '../../src/utils/format';
 
 /** What functions cost, broken down by category (spec §15). */
 export default function ExpenseReportScreen() {
   const styles = useStyles();
-  const colors = useColors();
   const { data } = useAppData();
 
   return (

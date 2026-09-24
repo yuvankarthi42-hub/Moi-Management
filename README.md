@@ -109,7 +109,9 @@ and a duplicate-entry warning when someone is recorded twice at one function.
 amount or recency; filter by village. Each profile shows call / message
 shortcuts, contact details, and their upcoming functions.
 
-**Moi return tracking** — moi runs both ways, so a person's profile reports
+**Moi return tracking** — lives entirely on a person's profile, by design: a
+household-wide "who do I owe" view is deliberately held back for a later
+release. The profile reports
 **received**, **given** and the **balance** between them, over one timeline that
 interleaves both directions. A positive balance is worded as "still to return",
 a negative one as "given more than received", and zero as "settled"; the People
@@ -122,9 +124,9 @@ of *our* functions (§38), a given one belongs to somebody else's.
 paid, date, notes and a receipt photo. There is deliberately **no budget
 module**: expenses are secondary to moi and never exist outside a function.
 
-**Reports** — nine: Function, Person, Village, Family, Return Moi, Top
-Contributors, Moi Collection, Expense and Payment Method — each with a period
-filter and **PDF / Excel (CSV) export** via the native share sheet.
+**Reports** — eight: Function, Person, Village, Family, Top Contributors, Moi
+Collection, Expense and Payment Method — each with a period filter and **PDF /
+Excel (CSV) export** via the native share sheet.
 
 **Search** — one box across functions, people and moi entries, with results
 grouped by kind.

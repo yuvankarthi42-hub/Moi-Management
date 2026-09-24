@@ -1,8 +1,8 @@
 import { Image } from 'expo-image';
 import React from 'react';
-import { ImageStyle, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { ImageStyle, Text, View, ViewStyle } from 'react-native';
 
-import { avatarPalette, colors, makeStyles, radius, typography, useColors } from '../../theme';
+import { avatarPalette, makeStyles, radius, typography } from '../../theme';
 import { hashToIndex, initials } from '../../utils/format';
 
 /**
@@ -73,7 +73,6 @@ export function IconTile({
   style?: ViewStyle;
 }) {
   const styles = useStyles();
-  const colors = useColors();
   return (
     <View
       style={[

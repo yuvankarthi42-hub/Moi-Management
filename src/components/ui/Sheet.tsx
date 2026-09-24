@@ -1,11 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import {
-  Modal, Pressable, StyleSheet, useWindowDimensions, View, ViewStyle,
-} from 'react-native';
+import { Modal, Pressable, StyleSheet, useWindowDimensions, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, makeStyles, radius, shadow, spacing, useColors } from '../../theme';
+import { colors, makeStyles, radius, shadow, spacing } from '../../theme';
 import { T } from './Text';
 
 /**
@@ -31,7 +29,6 @@ export function Sheet({
   contentStyle?: ViewStyle;
 }) {
   const styles = useStyles();
-  const colors = useColors();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
 

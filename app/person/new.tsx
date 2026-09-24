@@ -3,16 +3,14 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 
 import { OptionPicker } from '../../src/components/app/OptionPicker';
-import {
-  AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, useToast,
-} from '../../src/components/ui';
+import { AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, useToast } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { selectVillages } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, spacing, useColors } from '../../src/theme';
+import { colors, makeStyles, spacing } from '../../src/theme';
 
 const RELATIONS = [
   'Mama', 'Athai', 'Chithappa', 'Periappa', 'Cousin', 'Friend',
@@ -22,7 +20,6 @@ const RELATIONS = [
 /** Creates a person, or edits one when `?id=` is present. */
 export default function PersonFormScreen() {
   const styles = useStyles();
-  const colors = useColors();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string; name?: string }>();
   const { data, addPerson, editPerson } = useAppData();

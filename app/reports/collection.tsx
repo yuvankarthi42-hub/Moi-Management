@@ -1,19 +1,18 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { HeroTotal } from '../../src/components/app/HeroTotal';
 import { ReportShell } from '../../src/components/app/ReportShell';
 import { Card, EmptyState, StatRow, T } from '../../src/components/ui';
 import { buildCollectionReport } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
+import { makeStyles, radius, spacing } from '../../src/theme';
 import { formatMonth } from '../../src/utils/date';
 import { formatMoney, formatMoneyCompact } from '../../src/utils/format';
 
 /** Moi collected over time, month by month (spec §15). */
 export default function CollectionReportScreen() {
   const styles = useStyles();
-  const colors = useColors();
   const { data } = useAppData();
 
   return (

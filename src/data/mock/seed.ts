@@ -20,7 +20,7 @@ import { addDays, fromISODate, toISODate } from '../../utils/date';
  * Deterministic demo data.
  *
  * Dates are generated relative to "today" so the demo always has genuinely
- * upcoming functions and a meaningful return-moi list, no matter when it runs.
+ * upcoming functions and meaningful return suggestions, no matter when it runs.
  * Amounts are drawn from real moi denominations (they traditionally end in 1 —
  * the auspicious extra rupee), so function totals are whatever the entries
  * actually add up to rather than a hard-coded headline number.
@@ -169,7 +169,7 @@ const FUNCTION_BLUEPRINT: Array<{
   },
 ];
 
-/** Functions hosted by guests — these create return-moi obligations. */
+/** Functions hosted by guests — these are what a return moi is given for. */
 const PERSON_EVENT_BLUEPRINT: Array<{
   personIndex: number; title: string; type: FunctionType; inDays: number;
 }> = [

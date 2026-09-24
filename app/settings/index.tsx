@@ -1,11 +1,9 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Switch, View } from 'react-native';
+import { Alert, Switch, View } from 'react-native';
 
 import { OptionPicker } from '../../src/components/app/OptionPicker';
-import {
-  AppHeader, Card, ListRow, RowDivider, Screen, ScreenScroll, T,
-} from '../../src/components/ui';
+import { AppHeader, Card, ListRow, RowDivider, Screen, ScreenScroll, T } from '../../src/components/ui';
 import type { NotificationSettings } from '../../src/domain/models';
 import { useAppData } from '../../src/store/AppDataProvider';
 import { makeStyles, spacing, useColors } from '../../src/theme';

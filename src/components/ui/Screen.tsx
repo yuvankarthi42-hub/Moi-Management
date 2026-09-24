@@ -1,12 +1,8 @@
 import React from 'react';
-import {
-  Platform, ScrollView, ScrollViewProps, StyleSheet, View, ViewStyle,
-} from 'react-native';
+import { Platform, ScrollView, ScrollViewProps, StyleSheet, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import {
-  TAB_BAR_HEIGHT, colors, contentColumn, makeStyles, spacing, useColors,
-} from '../../theme';
+import { TAB_BAR_HEIGHT, colors, contentColumn, makeStyles, spacing } from '../../theme';
 
 /**
  * Root container for every screen.
@@ -26,7 +22,6 @@ export function Screen({
   background?: string;
 }) {
   const styles = useStyles();
-  const colors = useColors();
 
   return (
     <View style={[styles.root, { backgroundColor: background ?? colors.background }, style]}>
@@ -100,7 +95,6 @@ export function useListBottomPadding(withTabBar = false, extra = 0): number {
  */
 export function StatusBarScrim({ color }: { color?: string }) {
   const styles = useStyles();
-  const colors = useColors();
   const insets = useSafeAreaInsets();
   if (insets.top === 0) return null;
   return (
@@ -126,7 +120,6 @@ export function DockedFooter({
   style?: ViewStyle;
 }) {
   const styles = useStyles();
-  const colors = useColors();
   const insets = useSafeAreaInsets();
   return (
     <View

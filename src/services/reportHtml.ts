@@ -3,7 +3,7 @@ import { functionTypeMeta } from '../domain/functionTypes';
 import { expenseCategoryMeta } from '../domain/categories';
 import {
   buildCollectionReport, buildExpenseReport, buildFamilyReport, buildFunctionReport,
-  buildPaymentMethodReport, buildPersonReport, buildReturnMoiReport,
+  buildPaymentMethodReport, buildPersonReport,
   buildTopContributors, buildVillageReport, selectOverview, type DateRange,
 } from '../domain/selectors';
 import { formatDate, formatDateLong, formatMonth } from '../utils/date';
@@ -90,8 +90,7 @@ function rangeLabel(range?: DateRange): string {
 }
 
 export type ReportKind =
-  | 'summary' | 'function' | 'person' | 'village' | 'family' | 'return-moi'
-  | 'top-contributors' | 'expense' | 'payment-method' | 'collection';
+  | 'summary' | 'function' | 'person' | 'village' | 'family' | 'top-contributors' | 'expense' | 'payment-method' | 'collection';
 
 /** Renders any report as printable HTML, used for both PDF export and preview. */
 export function buildReportHtml(
@@ -169,29 +168,6 @@ export function buildReportHtml(
           ['Total', '', '', formatMoney(total)],
         );
       return { html: page(`${label} Report`, period, body, who), title: `${label} Report` };
-    }
-
-    case 'return-moi': {
-      const rows = buildReturnMoiReport(data, { withinDays: 365 });
-      const body =
-        tiles([
-          { k: 'Upcoming functions', v: String(rows.length) },
-          { k: 'Suggested total', v: formatMoney(rows.reduce((s, r) => s + r.suggested, 0)) },
-        ]) +
-        '<h2>Moi you may need to return</h2>' +
-        table(
-          ['Person', 'Function', 'Date', 'In days', 'Last received', 'Suggested'],
-          rows.map((r) => [
-            r.person.name,
-            r.event.title,
-            formatDate(r.event.date),
-            String(r.daysAway),
-            formatMoney(r.lastReceived),
-            formatMoney(r.suggested),
-          ]),
-          3,
-        );
-      return { html: page('Return Moi Report', 'Upcoming guest functions', body, who), title: 'Return Moi Report' };
     }
 
     case 'top-contributors': {

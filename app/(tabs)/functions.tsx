@@ -1,11 +1,9 @@
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 
 import { FunctionCard } from '../../src/components/app/FunctionCard';
-import {
-  Button, ChipBar, EmptyState, HeaderCanvas, Screen, SearchBar, T, useListBottomPadding, useListContentStyle,
-} from '../../src/components/ui';
+import { Button, ChipBar, EmptyState, HeaderCanvas, Screen, SearchBar, T, useListBottomPadding, useListContentStyle } from '../../src/components/ui';
 import { matchesFunction, selectFunctions, type FunctionWithStats } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
 import { makeStyles, spacing } from '../../src/theme';

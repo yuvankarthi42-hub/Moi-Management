@@ -84,7 +84,8 @@ export interface DataSource {
   updateFamilyMember(id: ID, patch: Partial<NewFamilyMember>): Promise<FamilyMember>;
   deleteFamilyMember(id: ID): Promise<void>;
 
-  // Functions hosted by other people (drives the return-moi report)
+  // Functions hosted by other people — drives the suggested return on a
+  // person's profile
   listPersonEvents(): Promise<PersonEvent[]>;
   createPersonEvent(input: NewPersonEvent): Promise<PersonEvent>;
   updatePersonEvent(id: ID, patch: Partial<NewPersonEvent>): Promise<PersonEvent>;

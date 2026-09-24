@@ -3,24 +3,16 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
 
-import {
-  AppHeader, Avatar, Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll, SectionHeader, StatRow, T, useToast,
-} from '../../src/components/ui';
+import { AppHeader, Avatar, Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll, SectionHeader, StatRow, T, useToast } from '../../src/components/ui';
 import { functionTypeMeta, paymentTypeMeta } from '../../src/domain/functionTypes';
-import {
-  buildReturnMoiReport, describeBalance, selectMoiTimelineForPerson, selectPersonById,
-  type MoiTimelineRow,
-} from '../../src/domain/selectors';
+import { buildReturnMoiReport, describeBalance, selectMoiTimelineForPerson, selectPersonById, type MoiTimelineRow } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
+import { colors, makeStyles, radius, spacing } from '../../src/theme';
 import { countdownLabel, formatDate } from '../../src/utils/date';
-import {
-  formatCount, formatMoney, formatMoneyCompact, formatPhone,
-} from '../../src/utils/format';
+import { formatMoney, formatMoneyCompact, formatPhone } from '../../src/utils/format';
 
 export default function PersonProfileScreen() {
   const styles = useStyles();
-  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { data, loading, removePerson } = useAppData();
@@ -357,7 +349,6 @@ function HistoryRow({
   onPress?: () => void;
 }) {
   const styles = useStyles();
-  const colors = useColors();
   const received = row.direction === 'received';
 
   const body = (
@@ -414,7 +405,6 @@ function ActionButton({
   disabled?: boolean;
 }) {
   const styles = useStyles();
-  const colors = useColors();
   return (
     <Pressable
       onPress={onPress}
@@ -443,7 +433,6 @@ function DetailRow({
   value: string;
 }) {
   const styles = useStyles();
-  const colors = useColors();
   return (
     <View style={styles.detailRow}>
       <Ionicons name={icon} size={17} color={colors.textMuted} />

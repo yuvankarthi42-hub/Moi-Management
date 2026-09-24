@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-  KeyboardAvoidingView, Platform, ScrollView, ScrollViewProps, StyleSheet,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, ScrollViewProps } from 'react-native';
 
 import { makeStyles, spacing } from '../../theme';
 

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import type { Dataset } from '../../domain/models';
 import { type DateRange } from '../../domain/selectors';

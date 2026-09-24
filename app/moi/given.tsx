@@ -3,22 +3,19 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Pressable, TextInput, View } from 'react-native';
 
 import { MoiSavedSheet, type MoiSavedDetails } from '../../src/components/app/MoiSavedSheet';
 import { OptionPicker } from '../../src/components/app/OptionPicker';
 import { PersonPicker } from '../../src/components/app/PersonPicker';
 import { DateField } from '../../src/components/app/DateField';
-import {
-  AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, Segmented, T,
-  useToast,
-} from '../../src/components/ui';
+import { AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, Segmented, T, useToast } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { PAYMENT_TYPES, functionTypeMeta, paymentTypeMeta } from '../../src/domain/functionTypes';
 import type { ID, ISODate, PaymentType } from '../../src/domain/models';
 import { describeBalance, selectPersonById } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
+import { colors, makeStyles, radius, spacing } from '../../src/theme';
 import { formatDate, toISODate } from '../../src/utils/date';
 import { formatMoney } from '../../src/utils/format';
 
@@ -37,7 +34,6 @@ export default function MoiGivenScreen() {
   const params = useLocalSearchParams<{ id?: string; personId?: string; eventId?: string }>();
   const { data, addMoiGiven, editMoiGiven, removeMoiGiven } = useAppData();
   const styles = useStyles();
-  const colors = useColors();
   const { showToast } = useToast();
 
   const existing = useMemo(

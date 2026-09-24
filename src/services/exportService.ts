@@ -8,7 +8,7 @@ import { functionTypeMeta } from '../domain/functionTypes';
 import type { Dataset } from '../domain/models';
 import {
   buildCollectionReport, buildExpenseReport, buildFamilyReport, buildFunctionReport,
-  buildPaymentMethodReport, buildPersonReport, buildReturnMoiReport,
+  buildPaymentMethodReport, buildPersonReport,
   buildTopContributors, buildVillageReport, type DateRange,
 } from '../domain/selectors';
 import { formatDate, formatMonth } from '../utils/date';
@@ -151,21 +151,6 @@ function buildCsvSections(
           title: `${label} Report`,
           headers: [label, 'People', 'Entries', 'Total'],
           rows: rows.map((r) => [r.label, r.peopleCount, r.entryCount, r.total]),
-        }],
-      };
-    }
-
-    case 'return-moi': {
-      const rows = buildReturnMoiReport(data, { withinDays: 365 });
-      return {
-        title: 'Return Moi Report',
-        sections: [{
-          title: 'Return Moi Report',
-          headers: ['Person', 'Phone', 'Function', 'Date', 'Days away', 'Last received', 'Suggested', 'Already returned'],
-          rows: rows.map((r) => [
-            r.person.name, r.person.phone ?? '', r.event.title, formatDate(r.event.date),
-            r.daysAway, r.lastReceived, r.suggested, r.returned,
-          ]),
         }],
       };
     }

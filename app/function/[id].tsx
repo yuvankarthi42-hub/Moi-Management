@@ -4,24 +4,17 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import {
-  ActivityIndicator, Alert, Pressable, ScrollView, Share, StyleSheet, View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ExpenseRow } from '../../src/components/app/ExpenseRow';
 import { MoiEntrySheet } from '../../src/components/app/MoiEntrySheet';
 import { MoiEntryRow } from '../../src/components/app/PersonRow';
-import {
-  Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll, StatRow, StatusBarScrim, T, useToast,
-} from '../../src/components/ui';
+import { Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll, StatRow, StatusBarScrim, T, useToast } from '../../src/components/ui';
 import { functionTypeMeta } from '../../src/domain/functionTypes';
-import {
-  selectExpensesForFunction, selectFunctionById, selectMoiEntriesForFunction,
-  splitByPaymentType, type FunctionWithStats,
-} from '../../src/domain/selectors';
+import { selectExpensesForFunction, selectFunctionById, selectMoiEntriesForFunction, splitByPaymentType, type FunctionWithStats } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
+import { colors, makeStyles, radius, spacing } from '../../src/theme';
 import { countdownLabel, formatDate, formatDateLong } from '../../src/utils/date';
 import { formatCount, formatMoney, formatMoneyCompact } from '../../src/utils/format';
 
@@ -42,7 +35,6 @@ const TABS: Array<{ key: Tab; label: string; icon: keyof typeof Ionicons.glyphMa
 
 export default function FunctionDetailScreen() {
   const styles = useStyles();
-  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -449,7 +441,6 @@ function OverviewTab({ fn }: { fn: FunctionWithStats }) {
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   const styles = useStyles();
-  const colors = useColors();
   return (
     <View style={styles.detailRow}>
       <T variant="small" tone="muted" style={styles.detailLabel}>

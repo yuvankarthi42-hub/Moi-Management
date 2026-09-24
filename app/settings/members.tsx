@@ -1,16 +1,14 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, View } from 'react-native';
 
 import { OptionPicker } from '../../src/components/app/OptionPicker';
-import {
-  AppHeader, Avatar, Badge, Button, Card, EmptyState, Field, ListRow, RowDivider, Screen, ScreenScroll, Sheet, T, useToast,
-} from '../../src/components/ui';
+import { AppHeader, Avatar, Badge, Button, Card, EmptyState, Field, ListRow, RowDivider, Screen, ScreenScroll, Sheet, T, useToast } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { FAMILY_ROLES, roleMeta } from '../../src/domain/categories';
 import type { FamilyMember, FamilyRole } from '../../src/domain/models';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, spacing } from '../../src/theme';
+import { makeStyles, spacing } from '../../src/theme';
 import { formatPhone } from '../../src/utils/format';
 
 const ROLE_TONE: Record<FamilyRole, 'primary' | 'success' | 'info' | 'neutral'> = {

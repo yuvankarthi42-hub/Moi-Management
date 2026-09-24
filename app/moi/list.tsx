@@ -1,19 +1,15 @@
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList } from 'react-native';
 
 import { OptionPicker } from '../../src/components/app/OptionPicker';
 import { MoiEntryRow } from '../../src/components/app/PersonRow';
-import {
-  AppHeader, Card, ChipBar, EmptyState, Screen, SearchBar, StatRow, T, useListBottomPadding, useListContentStyle,
-} from '../../src/components/ui';
+import { AppHeader, Card, ChipBar, EmptyState, Screen, SearchBar, StatRow, useListBottomPadding, useListContentStyle } from '../../src/components/ui';
 import { functionTypeMeta } from '../../src/domain/functionTypes';
 import type { PaymentType } from '../../src/domain/models';
-import {
-  matchesPerson, selectFunctions, splitByPaymentType, type MoiEntryView,
-} from '../../src/domain/selectors';
+import { matchesPerson, selectFunctions, splitByPaymentType, type MoiEntryView } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, spacing } from '../../src/theme';
+import { makeStyles, spacing } from '../../src/theme';
 import { formatDate } from '../../src/utils/date';
 import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 

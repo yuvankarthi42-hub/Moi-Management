@@ -5,7 +5,7 @@
  * tracks two directions of that flow:
  *   - moi *collected* at functions the household hosts  (`MoiEntry`)
  *   - moi the household is expected to *return* when a guest hosts their own
- *     function (`PersonEvent` + the return-moi report)
+ *     function (`PersonEvent` + `MoiGiven`)
  *
  * All identifiers are opaque strings. All money is stored as a whole number of
  * rupees — never a float — so totals stay exact.
@@ -130,7 +130,8 @@ export interface MoiGiven {
 
 /**
  * A function hosted by *someone else* that the household has been invited to.
- * Drives the return-moi report: when this date is near, we owe them a moi.
+ * Drives the suggested return on that person's profile: when this date is
+ * near, the household still owes them a moi.
  */
 /**
  * A cost incurred for one function. Expenses never exist outside a function

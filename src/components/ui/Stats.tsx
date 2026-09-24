@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 
-import { colors, makeStyles, spacing, useColors } from '../../theme';
+import { makeStyles, spacing } from '../../theme';
 import { T } from './Text';
 
 export interface StatItem {
@@ -25,7 +25,6 @@ export function StatRow({
   compactLabels?: boolean;
 }) {
   const styles = useStyles();
-  const colors = useColors();
   return (
     <View style={[styles.row, style]}>
       {items.map((item, index) => (

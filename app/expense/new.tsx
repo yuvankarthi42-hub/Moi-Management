@@ -3,20 +3,18 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 
 import { DateField } from '../../src/components/app/DateField';
 import { OptionPicker } from '../../src/components/app/OptionPicker';
-import {
-  AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, Segmented, T, useToast,
-} from '../../src/components/ui';
+import { AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, Segmented, T, useToast } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { EXPENSE_CATEGORIES, expenseCategoryMeta } from '../../src/domain/categories';
 import { PAYMENT_TYPES, functionTypeMeta } from '../../src/domain/functionTypes';
 import type { ExpenseCategory, ID, ISODate, PaymentType } from '../../src/domain/models';
 import { selectFunctions } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, spacing, useColors } from '../../src/theme';
+import { colors, makeStyles, spacing } from '../../src/theme';
 import { formatDate, toISODate } from '../../src/utils/date';
 import { formatMoney } from '../../src/utils/format';
 
@@ -28,7 +26,6 @@ import { formatMoney } from '../../src/utils/format';
  */
 export default function ExpenseFormScreen() {
   const styles = useStyles();
-  const colors = useColors();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string; functionId?: string }>();
   const { data, addExpense, editExpense, removeExpense } = useAppData();

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
+import { Pressable, View, ViewStyle } from 'react-native';
 
-import { colors, makeStyles, radius, shadow, spacing, useColors } from '../../theme';
+import { colors, makeStyles, radius, shadow, spacing } from '../../theme';
 
 export function Card({
   children,
@@ -17,7 +17,6 @@ export function Card({
   elevation?: 0 | 1 | 2 | 3;
 }) {
   const styles = useStyles();
-  const colors = useColors();
   const base = [
     styles.card,
     padded && styles.padded,

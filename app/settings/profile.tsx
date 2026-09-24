@@ -3,18 +3,15 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 
-import {
-  AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, Screen, useToast,
-} from '../../src/components/ui';
+import { AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, Screen, useToast } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, spacing, useColors } from '../../src/theme';
+import { colors, makeStyles, spacing } from '../../src/theme';
 
 export default function ProfileScreen() {
   const styles = useStyles();
-  const colors = useColors();
   const router = useRouter();
   const { data, saveProfile } = useAppData();
   const { showToast } = useToast();

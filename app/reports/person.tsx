@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { ReportRow } from '../../src/components/app/ReportRow';
 import { ReportShell } from '../../src/components/app/ReportShell';

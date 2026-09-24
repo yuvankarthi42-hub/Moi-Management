@@ -1,7 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text as RNText, TextProps, TextStyle } from 'react-native';
+import { Text as RNText, TextProps, TextStyle } from 'react-native';
 
-import { makeStyles, typography, useColors, type Palette } from '../../theme';
+import { colors, makeStyles, type Palette, typography } from '../../theme';
 import { formatMoney, formatMoneyCompact } from '../../utils/format';
 
 type Variant = keyof typeof typography;
@@ -40,7 +40,6 @@ export function T({
   ...rest
 }: TypedTextProps) {
   const styles = useStyles();
-  const colors = useColors();
 
   return (
     <RNText
@@ -72,7 +71,6 @@ export function Money({
   compact?: boolean;
   style?: TextStyle;
 }) {
-  const colors = useColors();
   const color =
     flow === 'in' ? colors.amountIn : flow === 'out' ? colors.amountOut : colors.text;
   return (

@@ -3,19 +3,17 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 
 import { DateField } from '../../src/components/app/DateField';
 import { OptionPicker } from '../../src/components/app/OptionPicker';
-import {
-  AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, T, useToast,
-} from '../../src/components/ui';
+import { AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, T, useToast } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { FUNCTION_TYPES, functionTypeMeta } from '../../src/domain/functionTypes';
 import type { FunctionType, ISODate } from '../../src/domain/models';
 import { selectVillages } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { colors, makeStyles, radius, spacing, useColors } from '../../src/theme';
+import { colors, makeStyles, radius, spacing } from '../../src/theme';
 import { toISODate } from '../../src/utils/date';
 
 /**
@@ -25,7 +23,6 @@ import { toISODate } from '../../src/utils/date';
  */
 export default function FunctionFormScreen() {
   const styles = useStyles();
-  const colors = useColors();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { data, addFunction, editFunction } = useAppData();

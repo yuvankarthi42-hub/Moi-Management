@@ -67,7 +67,6 @@ interface AppDataValue {
   // Guest-hosted events
   addPersonEvent: (input: NewPersonEvent) => Promise<string>;
   removePersonEvent: (id: ID) => Promise<void>;
-  markMoiReturned: (eventId: ID, amount: number) => Promise<void>;
 
   // Profile & settings
   saveProfile: (patch: Partial<UserProfile>) => Promise<void>;
@@ -191,20 +190,6 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
       addPersonEvent: (input) => mutate(() => functions.createPersonEvent(input)).then((e) => e.id),
       removePersonEvent: (id) => mutate(() => functions.removePersonEvent(id)),
-      markMoiReturned: (eventId, amount) =>
-        mutate(async () => {
-          const event = data.personEvents.find((e) => e.id === eventId);
-          if (!event) throw new Error('That function could not be found.');
-          return moiGiven.create({
-            personId: event.personId,
-            personEventId: event.id,
-            occasion: event.title,
-            amount,
-            paymentType: 'cash',
-            date: event.date,
-          });
-        }).then(() => undefined),
-
       saveProfile: (patch) => mutate(() => settings.updateProfile(patch)).then(() => undefined),
       saveSettings: (patch) => mutate(() => settings.updateSettings(patch)).then(() => undefined),
       resetDemoData: () => mutate(() => settings.resetDemoData()),

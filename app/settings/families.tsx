@@ -1,10 +1,8 @@
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, View } from 'react-native';
 
-import {
-  AppHeader, Button, Card, EmptyState, Field, ListRow, RowDivider, Screen, ScreenScroll, Sheet, T, useToast,
-} from '../../src/components/ui';
+import { AppHeader, Button, Card, EmptyState, Field, ListRow, RowDivider, Screen, ScreenScroll, Sheet, T, useToast } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { useAppData } from '../../src/store/AppDataProvider';
 import { makeStyles, spacing } from '../../src/theme';
