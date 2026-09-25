@@ -280,9 +280,6 @@ export default function PersonProfileScreen() {
           {person.village ? (
             <DetailRow icon="location-outline" label="Village" value={person.village} />
           ) : null}
-          {person.familyName ? (
-            <DetailRow icon="home-outline" label="Family" value={person.familyName} />
-          ) : null}
           {person.relation ? (
             <DetailRow icon="people-outline" label="Relation" value={person.relation} />
           ) : null}
@@ -294,7 +291,7 @@ export default function PersonProfileScreen() {
           {person.notes ? (
             <DetailRow icon="document-text-outline" label="Notes" value={person.notes} />
           ) : null}
-          {!person.phone && !person.village && !person.familyName && !person.relation ? (
+          {!person.phone && !person.village && !person.relation ? (
             <T variant="small" tone="muted" center>
               No contact details saved yet.
             </T>

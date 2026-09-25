@@ -36,13 +36,11 @@ export default function PersonFormScreen() {
   const [phone, setPhone] = useState('');
   const [village, setVillage] = useState('');
   const [relation, setRelation] = useState('');
-  const [familyId, setFamilyId] = useState<string | undefined>();
   const [notes, setNotes] = useState('');
   const [photoUri, setPhotoUri] = useState<string | undefined>();
 
   const [villageOpen, setVillageOpen] = useState(false);
   const [relationOpen, setRelationOpen] = useState(false);
-  const [familyOpen, setFamilyOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -52,7 +50,6 @@ export default function PersonFormScreen() {
     setPhone(existing.phone ?? '');
     setVillage(existing.village ?? '');
     setRelation(existing.relation ?? '');
-    setFamilyId(existing.familyId);
     setNotes(existing.notes ?? '');
     setPhotoUri(existing.photoUri);
   }, [existing]);
@@ -80,7 +77,6 @@ export default function PersonFormScreen() {
       phone: phone || undefined,
       village: village || undefined,
       relation: relation || undefined,
-      familyId,
       notes: notes || undefined,
       photoUri,
     };
@@ -105,8 +101,6 @@ export default function PersonFormScreen() {
       setSaving(false);
     }
   };
-
-  const familyName = data.families.find((f) => f.id === familyId)?.name;
 
   return (
     <Screen background={colors.surface}>
@@ -174,17 +168,6 @@ export default function PersonFormScreen() {
           onClear={relation ? () => setRelation('') : undefined}
         />
 
-        {data.families.length > 0 ? (
-          <PickerField
-            label="Family (optional)"
-            value={familyName}
-            placeholder="Group under a family"
-            leftIcon="home-outline"
-            onPress={() => setFamilyOpen(true)}
-            onClear={familyId ? () => setFamilyId(undefined) : undefined}
-          />
-        ) : null}
-
         <Field
           label="Notes (optional)"
           value={notes}
@@ -227,22 +210,6 @@ export default function PersonFormScreen() {
         onSelect={(value) => {
           setRelation(value);
           setRelationOpen(false);
-        }}
-      />
-
-      <OptionPicker
-        visible={familyOpen}
-        onClose={() => setFamilyOpen(false)}
-        title="Family"
-        selected={familyId}
-        options={data.families.map((f) => ({
-          value: f.id,
-          label: f.name,
-          description: f.village,
-        }))}
-        onSelect={(value) => {
-          setFamilyId(value);
-          setFamilyOpen(false);
         }}
       />
     </Screen>

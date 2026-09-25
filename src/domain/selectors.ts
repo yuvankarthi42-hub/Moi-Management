@@ -472,20 +472,6 @@ export function buildVillageReport(data: Dataset, range?: DateRange): GroupRepor
   });
 }
 
-/** Collections grouped by the giver's family. */
-export function buildFamilyReport(data: Dataset, range?: DateRange): GroupReportRow[] {
-  const scoped = filterByRange(data, range);
-  const peopleById = indexBy(scoped.people, (p) => p.id);
-  const familiesById = indexBy(scoped.families, (f) => f.id);
-  return groupEntries(scoped.moiEntries, (entry) => {
-    const familyId = peopleById.get(entry.personId)?.familyId;
-    const family = familyId ? familiesById.get(familyId) : undefined;
-    return family
-      ? { key: family.id, label: family.name }
-      : { key: '__none', label: 'No family' };
-  });
-}
-
 function groupEntries(
   entries: MoiEntry[],
   classify: (entry: MoiEntry) => { key: string; label: string },

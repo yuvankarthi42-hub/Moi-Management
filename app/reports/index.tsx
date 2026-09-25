@@ -32,13 +32,6 @@ const REPORTS = [
     subtitle: 'Collections grouped by village',
   },
   {
-    href: '/reports/family',
-    icon: 'home-outline' as const,
-    tint: '#9333EA',
-    title: 'Family Report',
-    subtitle: 'Family wise collection summary',
-  },
-  {
     href: '/reports/top-contributors',
     icon: 'trophy-outline' as const,
     tint: '#CA8A04',

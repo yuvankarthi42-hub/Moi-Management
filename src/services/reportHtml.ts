@@ -2,7 +2,7 @@ import type { Dataset } from '../domain/models';
 import { functionTypeMeta } from '../domain/functionTypes';
 import { expenseCategoryMeta } from '../domain/categories';
 import {
-  buildCollectionReport, buildExpenseReport, buildFamilyReport, buildFunctionReport,
+  buildCollectionReport, buildExpenseReport, buildFunctionReport,
   buildPaymentMethodReport, buildPersonReport,
   buildTopContributors, buildVillageReport, selectOverview, type DateRange,
 } from '../domain/selectors';
@@ -90,7 +90,7 @@ function rangeLabel(range?: DateRange): string {
 }
 
 export type ReportKind =
-  | 'summary' | 'function' | 'person' | 'village' | 'family' | 'top-contributors' | 'expense' | 'payment-method' | 'collection';
+  | 'summary' | 'function' | 'person' | 'village' | 'top-contributors' | 'expense' | 'payment-method' | 'collection';
 
 /** Renders any report as printable HTML, used for both PDF export and preview. */
 export function buildReportHtml(
@@ -150,24 +150,22 @@ export function buildReportHtml(
       return { html: page('Person Report', period, body, who), title: 'Person Report' };
     }
 
-    case 'village':
-    case 'family': {
-      const rows = kind === 'village' ? buildVillageReport(data, range) : buildFamilyReport(data, range);
-      const label = kind === 'village' ? 'Village' : 'Family';
+    case 'village': {
+      const rows = buildVillageReport(data, range);
       const total = rows.reduce((s, r) => s + r.total, 0);
       const body =
         tiles([
-          { k: `${label}s`, v: String(rows.length) },
+          { k: 'Villages', v: String(rows.length) },
           { k: 'Total received', v: formatMoney(total) },
         ]) +
-        `<h2>${label} wise collection</h2>` +
+        '<h2>Village wise collection</h2>' +
         table(
-          [label, 'People', 'Entries', 'Total'],
+          ['Village', 'People', 'Entries', 'Total'],
           rows.map((r) => [r.label, String(r.peopleCount), String(r.entryCount), formatMoney(r.total)]),
           1,
           ['Total', '', '', formatMoney(total)],
         );
-      return { html: page(`${label} Report`, period, body, who), title: `${label} Report` };
+      return { html: page('Village Report', period, body, who), title: 'Village Report' };
     }
 
     case 'top-contributors': {

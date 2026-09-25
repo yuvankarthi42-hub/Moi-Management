@@ -7,7 +7,7 @@ import { expenseCategoryMeta } from '../domain/categories';
 import { functionTypeMeta } from '../domain/functionTypes';
 import type { Dataset } from '../domain/models';
 import {
-  buildCollectionReport, buildExpenseReport, buildFamilyReport, buildFunctionReport,
+  buildCollectionReport, buildExpenseReport, buildFunctionReport,
   buildPaymentMethodReport, buildPersonReport,
   buildTopContributors, buildVillageReport, type DateRange,
 } from '../domain/selectors';
@@ -141,15 +141,13 @@ function buildCsvSections(
       };
     }
 
-    case 'village':
-    case 'family': {
-      const rows = kind === 'village' ? buildVillageReport(data, range) : buildFamilyReport(data, range);
-      const label = kind === 'village' ? 'Village' : 'Family';
+    case 'village': {
+      const rows = buildVillageReport(data, range);
       return {
-        title: `${label} Report`,
+        title: 'Village Report',
         sections: [{
-          title: `${label} Report`,
-          headers: [label, 'People', 'Entries', 'Total'],
+          title: 'Village Report',
+          headers: ['Village', 'People', 'Entries', 'Total'],
           rows: rows.map((r) => [r.label, r.peopleCount, r.entryCount, r.total]),
         }],
       };

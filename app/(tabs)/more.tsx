@@ -89,7 +89,7 @@ export default function MoreScreen() {
           <ListRow
             icon="bar-chart-outline"
             title="Reports"
-            subtitle="Eight reports across moi, expenses and people"
+            subtitle="Seven reports across moi, expenses and people"
             onPress={() => router.push('/reports')}
           />
           <RowDivider />
@@ -115,14 +115,6 @@ export default function MoreScreen() {
             value={`${data.familyMembers.length}`}
             subtitle="Who can view and edit your records"
             onPress={() => router.push('/settings/members')}
-          />
-          <RowDivider />
-          <ListRow
-            icon="home-outline"
-            title="Family Groups"
-            value={`${data.families.length}`}
-            subtitle="Group people for the family report"
-            onPress={() => router.push('/settings/families')}
           />
         </Group>
 
