@@ -18,6 +18,12 @@ export interface ButtonProps {
   disabled?: boolean;
   /** Stretches to fill the parent row. */
   block?: boolean;
+  /**
+   * Overrides the label and icon colour. For buttons that sit on a branded
+   * surface rather than the page — the launch screen's gradient — where the
+   * palette's own foregrounds are picked for contrast against `background`.
+   */
+  textColor?: string;
   style?: ViewStyle;
 }
 
@@ -62,11 +68,13 @@ export function Button({
   loading = false,
   disabled = false,
   block = false,
+  textColor,
   style,
 }: ButtonProps) {
   const styles = useStyles();
   const colors = useColors();
-  const palette = variantPalette(variant, colors);
+  const base = variantPalette(variant, colors);
+  const palette = textColor ? { ...base, fg: textColor } : base;
   const dims = SIZES[size];
   const inactive = disabled || loading;
   const raised = variant === 'primary' || variant === 'success' || variant === 'danger';

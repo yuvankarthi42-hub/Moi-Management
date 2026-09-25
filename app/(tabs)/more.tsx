@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 
+import { useAuth } from '../../src/auth';
 import { OptionPicker } from '../../src/components/app/OptionPicker';
 import { Avatar, Card, HeaderCanvas, ListRow, RowDivider, Screen, ScreenScroll, StatRow, StatusBarScrim, T } from '../../src/components/ui';
 import type { LanguagePreference, ThemePreference } from '../../src/domain/models';
@@ -9,6 +10,7 @@ import { selectOverview } from '../../src/domain/selectors';
 
 import { useAppData } from '../../src/store/AppDataProvider';
 import { makeStyles, radius, spacing, useColors } from '../../src/theme';
+import { confirmAction } from '../../src/utils/confirm';
 import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 
 const THEME_LABELS: Record<ThemePreference, string> = {
@@ -33,8 +35,22 @@ export default function MoreScreen() {
   const colors = useColors();
   const router = useRouter();
   const { data, saveSettings, repositories } = useAppData();
+  const { account, signOut } = useAuth();
   const [themeOpen, setThemeOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
+
+  const confirmSignOut = async () => {
+    const ok = await confirmAction({
+      title: 'Sign out?',
+      message:
+        'Your functions, people and moi stay on this device. Sign back in with the same mobile number to reach them.',
+      confirmLabel: 'Sign out',
+      destructive: true,
+    });
+    if (!ok) return;
+    await signOut();
+    router.replace('/welcome');
+  };
 
   const overview = useMemo(() => selectOverview(data), [data]);
   const { profile, settings } = data;
@@ -115,6 +131,26 @@ export default function MoreScreen() {
             value={`${data.familyMembers.length}`}
             subtitle="Who can view and edit your records"
             onPress={() => router.push('/settings/members')}
+          />
+        </Group>
+
+        <Group title="Account">
+          <ListRow
+            icon="person-circle-outline"
+            title={account ? account.name : 'Signed out'}
+            subtitle={
+              account ? `${account.countryCode} ${account.phone}` : 'Sign in to keep your books'
+            }
+            showChevron={false}
+          />
+          <RowDivider />
+          <ListRow
+            icon="log-out-outline"
+            title="Sign out"
+            subtitle="Your records stay on this device"
+            destructive
+            showChevron={false}
+            onPress={confirmSignOut}
           />
         </Group>
 

@@ -5,6 +5,7 @@ import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { AuthProvider } from '../src/auth';
 import { AppDataProvider, useAppData } from '../src/store/AppDataProvider';
 import { ToastProvider } from '../src/components/ui';
 import { ThemeProvider, useTheme } from '../src/theme';
@@ -24,9 +25,13 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <AppDataProvider>
-          <ThemedApp />
-        </AppDataProvider>
+        {/* Outside AppDataProvider: who is signed in decides which screens
+            render at all, and does not depend on the dataset. */}
+        <AuthProvider>
+          <AppDataProvider>
+            <ThemedApp />
+          </AppDataProvider>
+        </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
@@ -68,6 +73,7 @@ function AppChrome() {
         }}
       >
         <Stack.Screen name="index" options={{ animation: 'fade' }} />
+        <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
         <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
         <Stack.Screen
           name="moi/add"

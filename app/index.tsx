@@ -3,20 +3,28 @@ import { Redirect } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
+import { useAuth } from '../src/auth';
 import { T } from '../src/components/ui';
 import { useAppData } from '../src/store/AppDataProvider';
 import { makeStyles, radius, spacing, useColors } from '../src/theme';
 
 /**
- * Launch screen. Holds the branded splash until the dataset has loaded, then
- * hands off to the tabs — so the home screen never flashes empty totals.
+ * Launch screen.
+ *
+ * Holds the branded splash until both the session and the dataset are known,
+ * then routes once: a signed-in phone goes straight to the tabs, a new one to
+ * the landing screen. Waiting for both avoids the welcome screen flashing at
+ * someone who is already signed in.
  */
 export default function Launch() {
   const styles = useStyles();
   const colors = useColors();
   const { loading, error } = useAppData();
+  const { account, loading: authLoading } = useAuth();
 
-  if (!loading && !error) return <Redirect href="/(tabs)" />;
+  if (!loading && !authLoading && !error) {
+    return <Redirect href={account ? '/(tabs)' : '/welcome'} />;
+  }
 
   return (
     <LinearGradient colors={colors.splashGradient} style={styles.root}>
