@@ -1,10 +1,9 @@
 import { useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 
-import { AppHeader, Button, Card, ListRow, RowDivider, Screen, ScreenScroll, StatRow, T } from '../../src/components/ui';
+import { AppHeader, Card, ListRow, RowDivider, Screen, ScreenScroll, StatRow } from '../../src/components/ui';
 import { selectOverview } from '../../src/domain/selectors';
-import { exportReport, type ExportFormat } from '../../src/services/exportService';
 import { useAppData } from '../../src/store/AppDataProvider';
 import { makeStyles, radius, spacing } from '../../src/theme';
 import { formatCount, formatMoneyCompact } from '../../src/utils/format';
@@ -65,18 +64,8 @@ export default function ReportsScreen() {
   const styles = useStyles();
   const { data } = useAppData();
   const router = useRouter();
-  const [busy, setBusy] = useState<ExportFormat | undefined>();
 
   const overview = useMemo(() => selectOverview(data), [data]);
-
-  const handleExport = async (format: ExportFormat) => {
-    setBusy(format);
-    try {
-      await exportReport({ kind: 'summary', data, format });
-    } finally {
-      setBusy(undefined);
-    }
-  };
 
   return (
     <Screen>
@@ -123,35 +112,6 @@ export default function ReportsScreen() {
             </View>
           ))}
         </Card>
-
-        <View style={styles.exportBlock}>
-          <T variant="smallStrong" tone="secondary" style={styles.exportLabel}>
-            Export everything
-          </T>
-          <View style={styles.exportRow}>
-            <Button
-              label="Export PDF"
-              icon="document-text-outline"
-              variant="danger"
-              block
-              loading={busy === 'pdf'}
-              disabled={busy != null}
-              onPress={() => handleExport('pdf')}
-            />
-            <Button
-              label="Export Excel"
-              icon="grid-outline"
-              variant="success"
-              block
-              loading={busy === 'csv'}
-              disabled={busy != null}
-              onPress={() => handleExport('csv')}
-            />
-          </View>
-          <T variant="caption" tone="muted" style={styles.exportHint}>
-            Excel exports as a CSV file that opens in Excel, Google Sheets and Numbers.
-          </T>
-        </View>
       </ScreenScroll>
     </Screen>
   );
@@ -166,19 +126,5 @@ const useStyles = makeStyles((colors) => ({
     marginHorizontal: spacing.lg,
     marginTop: spacing.xl,
     borderRadius: radius.lg,
-  },
-  exportBlock: {
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.xxl,
-  },
-  exportLabel: {
-    marginBottom: spacing.sm,
-  },
-  exportRow: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  exportHint: {
-    marginTop: spacing.sm,
   },
 }));
