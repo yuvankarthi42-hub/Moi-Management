@@ -4,9 +4,10 @@ import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useAuth } from '../src/auth';
+import { BrandMark } from '../src/components/app/BrandMark';
 import { T } from '../src/components/ui';
 import { useAppData } from '../src/store/AppDataProvider';
-import { makeStyles, radius, spacing, useColors } from '../src/theme';
+import { makeStyles, spacing, useColors } from '../src/theme';
 
 /**
  * Launch screen.
@@ -28,16 +29,14 @@ export default function Launch() {
 
   return (
     <LinearGradient colors={colors.splashGradient} style={styles.root}>
-      <View style={styles.badge}>
-        <T style={styles.emoji} allowFontScaling={false}>
-          🪔
-        </T>
+      <View style={styles.mark}>
+        <BrandMark size={200} />
       </View>
       <T variant="display" tone="onPrimary" center>
         Moi Manager
       </T>
       <T variant="small" color={colors.onPrimaryMuted} center style={styles.tagline}>
-        From invitation to moi report,{'\n'}everything in one app
+        Every moi you receive and return,{'\n'}in one place
       </T>
 
       {error ? (
@@ -58,20 +57,8 @@ const useStyles = makeStyles((colors) => ({
     justifyContent: 'center',
     padding: spacing.xl,
   },
-  badge: {
-    width: 108,
-    height: 108,
-    borderRadius: radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.xxl,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.22)',
-  },
-  emoji: {
-    fontSize: 52,
-    lineHeight: 60,
+  mark: {
+    marginBottom: spacing.lg,
   },
   tagline: {
     marginTop: spacing.sm,
