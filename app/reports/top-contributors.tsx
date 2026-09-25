@@ -65,7 +65,7 @@ export default function TopContributorsScreen() {
                   title={row.name}
                   subtitle={`${row.village ?? 'No village'} · ${(row.share * 100).toFixed(1)}% of all moi`}
                   amount={row.total}
-                  flow="out"
+                  flow="in"
                   share={row.share}
                   last={index === rows.length - 1}
                 />

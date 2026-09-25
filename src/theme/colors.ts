@@ -44,7 +44,9 @@ export interface Palette {
   onWarning: string;
   info: string;
   infoSoft: string;
+  /** Money that left the household: expenses, moi given back. Matches `danger`. */
   amountOut: string;
+  /** Money that came in: moi received, collections. Matches `success`. */
   amountIn: string;
   gold: string;
   shadow: string;

@@ -49,7 +49,7 @@ export function PersonRow({
           {/* The headline figure stays what they have given us; the line below
               flags an outstanding return so the list answers "who do I still
               owe?" without opening each profile. */}
-          <Money value={person.totalReceived} flow="out" variant="bodyStrong" />
+          <Money value={person.totalReceived} flow="in" variant="bodyStrong" />
           {person.balance > 0 ? (
             <T variant="smallStrong" tone="warning" style={styles.trailingSub}>
               {formatMoney(person.balance)} to return
@@ -101,7 +101,7 @@ export function MoiEntryRow({
         </View>
 
         <View style={styles.trailing}>
-          <Money value={entry.amount} flow="out" variant="bodyStrong" />
+          <Money value={entry.amount} flow="in" variant="bodyStrong" />
           <T variant="caption" tone="muted" style={styles.trailingSub}>
             {formatTime(entry.recordedAt)}
           </T>

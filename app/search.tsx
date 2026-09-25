@@ -111,7 +111,7 @@ export default function SearchScreen() {
                         </T>
                       </View>
                       {result.amount != null ? (
-                        <Money value={result.amount} variant="smallStrong" />
+                        <Money value={result.amount} flow="in" variant="smallStrong" />
                       ) : null}
                       <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
                     </Pressable>

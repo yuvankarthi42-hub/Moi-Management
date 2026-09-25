@@ -71,7 +71,7 @@ export default function PersonReportScreen() {
                         row.functionCount === 1 ? 'function' : 'functions'
                       }`}
                       amount={row.total}
-                      flow="out"
+                      flow="in"
                       share={total ? row.total / total : 0}
                       last={index === rows.length - 1}
                     />
