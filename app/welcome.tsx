@@ -4,9 +4,8 @@ import React from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { MandalaMark } from '../src/components/app/MandalaMark';
 import { Button, T } from '../src/components/ui';
-import { makeStyles, spacing, useColors } from '../src/theme';
+import { makeStyles, radius, spacing, useColors } from '../src/theme';
 
 /**
  * Landing screen — the first thing a new phone sees.
@@ -29,8 +28,10 @@ export default function WelcomeScreen() {
           { paddingTop: insets.top + spacing.xxxl, paddingBottom: insets.bottom + spacing.xl },
         ]}
       >
-        <View style={styles.art}>
-          <MandalaMark size={232} />
+        <View style={styles.badge}>
+          <T style={styles.emoji} allowFontScaling={false}>
+            🪔
+          </T>
         </View>
 
         <T variant="display" tone="onPrimary" center>
@@ -76,8 +77,20 @@ const useStyles = makeStyles(() => ({
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
   },
-  art: {
-    marginBottom: spacing.xxxl,
+  badge: {
+    width: 108,
+    height: 108,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xxl,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+  },
+  emoji: {
+    fontSize: 52,
+    lineHeight: 60,
   },
   tagline: {
     marginTop: spacing.md,
