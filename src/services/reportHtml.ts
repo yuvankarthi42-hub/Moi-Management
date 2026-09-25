@@ -10,7 +10,7 @@ import { formatDate, formatDateLong, formatMonth } from '../utils/date';
 import { formatMoney } from '../utils/format';
 
 /** Escapes text for interpolation into the print HTML. */
-function esc(value: unknown): string {
+export function esc(value: unknown): string {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -20,9 +20,14 @@ function esc(value: unknown): string {
 
 const STYLES = `
   * { box-sizing: border-box; }
+  /* The document is printed, so it is light whatever the reader's device is
+     set to. Without this a dark-mode browser paints its own dark canvas
+     behind the cells that have no background of their own, and #161430 text
+     lands on it invisibly — in the print preview and in "Save as PDF". */
+  :root { color-scheme: light; }
   body {
     font-family: -apple-system, "Helvetica Neue", Roboto, sans-serif;
-    color: #161430; margin: 0; padding: 28px 24px 40px;
+    color: #161430; background: #FFFFFF; margin: 0; padding: 28px 24px 40px;
   }
   h1 { font-size: 22px; margin: 0 0 4px; color: #4C1D95; }
   .sub { font-size: 12px; color: #6B7280; margin-bottom: 20px; }
@@ -43,7 +48,7 @@ const STYLES = `
   .foot { margin-top: 28px; font-size: 10px; color: #9CA3AF; text-align: center; }
 `;
 
-function page(title: string, subtitle: string, body: string, householdName: string): string {
+export function page(title: string, subtitle: string, body: string, householdName: string): string {
   return `<!DOCTYPE html><html><head><meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>${STYLES}</style></head><body>
@@ -56,13 +61,13 @@ function page(title: string, subtitle: string, body: string, householdName: stri
     </body></html>`;
 }
 
-function tiles(items: Array<{ k: string; v: string }>): string {
+export function tiles(items: Array<{ k: string; v: string }>): string {
   return `<div class="tiles">${items
     .map((i) => `<div class="tile"><div class="k">${esc(i.k)}</div><div class="v">${esc(i.v)}</div></div>`)
     .join('')}</div>`;
 }
 
-function table(headers: string[], rows: string[][], numericFrom = 1, footer?: string[]): string {
+export function table(headers: string[], rows: string[][], numericFrom = 1, footer?: string[]): string {
   const head = headers
     .map((h, i) => `<th class="${i >= numericFrom ? 'num' : ''}">${esc(h)}</th>`)
     .join('');

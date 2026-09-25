@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Alert, Animated, Pressable, ScrollView, Share, StyleSheet, View,
+  ActivityIndicator, Alert, Animated, Pressable, ScrollView, StyleSheet, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -15,12 +15,13 @@ import { MoiEntryRow } from '../../src/components/app/PersonRow';
 import { Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll, StatRow, StatusBarScrim, T, useToast } from '../../src/components/ui';
 import { functionTypeMeta } from '../../src/domain/functionTypes';
 import { selectExpensesForFunction, selectFunctionById, selectMoiEntriesForFunction, splitByPaymentType, type FunctionWithStats } from '../../src/domain/selectors';
+import { shareFunctionSheet } from '../../src/services/functionSheet';
 import { useAppData } from '../../src/store/AppDataProvider';
 import {
   makeStyles, radius, spacing, typography, useColors,
 } from '../../src/theme';
 import { countdownLabel, formatDate, formatDateLong } from '../../src/utils/date';
-import { formatCount, formatMoney, formatMoneyCompact } from '../../src/utils/format';
+import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 
 /** Kept in sync with `styles.hero`, since the collapse threshold derives from it. */
 const HERO_HEIGHT = 210;
@@ -53,6 +54,7 @@ export default function FunctionDetailScreen() {
   const { showToast } = useToast();
   const [tab, setTab] = useState<Tab>('overview');
   const [receiptFor, setReceiptFor] = useState<string | undefined>();
+  const [sharing, setSharing] = useState(false);
 
   /**
    * The hero scrolls away, so the controls live in a bar pinned over it. The
@@ -95,17 +97,20 @@ export default function FunctionDetailScreen() {
   const meta = functionTypeMeta(fn.type);
 
   const share = async () => {
-    const lines = [
-      fn.title,
-      `${formatDateLong(fn.date)}${fn.time ? ` at ${fn.time}` : ''}`,
-      fn.venue || undefined,
-      '',
-      `Moi collected: ${formatMoney(fn.collected)} from ${fn.entryCount} entries`,
-    ].filter(Boolean);
+    if (sharing) return;
+    setSharing(true);
     try {
-      await Share.share({ message: lines.join('\n'), title: fn.title });
-    } catch {
-      // Dismissing the share sheet is not an error worth surfacing.
+      const outcome = await shareFunctionSheet({
+        fn,
+        entries,
+        expenses,
+        hostName: data.profile.name || 'My household',
+      });
+      if (outcome === 'unavailable') {
+        showToast({ message: 'Could not build the PDF', variant: 'destructive' });
+      }
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -185,6 +190,20 @@ export default function FunctionDetailScreen() {
         </Animated.Text>
 
         <View style={styles.controlActions}>
+          <Pressable
+            onPress={share}
+            disabled={sharing}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Share function details as PDF"
+            style={styles.controlButton}
+          >
+            {sharing ? (
+              <ActivityIndicator size="small" color={colors.onPrimary} />
+            ) : (
+              <Ionicons name="share-social-outline" size={20} color={colors.onPrimary} />
+            )}
+          </Pressable>
           <Pressable
             onPress={() => router.push(`/function/new?id=${fn.id}`)}
             hitSlop={8}
@@ -430,7 +449,13 @@ export default function FunctionDetailScreen() {
           block
           onPress={() => router.push(`/moi/add?functionId=${fn.id}`)}
         />
-        <Button label="Share" icon="share-social-outline" variant="success" block onPress={share} />
+        <Button
+          label="Add Expense"
+          icon="receipt-outline"
+          variant="secondary"
+          block
+          onPress={() => router.push(`/expense/new?functionId=${fn.id}`)}
+        />
       </View>
     </Screen>
   );
