@@ -25,23 +25,25 @@ export default function WelcomeScreen() {
       <View
         style={[
           styles.body,
-          { paddingTop: insets.top + spacing.xxxl, paddingBottom: insets.bottom + spacing.xl },
+          { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl },
         ]}
       >
-        <View style={styles.badge}>
-          <T style={styles.emoji} allowFontScaling={false}>
-            🪔
+        {/* Takes the whole space above the buttons and centres the mark in it,
+            so the logo sits on the screen's axis rather than near the top. */}
+        <View style={styles.identity}>
+          <View style={styles.badge}>
+            <T style={styles.emoji} allowFontScaling={false}>
+              🪔
+            </T>
+          </View>
+
+          <T variant="display" tone="onPrimary" center>
+            Moi Manager
+          </T>
+          <T variant="body" color={colors.onPrimaryMuted} center style={styles.tagline}>
+            Every moi you receive and return,{'\n'}in one place
           </T>
         </View>
-
-        <T variant="display" tone="onPrimary" center>
-          Moi Manager
-        </T>
-        <T variant="body" color={colors.onPrimaryMuted} center style={styles.tagline}>
-          Every moi you receive and return,{'\n'}in one place
-        </T>
-
-        <View style={styles.spacer} />
 
         <View style={styles.actions}>
           <Button
@@ -95,9 +97,11 @@ const useStyles = makeStyles(() => ({
   tagline: {
     marginTop: spacing.md,
   },
-  spacer: {
+  identity: {
     flex: 1,
-    minHeight: spacing.xxxl,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actions: {
     alignSelf: 'stretch',
