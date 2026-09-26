@@ -151,18 +151,6 @@ export default function MoiListScreen() {
         ) : null}
       </ScrollView>
 
-      <Card style={styles.summary}>
-        <StatRow
-          compactLabels
-          items={[
-            { label: 'Entries', value: formatCount(entries.length) },
-            { label: 'Total', value: formatMoneyCompact(split.total), tone: 'success' },
-            { label: 'Cash', value: formatMoneyCompact(split.cash) },
-            { label: 'UPI', value: formatMoneyCompact(split.upi) },
-          ]}
-        />
-      </Card>
-
       <FlatList
         data={entries}
         keyExtractor={(item) => item.id}
@@ -175,6 +163,22 @@ export default function MoiListScreen() {
         contentContainerStyle={[styles.list, listContentStyle, { paddingBottom: bottomPadding }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        ListHeaderComponent={
+          /* Inside the list rather than above it: the totals answer a question
+             you ask once, and pinning them costs a row of entries on every
+             screenful. Scrolling back to the top brings them straight back. */
+          <Card style={styles.summary}>
+            <StatRow
+              compactLabels
+              items={[
+                { label: 'Entries', value: formatCount(entries.length) },
+                { label: 'Total', value: formatMoneyCompact(split.total), tone: 'success' },
+                { label: 'Cash', value: formatMoneyCompact(split.cash) },
+                { label: 'UPI', value: formatMoneyCompact(split.upi) },
+              ]}
+            />
+          </Card>
+        }
         ListEmptyComponent={
           <EmptyState
             icon="cash-outline"
@@ -260,8 +264,8 @@ const useStyles = makeStyles((colors) => ({
     opacity: 0.5,
   },
   summary: {
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
+    // No horizontal margin: it now sits inside the list's own padding.
+    marginBottom: spacing.md,
     paddingVertical: spacing.md,
   },
   list: {
