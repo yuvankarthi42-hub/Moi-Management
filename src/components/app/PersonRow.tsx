@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { paymentTypeMeta } from '../../domain/functionTypes';
 import type { MoiEntryView, PersonWithStats } from '../../domain/selectors';
 import { makeStyles, spacing, useColors } from '../../theme';
-import { formatMoney, formatPhone } from '../../utils/format';
+import { formatPhone } from '../../utils/format';
 import { formatTime } from '../../utils/date';
 import { Avatar } from '../ui/Avatar';
 import { Card } from '../ui/Card';
@@ -15,9 +15,12 @@ import { Money, T } from '../ui/Text';
 export function PersonRow({
   person,
   onPress,
+  onActions,
 }: {
   person: PersonWithStats;
   onPress: () => void;
+  /** Opens the row's action sheet. */
+  onActions: () => void;
 }) {
   const styles = useStyles();
   const colors = useColors();
@@ -46,20 +49,24 @@ export function PersonRow({
         </View>
 
         <View style={styles.trailing}>
-          {/* The headline figure stays what they have given us; the line below
-              flags an outstanding return so the list answers "who do I still
-              owe?" without opening each profile. */}
+          {/* What they have given us, and over how many functions. What is
+              still owed back is a per-person question, so it lives on their
+              profile rather than on every row of a 240-name list. */}
           <Money value={person.totalReceived} flow="in" variant="bodyStrong" />
-          {person.balance > 0 ? (
-            <T variant="smallStrong" tone="warning" style={styles.trailingSub}>
-              {formatMoney(person.balance)} to return
-            </T>
-          ) : (
-            <T variant="caption" tone="muted" style={styles.trailingSub}>
-              {person.functionCount} {person.functionCount === 1 ? 'Function' : 'Functions'}
-            </T>
-          )}
+          <T variant="caption" tone="muted" style={styles.trailingSub}>
+            {person.functionCount} {person.functionCount === 1 ? 'Function' : 'Functions'}
+          </T>
         </View>
+
+        <Pressable
+          onPress={onActions}
+          hitSlop={6}
+          accessibilityRole="button"
+          accessibilityLabel={`Actions for ${person.name}`}
+          style={({ pressed }) => [styles.actions, pressed && styles.actionsPressed]}
+        >
+          <Ionicons name="ellipsis-vertical" size={18} color={colors.textMuted} />
+        </Pressable>
       </View>
     </Card>
   );
@@ -136,6 +143,17 @@ const useStyles = makeStyles((colors) => ({
   trailing: {
     alignItems: 'flex-end',
     minWidth: 72,
+  },
+  actions: {
+    width: 36,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: spacing.xs,
+    marginRight: -spacing.xs,
+  },
+  actionsPressed: {
+    opacity: 0.5,
   },
   trailingSub: {
     marginTop: 2,
