@@ -1,7 +1,8 @@
+import { useScrollToTop } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { FunctionCard, UpcomingFunctionCard } from '../../src/components/app/FunctionCard';
 import { MoiEntryRow } from '../../src/components/app/PersonRow';
@@ -18,6 +19,12 @@ export default function HomeScreen() {
   const styles = useStyles();
   const colors = useColors();
   const { data, loading, refresh } = useAppData();
+
+  // Pressing Home while already on Home returns to the top, the way every
+  // tab bar behaves. The tab bar emits `tabPress`, which is what this listens
+  // for, so no wiring is needed at the bar's end.
+  const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
   const router = useRouter();
 
   const overview = useMemo(() => selectOverview(data), [data]);
@@ -32,6 +39,7 @@ export default function HomeScreen() {
     <Screen>
       <StatusBarScrim />
       <ScreenScroll
+        ref={scrollRef}
         withTabBar
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={refresh} tintColor={colors.primary} />

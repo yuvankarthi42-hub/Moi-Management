@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import {
-  Animated, Platform, ScrollViewProps, StyleSheet, View, ViewStyle,
+  Animated, Platform, ScrollView, ScrollViewProps, StyleSheet, View, ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -45,14 +45,20 @@ export interface ScreenScrollProps extends ScrollViewProps {
 /**
  * Scrollable screen body with correct bottom padding on every device: the home
  * indicator inset, the tab bar when present, and any docked footer.
+ *
+ * Forwards its ref to the scroll view, so a tab screen can hand it to
+ * `useScrollToTop` and answer a press on its own tab.
  */
-export function ScreenScroll({
-  children,
-  withTabBar = false,
-  extraBottomSpace = 0,
-  contentStyle,
-  ...rest
-}: ScreenScrollProps) {
+export const ScreenScroll = forwardRef<ScrollView, ScreenScrollProps>(function ScreenScroll(
+  {
+    children,
+    withTabBar = false,
+    extraBottomSpace = 0,
+    contentStyle,
+    ...rest
+  },
+  ref,
+) {
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const paddingBottom =
@@ -63,6 +69,9 @@ export function ScreenScroll({
     // scroll position on the native thread. It takes every ScrollView prop, so
     // screens that do not animate anything behave exactly as before.
     <Animated.ScrollView
+      // Animated.ScrollView's own ref is the animated wrapper; the cast hands
+      // callers the ScrollView underneath, which is what scrolling needs.
+      ref={ref as React.Ref<Animated.LegacyRef<ScrollView>>}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       // Lets a swipe dismiss the keyboard on iOS the way users expect.
@@ -79,7 +88,7 @@ export function ScreenScroll({
       {children}
     </Animated.ScrollView>
   );
-}
+});
 
 /**
  * Bottom padding for `FlatList`/`SectionList` content, matching `ScreenScroll`.
