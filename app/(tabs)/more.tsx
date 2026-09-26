@@ -1,6 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 
 import { useAuth } from '../../src/auth';
 import { OptionPicker } from '../../src/components/app/OptionPicker';
@@ -58,47 +59,47 @@ export default function MoreScreen() {
   return (
     <Screen>
       <StatusBarScrim />
-      <ScreenScroll withTabBar>
-        <HeaderCanvas bleed={46}>
-          <T variant="h2" tone="onPrimary">
-            More
-          </T>
-          <T variant="small" color={colors.onPrimaryMuted} style={styles.subtitle}>
-            Reports, family and settings
-          </T>
-        </HeaderCanvas>
 
-        <Card
-          style={styles.profileCard}
-          elevation={2}
+      {/* Fixed, like the People and Functions tabs: this is a menu, and the
+          title and whose records these are should not scroll away while you
+          are looking for a row further down. */}
+      <HeaderCanvas>
+        <T variant="h2" tone="onPrimary">
+          More
+        </T>
+        <Pressable
           onPress={() => router.push('/settings/profile')}
+          accessibilityRole="button"
+          accessibilityLabel="View and edit your profile"
+          style={({ pressed }) => [styles.profileRow, pressed && styles.pressed]}
         >
-          <View style={styles.profileRow}>
-            <Avatar name={profile.name || 'Me'} uri={profile.photoUri} seed={profile.id} size={52} />
-            <View style={styles.profileText}>
-              <T variant="h3" numberOfLines={1}>
-                {profile.name || 'Add your name'}
-              </T>
-              <T variant="caption" tone="muted" numberOfLines={1}>
-                {profile.village ? `${profile.village} · ` : ''}View and edit your profile
-              </T>
-            </View>
+          <Avatar name={profile.name || 'Me'} uri={profile.photoUri} seed={profile.id} size={46} />
+          <View style={styles.profileText}>
+            <T variant="bodyStrong" tone="onPrimary" numberOfLines={1}>
+              {profile.name || 'Add your name'}
+            </T>
+            <T variant="caption" color={colors.onPrimaryMuted} numberOfLines={1}>
+              {profile.village ? `${profile.village} · ` : ''}View and edit your profile
+            </T>
           </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.onPrimaryMuted} />
+        </Pressable>
+      </HeaderCanvas>
 
-          <View style={styles.profileStats}>
-            <StatRow
-              compactLabels
-              items={[
-                { label: 'Functions', value: formatCount(overview.functionCount) },
-                {
-                  label: 'Collected',
-                  value: formatMoneyCompact(overview.totalMoi),
-                  tone: 'success',
-                },
-                { label: 'People', value: formatCount(overview.peopleCount) },
-              ]}
-            />
-          </View>
+      <ScreenScroll withTabBar>
+        <Card style={styles.statsCard}>
+          <StatRow
+            compactLabels
+            items={[
+              { label: 'Functions', value: formatCount(overview.functionCount) },
+              {
+                label: 'Collected',
+                value: formatMoneyCompact(overview.totalMoi),
+                tone: 'success',
+              },
+              { label: 'People', value: formatCount(overview.peopleCount) },
+            ]}
+          />
         </Card>
 
         <Group title="Insights">
@@ -260,25 +261,22 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 }
 
 const useStyles = makeStyles((colors) => ({
-  subtitle: {
-    marginTop: 2,
-  },
-  profileCard: {
-    marginHorizontal: spacing.lg,
-  },
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+    marginTop: spacing.md,
   },
   profileText: {
     flex: 1,
   },
-  profileStats: {
+  pressed: {
+    opacity: 0.6,
+  },
+  statsCard: {
+    marginHorizontal: spacing.lg,
     marginTop: spacing.lg,
-    paddingTop: spacing.lg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
+    paddingVertical: spacing.md,
   },
   group: {
     marginTop: spacing.xl,
