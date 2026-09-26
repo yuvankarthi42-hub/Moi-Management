@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import { paymentTypeMeta } from '../../domain/functionTypes';
 import type { MoiEntryView, PersonWithStats } from '../../domain/selectors';
@@ -15,12 +15,9 @@ import { Money, T } from '../ui/Text';
 export function PersonRow({
   person,
   onPress,
-  onActions,
 }: {
   person: PersonWithStats;
   onPress: () => void;
-  /** Opens the row's action sheet. */
-  onActions: () => void;
 }) {
   const styles = useStyles();
   const colors = useColors();
@@ -57,16 +54,6 @@ export function PersonRow({
             {person.functionCount} {person.functionCount === 1 ? 'Function' : 'Functions'}
           </T>
         </View>
-
-        <Pressable
-          onPress={onActions}
-          hitSlop={6}
-          accessibilityRole="button"
-          accessibilityLabel={`Actions for ${person.name}`}
-          style={({ pressed }) => [styles.actions, pressed && styles.actionsPressed]}
-        >
-          <Ionicons name="ellipsis-vertical" size={18} color={colors.textMuted} />
-        </Pressable>
       </View>
     </Card>
   );
@@ -143,17 +130,6 @@ const useStyles = makeStyles((colors) => ({
   trailing: {
     alignItems: 'flex-end',
     minWidth: 72,
-  },
-  actions: {
-    width: 36,
-    alignSelf: 'stretch',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: spacing.xs,
-    marginRight: -spacing.xs,
-  },
-  actionsPressed: {
-    opacity: 0.5,
   },
   trailingSub: {
     marginTop: 2,
