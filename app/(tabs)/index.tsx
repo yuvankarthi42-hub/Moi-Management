@@ -31,54 +31,49 @@ export default function HomeScreen() {
   return (
     <Screen>
       <StatusBarScrim />
-
-      {/* Fixed, like the other tabs: the greeting and the way through to
-          search and settings stay reachable however far down you have read.
-          No bleed — the stats card used to overlap the gradient, but the
-          scroll paints over this header, so an overlapping card would ride up
-          across it. */}
-      <HeaderCanvas>
-        <View style={styles.greetRow}>
-          <View style={styles.greetText}>
-            <T variant="small" color={colors.onPrimaryMuted}>
-              {greeting()},
-            </T>
-            <T variant="h1" tone="onPrimary" numberOfLines={1}>
-              {data.profile.name || 'Welcome'} 👋
-            </T>
-          </View>
-          <Pressable
-            onPress={() => router.push('/search')}
-            accessibilityRole="button"
-            accessibilityLabel="Search everything"
-            hitSlop={10}
-            style={({ pressed }) => [styles.headerAction, pressed && styles.pressed]}
-          >
-            <Ionicons name="search" size={20} color={colors.onPrimary} />
-          </Pressable>
-          <Pressable
-            onPress={() => router.push('/settings')}
-            accessibilityRole="button"
-            accessibilityLabel="Profile and settings"
-            style={({ pressed }) => pressed && styles.pressed}
-          >
-            <Avatar
-              name={data.profile.name || 'Me'}
-              uri={data.profile.photoUri}
-              seed={data.profile.id}
-              size={44}
-              style={styles.profileAvatar}
-            />
-          </Pressable>
-        </View>
-      </HeaderCanvas>
-
       <ScreenScroll
         withTabBar
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={refresh} tintColor={colors.primary} />
         }
       >
+        {/* The stats card overlaps the gradient, so the header bleeds past it. */}
+        <HeaderCanvas bleed={46}>
+          <View style={styles.greetRow}>
+            <View style={styles.greetText}>
+              <T variant="small" color={colors.onPrimaryMuted}>
+                {greeting()},
+              </T>
+              <T variant="h1" tone="onPrimary" numberOfLines={1}>
+                {data.profile.name || 'Welcome'} 👋
+              </T>
+            </View>
+            <Pressable
+              onPress={() => router.push('/search')}
+              accessibilityRole="button"
+              accessibilityLabel="Search everything"
+              hitSlop={10}
+              style={({ pressed }) => [styles.headerAction, pressed && styles.pressed]}
+            >
+              <Ionicons name="search" size={20} color={colors.onPrimary} />
+            </Pressable>
+            <Pressable
+              onPress={() => router.push('/settings')}
+              accessibilityRole="button"
+              accessibilityLabel="Profile and settings"
+              style={({ pressed }) => pressed && styles.pressed}
+            >
+              <Avatar
+                name={data.profile.name || 'Me'}
+                uri={data.profile.photoUri}
+                seed={data.profile.id}
+                size={44}
+                style={styles.profileAvatar}
+              />
+            </Pressable>
+          </View>
+        </HeaderCanvas>
+
         <Card style={styles.statsCard} elevation={2}>
           <StatRow
             compactLabels
@@ -179,7 +174,6 @@ const useStyles = makeStyles((colors) => ({
   },
   statsCard: {
     marginHorizontal: spacing.lg,
-    marginTop: spacing.lg,
     paddingVertical: spacing.lg,
   },
   balanceRow: {
