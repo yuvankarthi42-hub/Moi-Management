@@ -6,6 +6,7 @@ const entry: MoiEntry = {
   id: 'm2',
   functionId: 'fn1',
   personId: 'p1',
+  kind: 'cash',
   amount: 1001,
   paymentType: 'cash',
   recordedAt: '2026-05-13T05:00:00.000Z',
@@ -138,5 +139,36 @@ describe('receipt', () => {
     expect(text).not.toContain('Village:');
     expect(text).not.toContain('Note:');
     expect(text).toContain('From: B. Murugan');
+  });
+});
+
+describe('a gift receipt', () => {
+  const giftEntry: MoiEntry = {
+    ...entry,
+    id: 'm3',
+    kind: 'gift',
+    amount: 0,
+    giftName: 'Vessels set',
+  };
+
+  it('leads with the gift, not a rupee figure', () => {
+    const receipt = buildReceipt({ entry: giftEntry, functionEntries: [giftEntry], person, fn, hostName: 'Karthick' });
+    const html = buildReceiptHtml(receipt);
+    expect(html).toContain('Vessels set');
+    // "₹0" and "Rupees zero only" would both read as a mistake.
+    expect(html).not.toContain('₹0');
+    expect(receipt.amountWords).toBe('');
+  });
+
+  it('says what the host valued it at, when they said', () => {
+    const valued = { ...giftEntry, giftValue: 3500 };
+    const receipt = buildReceipt({ entry: valued, functionEntries: [valued], person, fn, hostName: 'Karthick' });
+    expect(receipt.amount).toBe(3500);
+    expect(receipt.amountWords).toMatch(/estimated/i);
+  });
+
+  it('claims no payment type, since none was used', () => {
+    const receipt = buildReceipt({ entry: giftEntry, functionEntries: [giftEntry], person, fn, hostName: 'Karthick' });
+    expect(buildReceiptText(receipt)).not.toMatch(/^Payment/m);
   });
 });

@@ -91,13 +91,33 @@ export interface FunctionEvent {
   createdAt: ISODateTime;
 }
 
+/**
+ * How the moi arrived. Cash is the moi book's usual business; a gift is the
+ * vessels, saree or chain that comes instead of a note.
+ */
+export type MoiKind = 'cash' | 'gift';
+
 export interface MoiEntry {
   id: ID;
   functionId: ID;
   personId: ID;
-  /** Whole rupees. */
+  kind: MoiKind;
+  /**
+   * Whole rupees, and the household's collection. Always 0 on a gift: a gift's
+   * worth is `giftValue`, which is deliberately kept out of every total, so
+   * every sum of `amount` in the app means cash and nothing else.
+   */
   amount: number;
+  /** Meaningless on a gift — nobody hands over vessels by UPI. */
   paymentType: PaymentType;
+  /** What the gift was, in the host's own words: "Vessels set", "Gold chain". */
+  giftName?: string;
+  /**
+   * What the host reckons the gift is worth, if they want to say. Reported on
+   * its own and never folded into moi collected, so the collection figure is
+   * money that actually arrived rather than money plus an estimate.
+   */
+  giftValue?: number;
   notes?: string;
   photoUri?: string;
   /** When the entry was recorded — drives the "10:30 AM" line in the list. */

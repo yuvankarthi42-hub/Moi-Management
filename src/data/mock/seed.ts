@@ -188,6 +188,17 @@ function pick<T>(list: T[], r: () => number): T {
 }
 
 /** Builds the full demo dataset. Called once, or again on "reset demo data". */
+/** What actually turns up instead of a note, with a plausible worth. */
+const GIFTS: Array<{ name: string; value: number }> = [
+  { name: 'Vessels set', value: 3500 },
+  { name: 'Silver lamp', value: 8000 },
+  { name: 'Gold chain, 2 sovereigns', value: 64000 },
+  { name: 'Silk saree', value: 6500 },
+  { name: 'Mixie', value: 4500 },
+  { name: 'Brass kuthuvilakku', value: 2800 },
+  { name: 'Steel dinner set', value: 2200 },
+];
+
 export function buildSeed(now = new Date()): BackupPayload {
   const r = rng(20260728);
   const nowISO = now.toISOString();
@@ -252,12 +263,20 @@ export function buildSeed(now = new Date()): BackupPayload {
       const minutesIn = 30 + Math.floor((idx / Math.max(donors.length, 1)) * 300);
       const recordedAt = new Date(`${date}T04:00:00.000Z`);
       recordedAt.setUTCMinutes(recordedAt.getUTCMinutes() + minutesIn);
+      // Roughly one entry in twenty is a gift rather than cash, and half of
+      // those go unpriced — which is how a real moi book reads, and what the
+      // gift-aware totals need to be exercised against.
+      const isGift = r() < 0.05;
+      const gift = isGift ? pick(GIFTS, r) : undefined;
       moiEntries.push({
         id: `moi_${fi + 1}_${idx + 1}`,
         functionId: fn.id,
         personId: person.id,
-        amount: pick(DENOMINATIONS, r),
+        kind: isGift ? 'gift' : 'cash',
+        amount: isGift ? 0 : pick(DENOMINATIONS, r),
         paymentType: pick(PAYMENT_TYPES, r),
+        giftName: gift?.name,
+        giftValue: gift && r() < 0.5 ? gift.value : undefined,
         notes: pick(MOI_NOTES, r),
         recordedAt: recordedAt.toISOString(),
       });

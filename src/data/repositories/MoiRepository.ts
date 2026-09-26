@@ -18,7 +18,7 @@ export class MoiRepository {
   }
 
   async update(id: ID, patch: Partial<NewMoiEntry>): Promise<MoiEntry> {
-    if (patch.amount != null) this.validateAmount(patch.amount);
+    if (patch.amount != null) this.validateAmount(patch.amount, 'amount');
     return this.source.updateMoiEntry(id, patch);
   }
 
@@ -38,19 +38,39 @@ export class MoiRepository {
   private validate(input: NewMoiEntry): NewMoiEntry {
     if (!input.functionId) throw new ValidationError('Choose a function.', 'functionId');
     if (!input.personId) throw new ValidationError('Choose a person.', 'personId');
-    this.validateAmount(input.amount);
+
+    if (input.kind === 'gift') {
+      const giftName = input.giftName?.trim();
+      if (!giftName) throw new ValidationError('Say what the gift was.', 'giftName');
+      if (input.giftValue != null) this.validateAmount(input.giftValue, 'giftValue');
+      return {
+        ...input,
+        // A gift's worth lives in giftValue. Pinning amount to 0 is what keeps
+        // it out of the collection: every `sum(amount)` in the app then means
+        // cash, with no branch to remember at each call site.
+        amount: 0,
+        giftName,
+        giftValue: input.giftValue != null ? Math.round(input.giftValue) : undefined,
+        notes: input.notes?.trim() || undefined,
+      };
+    }
+
+    this.validateAmount(input.amount, 'amount');
     return {
       ...input,
       amount: Math.round(input.amount),
+      giftName: undefined,
+      giftValue: undefined,
       notes: input.notes?.trim() || undefined,
     };
   }
 
-  private validateAmount(amount: number): void {
-    if (!Number.isFinite(amount)) throw new ValidationError('Enter an amount.', 'amount');
-    if (amount <= 0) throw new ValidationError('Amount must be more than zero.', 'amount');
+  private validateAmount(amount: number, field: 'amount' | 'giftValue'): void {
+    const noun = field === 'amount' ? 'Amount' : 'Value';
+    if (!Number.isFinite(amount)) throw new ValidationError('Enter an amount.', field);
+    if (amount <= 0) throw new ValidationError(`${noun} must be more than zero.`, field);
     if (amount > MAX_REASONABLE_MOI) {
-      throw new ValidationError('That amount looks too large. Check it once more.', 'amount');
+      throw new ValidationError(`That ${noun.toLowerCase()} looks too large. Check it once more.`, field);
     }
   }
 }

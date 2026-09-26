@@ -21,6 +21,8 @@ export interface ReceiptData {
   receiptNo: string;
   amount: number;
   amountWords: string;
+  /** Set when the entry was a gift; the receipt then leads with it. */
+  giftName?: string;
   personName: string;
   personPhone?: string;
   personVillage?: string;
@@ -68,8 +70,13 @@ export function buildReceipt({
 
   return {
     receiptNo: `MOI-${datePart}-${String(Math.max(indexInFunction, 1)).padStart(3, '0')}`,
-    amount: entry.amount,
-    amountWords: amountInWords(entry.amount),
+    amount: entry.kind === 'gift' ? (entry.giftValue ?? 0) : entry.amount,
+    amountWords:
+      entry.kind === 'gift'
+        // "Rupees zero only" under a set of vessels would read as an error.
+        ? (entry.giftValue ? `${amountInWords(entry.giftValue)} (estimated)` : '')
+        : amountInWords(entry.amount),
+    giftName: entry.kind === 'gift' ? entry.giftName : undefined,
     personName: person?.name ?? 'Guest',
     personPhone: person?.phone,
     personVillage: person?.village,
@@ -145,7 +152,7 @@ export function buildReceiptHtml(receipt: ReceiptData): string {
 
     <div class="amount">
       <div class="cap">Moi received with gratitude</div>
-      <div class="fig">${esc(formatMoney(receipt.amount))}</div>
+      <div class="fig">${esc(receipt.giftName ?? formatMoney(receipt.amount))}</div>
       <div class="words">${esc(receipt.amountWords)}</div>
     </div>
 
@@ -197,13 +204,13 @@ export function buildReceiptText(receipt: ReceiptData): string {
     }`,
     '',
     'MOI RECEIVED WITH GRATITUDE',
-    formatMoney(receipt.amount),
+    receipt.giftName ?? formatMoney(receipt.amount),
     receipt.amountWords,
     '',
     line('From', receipt.personName),
     line('Phone', receipt.personPhone ? formatPhone(receipt.personPhone) : undefined),
     line('Village', receipt.personVillage),
-    line('Payment', receipt.paymentLabel),
+    line('Payment', receipt.giftName ? undefined : receipt.paymentLabel),
     line(
       'Recorded',
       `${formatDate(receipt.recordedAt.slice(0, 10))}, ${formatTime(receipt.recordedAt)}`,

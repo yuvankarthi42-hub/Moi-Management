@@ -413,27 +413,39 @@ function HistoryRow({
   const styles = useStyles();
   const colors = useColors();
   const received = row.direction === 'received';
+  const isGift = row.giftName != null;
 
   const body = (
     <>
       <Ionicons
-        name={received ? 'arrow-down-circle' : 'arrow-up-circle'}
+        name={isGift ? 'gift' : received ? 'arrow-down-circle' : 'arrow-up-circle'}
         size={20}
-        color={received ? colors.success : colors.danger}
+        color={isGift ? colors.warning : received ? colors.success : colors.danger}
       />
       <View style={styles.historyBody}>
         <T variant="body" numberOfLines={1}>
           {row.title}
         </T>
         <T variant="caption" tone="muted" numberOfLines={1}>
-          {formatDate(row.date)} · {paymentTypeMeta(row.paymentType).label} ·{' '}
+          {formatDate(row.date)} ·{' '}
+          {isGift ? row.giftName : paymentTypeMeta(row.paymentType).label} ·{' '}
           {received ? 'received' : 'you gave'}
         </T>
       </View>
-      <T variant="bodyStrong" tone={received ? 'success' : 'danger'}>
-        {received ? '+' : '\u2212'}
-        {formatMoney(row.amount)}
-      </T>
+      {/* A gift shows its value or nothing. "+₹0" would read as a cash entry
+          for nothing, and the balance above does not count it either. */}
+      {isGift ? (
+        row.giftValue ? (
+          <T variant="bodyStrong" tone="warning">
+            {formatMoney(row.giftValue)}
+          </T>
+        ) : null
+      ) : (
+        <T variant="bodyStrong" tone={received ? 'success' : 'danger'}>
+          {received ? '+' : '\u2212'}
+          {formatMoney(row.amount)}
+        </T>
+      )}
     </>
   );
 

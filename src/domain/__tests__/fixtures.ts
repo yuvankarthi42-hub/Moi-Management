@@ -29,9 +29,9 @@ export function makeDataset(overrides: Partial<Dataset> = {}): Dataset {
       },
     ],
     moiEntries: [
-      { id: 'm1', functionId: 'fn1', personId: 'p1', amount: 1001, paymentType: 'cash', recordedAt: '2026-01-10T04:00:00.000Z' },
-      { id: 'm2', functionId: 'fn1', personId: 'p2', amount: 2001, paymentType: 'upi', recordedAt: '2026-01-10T05:00:00.000Z' },
-      { id: 'm3', functionId: 'fn1', personId: 'p1', amount: 500, paymentType: 'other', recordedAt: '2026-01-10T06:00:00.000Z' },
+      { id: 'm1', functionId: 'fn1', personId: 'p1', kind: 'cash' as const, amount: 1001, paymentType: 'cash', recordedAt: '2026-01-10T04:00:00.000Z' },
+      { id: 'm2', functionId: 'fn1', personId: 'p2', kind: 'cash' as const, amount: 2001, paymentType: 'upi', recordedAt: '2026-01-10T05:00:00.000Z' },
+      { id: 'm3', functionId: 'fn1', personId: 'p1', kind: 'cash' as const, amount: 500, paymentType: 'other', recordedAt: '2026-01-10T06:00:00.000Z' },
     ],
     // p1 received 1501 and has had 500 back; p2 received 2001 and has had
     // 2500 back, so the two sit on opposite sides of the balance.

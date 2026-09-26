@@ -42,7 +42,7 @@ describe('PeopleRepository', () => {
 describe('MoiRepository', () => {
   it('requires a function, a person and a positive amount', async () => {
     const { moi } = makeRepos();
-    const base = { functionId: 'fn1', personId: 'p1', amount: 1001, paymentType: 'cash' as const };
+    const base = { functionId: 'fn1', personId: 'p1', kind: 'cash' as const, amount: 1001, paymentType: 'cash' as const };
 
     await expect(moi.create({ ...base, functionId: '' })).rejects.toThrow(/function/i);
     await expect(moi.create({ ...base, personId: '' })).rejects.toThrow(/person/i);
@@ -50,17 +50,51 @@ describe('MoiRepository', () => {
     await expect(moi.create({ ...base, amount: -5 })).rejects.toThrow(/more than zero/i);
   });
 
+  it('asks a gift what it was, not how much', async () => {
+    const { moi } = makeRepos();
+    const base = {
+      functionId: 'fn1', personId: 'p1', kind: 'gift' as const,
+      amount: 0, paymentType: 'cash' as const,
+    };
+
+    await expect(moi.create({ ...base, giftName: '  ' })).rejects.toThrow(/what the gift was/i);
+    const saved = await moi.create({ ...base, giftName: '  Vessels set  ' });
+    expect(saved.giftName).toBe('Vessels set');
+    expect(saved.amount).toBe(0);
+  });
+
+  it('pins a gift\'s amount to zero even if a caller passes one', async () => {
+    const { moi } = makeRepos();
+    const saved = await moi.create({
+      functionId: 'fn1', personId: 'p1', kind: 'gift',
+      amount: 9999, paymentType: 'cash', giftName: 'Silver lamp', giftValue: 8000,
+    });
+    // The value is kept; the amount — which every total sums — is not.
+    expect(saved.amount).toBe(0);
+    expect(saved.giftValue).toBe(8000);
+  });
+
+  it('drops gift fields from a cash entry', async () => {
+    const { moi } = makeRepos();
+    const saved = await moi.create({
+      functionId: 'fn1', personId: 'p1', kind: 'cash', amount: 501,
+      paymentType: 'cash', giftName: 'Vessels', giftValue: 3000,
+    });
+    expect(saved.giftName).toBeUndefined();
+    expect(saved.giftValue).toBeUndefined();
+  });
+
   it('flags an implausibly large amount rather than storing it silently', async () => {
     const { moi } = makeRepos();
     await expect(
-      moi.create({ functionId: 'fn1', personId: 'p1', amount: 99_000_000, paymentType: 'cash' }),
+      moi.create({ functionId: 'fn1', personId: 'p1', kind: 'cash' as const, amount: 99_000_000, paymentType: 'cash' }),
     ).rejects.toThrow(/too large/i);
   });
 
   it('detects an existing entry for the same person at the same function', async () => {
     const { source, moi } = makeRepos();
     await source.init();
-    await moi.create({ functionId: 'fnX', personId: 'pX', amount: 501, paymentType: 'cash' });
+    await moi.create({ functionId: 'fnX', personId: 'pX', kind: 'cash' as const, amount: 501, paymentType: 'cash' });
 
     expect(await moi.findExisting('fnX', 'pX')).toBeDefined();
     expect(await moi.findExisting('fnX', 'pY')).toBeUndefined();
@@ -106,7 +140,7 @@ describe('cascade deletes (spec §38)', () => {
     await source.init();
 
     const fn = await functions.create({ title: 'Test', type: 'other', date: '2026-01-01' });
-    await moi.create({ functionId: fn.id, personId: 'p1', amount: 501, paymentType: 'cash' });
+    await moi.create({ functionId: fn.id, personId: 'p1', kind: 'cash', amount: 501, paymentType: 'cash' });
     await expenses.create({
       functionId: fn.id, category: 'food', amount: 100, paymentType: 'cash', date: '2026-01-01',
     });

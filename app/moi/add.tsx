@@ -11,7 +11,7 @@ import { OptionPicker } from '../../src/components/app/OptionPicker';
 import { PersonPicker } from '../../src/components/app/PersonPicker';
 import { AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, Segmented, T } from '../../src/components/ui';
 import { PAYMENT_TYPES, functionTypeMeta, paymentTypeMeta } from '../../src/domain/functionTypes';
-import type { ID, PaymentType } from '../../src/domain/models';
+import type { ID, MoiKind, PaymentType } from '../../src/domain/models';
 import { selectFunctions } from '../../src/domain/selectors';
 import { ValidationError } from '../../src/data';
 import { buildReceipt } from '../../src/services/receiptService';
@@ -52,7 +52,10 @@ export default function AddMoiScreen() {
     defaultApplied.current = true;
     setFunctionId(defaultFunctionId);
   }, [defaultFunctionId, functionId]);
+  const [kind, setKind] = useState<MoiKind>('cash');
   const [amount, setAmount] = useState('');
+  const [giftName, setGiftName] = useState('');
+  const [giftValue, setGiftValue] = useState('');
   const [paymentType, setPaymentType] = useState<PaymentType>('cash');
   const [notes, setNotes] = useState('');
   const [photoUri, setPhotoUri] = useState<string | undefined>();
@@ -66,7 +69,28 @@ export default function AddMoiScreen() {
 
   const person = data.people.find((p) => p.id === personId);
   const fn = functions.find((f) => f.id === functionId);
+  const isGift = kind === 'gift';
   const numericAmount = Number(amount.replace(/[^\d]/g, ''));
+  const numericGiftValue = Number(giftValue.replace(/[^\d]/g, '')) || undefined;
+
+  /**
+   * Gift names the household has already used, most used first.
+   *
+   * Better than a fixed category list: it learns what this family actually
+   * receives — vessels in one house, sarees in another — and never makes the
+   * host pick a bucket for something that does not have one.
+   */
+  const giftSuggestions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const entry of data.moiEntries) {
+      const name = entry.kind === 'gift' ? entry.giftName?.trim() : undefined;
+      if (name) counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, 5)
+      .map(([name]) => name);
+  }, [data.moiEntries]);
 
   /** Last thing this person gave — the number the host wants to see. */
   const previous = useMemo(() => {
@@ -117,7 +141,11 @@ export default function AddMoiScreen() {
     const next: Record<string, string> = {};
     if (!functionId) next.functionId = 'Choose which function this is for.';
     if (!personId) next.personId = 'Choose who gave the moi.';
-    if (!numericAmount) next.amount = 'Enter the amount.';
+    if (isGift) {
+      if (!giftName.trim()) next.giftName = 'Say what the gift was.';
+    } else if (!numericAmount) {
+      next.amount = 'Enter the amount.';
+    }
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
@@ -127,7 +155,11 @@ export default function AddMoiScreen() {
     if (duplicate) {
       const proceed = await confirm(
         'Already recorded',
-        `${person?.name} is already down for ${formatMoney(duplicate.amount)} at this function. Add another entry?`,
+        `${person?.name} is already down for ${
+          duplicate.kind === 'gift'
+            ? (duplicate.giftName ?? 'a gift')
+            : formatMoney(duplicate.amount)
+        } at this function. Add another entry?`,
       );
       if (!proceed) return;
     }
@@ -137,8 +169,13 @@ export default function AddMoiScreen() {
       const newId = await addMoiEntry({
         functionId: functionId!,
         personId: personId!,
-        amount: numericAmount,
+        kind,
+        // A gift's worth rides in giftValue; amount stays 0 so it never
+        // reaches a collection total.
+        amount: isGift ? 0 : numericAmount,
         paymentType,
+        giftName: isGift ? giftName.trim() : undefined,
+        giftValue: isGift && numericGiftValue ? numericGiftValue : undefined,
         notes: notes.trim() || undefined,
         photoUri,
       });
@@ -148,15 +185,18 @@ export default function AddMoiScreen() {
       // Confirm what was written down, and offer the next entry — at a
       // function the host is working through a queue of guests.
       setSaved({
-        amount: numericAmount,
+        amount: isGift ? (numericGiftValue ?? 0) : numericAmount,
+        giftName: isGift ? giftName.trim() : undefined,
         personName: person?.name ?? 'them',
         functionTitle: fn?.title,
-        paymentLabel: paymentTypeMeta(paymentType).label,
+        // Nobody hands over a chain by UPI, so a gift's confirmation does not
+        // claim a payment type.
+        paymentLabel: isGift ? undefined : paymentTypeMeta(paymentType).label,
         receipt: await buildSavedReceipt(newId),
       });
     } catch (error) {
       if (error instanceof ValidationError) {
-        setErrors({ [error.field ?? 'amount']: error.message });
+        setErrors({ [error.field ?? (isGift ? 'giftName' : 'amount')]: error.message });
       } else {
         Alert.alert('Could not save', 'Something went wrong. Please try again.');
       }
@@ -170,6 +210,20 @@ export default function AddMoiScreen() {
       <AppHeader title="Add Moi" showBack onBack={() => router.back()} />
 
       <KeyboardForm>
+        {/* First, because it decides which of the fields below apply. */}
+        <T variant="smallStrong" tone="secondary" style={styles.label}>
+          Moi given as
+        </T>
+        <Segmented<MoiKind>
+          options={[
+            { value: 'cash', label: 'Amount' },
+            { value: 'gift', label: 'Gift' },
+          ]}
+          value={kind}
+          onChange={setKind}
+          style={styles.segmented}
+        />
+
         <PickerField
           label="Function"
           required
@@ -191,7 +245,7 @@ export default function AddMoiScreen() {
           error={errors.personId}
         />
 
-        {previous ? (
+        {previous && !isGift ? (
           <View style={styles.previousHint}>
             <Ionicons name="information-circle-outline" size={15} color={colors.info} />
             <T variant="caption" tone="secondary" style={styles.previousText}>
@@ -205,52 +259,106 @@ export default function AddMoiScreen() {
           </View>
         ) : null}
 
-        <Field
-          ref={amountRef}
-          label="Amount"
-          required
-          prefix="₹"
-          value={amount}
-          onChangeText={(text) => setAmount(text.replace(/[^\d]/g, ''))}
-          keyboardType="number-pad"
-          placeholder="0"
-          returnKeyType="done"
-          error={errors.amount}
-          style={styles.amountInput}
-        />
+        {isGift ? (
+          <>
+            <Field
+              label="What was given"
+              required
+              value={giftName}
+              onChangeText={setGiftName}
+              placeholder="Vessels set"
+              autoCapitalize="sentences"
+              leftIcon="gift-outline"
+              error={errors.giftName}
+            />
 
-        <View style={styles.quickRow}>
-          {QUICK_AMOUNTS.map((value) => (
-            <Pressable
-              key={value}
-              onPress={() => setAmount(String(value))}
-              accessibilityRole="button"
-              accessibilityLabel={`Set amount to ${value} rupees`}
-              style={({ pressed }) => [
-                styles.quickChip,
-                numericAmount === value && styles.quickChipActive,
-                pressed && styles.pressed,
-              ]}
-            >
-              <T
-                variant="smallStrong"
-                tone={numericAmount === value ? 'primary' : 'secondary'}
-              >
-                ₹{value}
-              </T>
-            </Pressable>
-          ))}
-        </View>
+            {giftSuggestions.length > 0 ? (
+              <View style={styles.quickRow}>
+                {giftSuggestions.map((suggestion) => (
+                  <Pressable
+                    key={suggestion}
+                    onPress={() => setGiftName(suggestion)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Set gift to ${suggestion}`}
+                    style={({ pressed }) => [
+                      styles.quickChip,
+                      giftName === suggestion && styles.quickChipActive,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <T
+                      variant="smallStrong"
+                      tone={giftName === suggestion ? 'primary' : 'secondary'}
+                    >
+                      {suggestion}
+                    </T>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
 
-        <T variant="smallStrong" tone="secondary" style={styles.label}>
-          Payment type
-        </T>
-        <Segmented<PaymentType>
-          options={PAYMENT_TYPES.map((p) => ({ value: p.value, label: p.label }))}
-          value={paymentType}
-          onChange={setPaymentType}
-          style={styles.segmented}
-        />
+            <Field
+              label="Value (optional)"
+              prefix="₹"
+              value={giftValue}
+              onChangeText={(text) => setGiftValue(text.replace(/[^\d]/g, ''))}
+              keyboardType="number-pad"
+              placeholder="0"
+              returnKeyType="done"
+              error={errors.giftValue}
+              hint="Kept apart from moi collected, whether or not you fill it in."
+            />
+          </>
+        ) : (
+          <>
+            <Field
+              ref={amountRef}
+              label="Amount"
+              required
+              prefix="₹"
+              value={amount}
+              onChangeText={(text) => setAmount(text.replace(/[^\d]/g, ''))}
+              keyboardType="number-pad"
+              placeholder="0"
+              returnKeyType="done"
+              error={errors.amount}
+              style={styles.amountInput}
+            />
+
+            <View style={styles.quickRow}>
+              {QUICK_AMOUNTS.map((value) => (
+                <Pressable
+                  key={value}
+                  onPress={() => setAmount(String(value))}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Set amount to ${value} rupees`}
+                  style={({ pressed }) => [
+                    styles.quickChip,
+                    numericAmount === value && styles.quickChipActive,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <T
+                    variant="smallStrong"
+                    tone={numericAmount === value ? 'primary' : 'secondary'}
+                  >
+                    ₹{value}
+                  </T>
+                </Pressable>
+              ))}
+            </View>
+
+            <T variant="smallStrong" tone="secondary" style={styles.label}>
+              Payment type
+            </T>
+            <Segmented<PaymentType>
+              options={PAYMENT_TYPES.map((p) => ({ value: p.value, label: p.label }))}
+              value={paymentType}
+              onChange={setPaymentType}
+              style={styles.segmented}
+            />
+          </>
+        )}
 
         <Field
           label="Notes (optional)"
@@ -294,7 +402,13 @@ export default function AddMoiScreen() {
 
       <DockedFooter>
         <Button
-          label={numericAmount ? `Save ${formatMoney(numericAmount)}` : 'Save Entry'}
+          label={
+            isGift
+              ? 'Save gift'
+              : numericAmount
+                ? `Save ${formatMoney(numericAmount)}`
+                : 'Save Entry'
+          }
           size="lg"
           block
           loading={saving}

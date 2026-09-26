@@ -15,10 +15,17 @@ import { daysUntil, fromISODate, isUpcoming } from '../utils/date';
 
 export interface FunctionWithStats extends FunctionEvent {
   status: FunctionStatus;
-  /** Rupees collected across all recorded moi entries. */
+  /**
+   * Rupees collected. Cash only — a gift's worth is never folded in, so this
+   * is money that actually arrived.
+   */
   collected: number;
-  /** Number of moi entries recorded. */
+  /** Number of moi entries recorded, gifts included. */
   entryCount: number;
+  /** How many of those entries were a gift rather than cash. */
+  giftCount: number;
+  /** What the host put on those gifts, for the ones they priced. Reported apart from `collected`. */
+  giftValue: number;
   /** Rupees spent — summed from expense rows, never stored (spec §39). */
   expenses: number;
   /** Number of expense rows. */
@@ -43,12 +50,15 @@ export function withFunctionStats(
 
   const collected = sumAmount(entries);
   const expenses = expenseRows.reduce((total, e) => total + e.amount, 0);
+  const gifts = entries.filter((e) => e.kind === 'gift');
 
   return {
     ...fn,
     status: functionStatus(fn, now),
     collected,
     entryCount: entries.length,
+    giftCount: gifts.length,
+    giftValue: gifts.reduce((total, e) => total + (e.giftValue ?? 0), 0),
     expenses,
     expenseCount: expenseRows.length,
     daysAway: daysUntil(fn.date, now),
@@ -129,7 +139,11 @@ export function selectMoiEntriesForPerson(data: Dataset, personId: ID): MoiEntry
 export interface MoiTimelineRow {
   id: ID;
   direction: 'received' | 'given';
+  /** 0 on a gift row — what it was is `giftName`. */
   amount: number;
+  /** Set when this row is a gift rather than cash. */
+  giftName?: string;
+  giftValue?: number;
   date: ISODate;
   paymentType: PaymentType;
   /** The function it relates to — ours when received, theirs when given. */
@@ -155,6 +169,8 @@ export function selectMoiTimelineForPerson(data: Dataset, personId: ID): MoiTime
       id: e.id,
       direction: 'received' as const,
       amount: e.amount,
+      giftName: e.kind === 'gift' ? e.giftName : undefined,
+      giftValue: e.kind === 'gift' ? e.giftValue : undefined,
       date: functionsById.get(e.functionId)?.date ?? e.recordedAt.slice(0, 10),
       paymentType: e.paymentType,
       title: functionsById.get(e.functionId)?.title ?? 'Function',
@@ -272,7 +288,10 @@ export interface OverviewStats {
   totalMoi: number;
   peopleCount: number;
   entryCount: number;
+  /** Entries that were a gift rather than cash, across every function. */
+  giftCount: number;
   totalExpenses: number;
+  /** Averaged over cash entries only, so a run of gifts cannot drag it down. */
   averageMoi: number;
   /** Moi collected minus everything spent. */
   balance: number;
@@ -282,6 +301,7 @@ export interface OverviewStats {
 export function selectOverview(data: Dataset, now = new Date()): OverviewStats {
   const totalMoi = sumAmount(data.moiEntries);
   const entryCount = data.moiEntries.length;
+  const cashCount = data.moiEntries.filter((e) => e.kind !== 'gift').length;
   const totalExpenses = data.expenses.reduce((sum, e) => sum + e.amount, 0);
 
   return {
@@ -290,8 +310,9 @@ export function selectOverview(data: Dataset, now = new Date()): OverviewStats {
     totalMoi,
     peopleCount: data.people.length,
     entryCount,
+    giftCount: entryCount - cashCount,
     totalExpenses,
-    averageMoi: entryCount ? Math.round(totalMoi / entryCount) : 0,
+    averageMoi: cashCount ? Math.round(totalMoi / cashCount) : 0,
     balance: totalMoi - totalExpenses,
   };
 }
@@ -833,6 +854,7 @@ export function searchAll(data: Dataset, query: string, limitPerKind = 8): Searc
       return (
         (person ? matchesPerson(person, q) : false) ||
         String(entry.amount).includes(q) ||
+        (entry.giftName ?? '').toLowerCase().includes(q) ||
         (entry.notes ?? '').toLowerCase().includes(q)
       );
     })
@@ -843,8 +865,14 @@ export function searchAll(data: Dataset, query: string, limitPerKind = 8): Searc
       kind: 'moi',
       id: entry.id,
       title: peopleById.get(entry.personId)?.name ?? 'Unknown',
-      subtitle: functionsById.get(entry.functionId)?.title ?? 'Function',
-      amount: entry.amount,
+      subtitle: [
+        functionsById.get(entry.functionId)?.title ?? 'Function',
+        entry.kind === 'gift' ? entry.giftName : undefined,
+      ]
+        .filter(Boolean)
+        .join(' \u00B7 '),
+      // A gift has no cash amount; the row then shows only its name.
+      amount: entry.kind === 'gift' ? undefined : entry.amount,
       href: `/function/${entry.functionId}`,
     });
   }

@@ -21,7 +21,7 @@ import {
   makeStyles, radius, spacing, typography, useColors,
 } from '../../src/theme';
 import { countdownLabel, formatDate, formatDateLong } from '../../src/utils/date';
-import { formatCount, formatMoneyCompact } from '../../src/utils/format';
+import { formatCount, formatMoney, formatMoneyCompact } from '../../src/utils/format';
 
 /** Kept in sync with `styles.hero`, since the collapse threshold derives from it. */
 const HERO_HEIGHT = 210;
@@ -283,7 +283,14 @@ export default function FunctionDetailScreen() {
               // these, which are summed from real entries.
               items={[
                 { label: 'Moi Entries', value: formatCount(fn.entryCount) },
-                { label: 'Moi Collected', value: formatMoneyCompact(fn.collected), tone: 'success' },
+                // "Collected" rather than "Moi Collected": with a gift tile the
+                // row is four wide, and the neighbour already says Moi.
+                { label: 'Collected', value: formatMoneyCompact(fn.collected), tone: 'success' },
+                // Only once there are gifts: an always-zero tile would take a
+                // quarter of the row from figures that are never zero.
+                ...(fn.giftCount
+                  ? [{ label: 'Gifts', value: formatCount(fn.giftCount), tone: 'warning' as const }]
+                  : []),
                 { label: 'Expenses', value: formatMoneyCompact(fn.expenses), tone: 'danger' },
               ]}
             />
@@ -492,6 +499,18 @@ function OverviewTab({ fn }: { fn: FunctionWithStats }) {
           </T>
           <Money value={fn.collected} flow="in" />
         </View>
+        {fn.giftCount ? (
+          <View style={styles.moneyRow}>
+            <T variant="small" tone="secondary">
+              Gifts ({fn.giftCount} {fn.giftCount === 1 ? 'gift' : 'gifts'})
+            </T>
+            {/* Sits outside the collection on purpose, so it is reported on its
+                own line and never added into the figure above. */}
+            <T variant="bodyStrong" tone="warning">
+              {fn.giftValue ? formatMoney(fn.giftValue) : 'Not priced'}
+            </T>
+          </View>
+        ) : null}
         <View style={styles.moneyRow}>
           <T variant="small" tone="secondary">
             Expenses ({fn.expenseCount} items)

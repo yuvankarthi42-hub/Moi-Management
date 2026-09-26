@@ -68,6 +68,11 @@ export function buildFunctionSheetHtml({
     ...(fn.host ? [['Host', fn.host]] : []),
     ['Status', fn.status === 'upcoming' ? 'Upcoming' : 'Completed'],
     ['Moi collected', `${formatMoney(fn.collected)} from ${fn.entryCount} entries`],
+    ...(fn.giftCount
+      ? [['Gifts', `${fn.giftCount} ${fn.giftCount === 1 ? 'gift' : 'gifts'}${
+          fn.giftValue ? `, valued at ${formatMoney(fn.giftValue)}` : ', not priced'
+        }`]]
+      : []),
     ['Expenses', `${formatMoney(fn.expenses)} across ${fn.expenseCount} items`],
     ['Net', `${net < 0 ? '-' : ''}${formatMoney(Math.abs(net))}`],
   ];
@@ -76,6 +81,7 @@ export function buildFunctionSheetHtml({
     tiles([
       { k: 'Moi entries', v: String(fn.entryCount) },
       { k: 'Moi collected', v: formatMoney(fn.collected) },
+      ...(fn.giftCount ? [{ k: 'Gifts', v: String(fn.giftCount) }] : []),
       { k: 'Expenses', v: formatMoney(fn.expenses) },
     ]) +
     '<h2>Function overview</h2>' +
@@ -86,14 +92,19 @@ export function buildFunctionSheetHtml({
   // --- 2. Moi details ------------------------------------------------------
   const moi = entries.length
     ? table(
-        ['#', 'Name', 'Village', 'Payment', 'Recorded', 'Amount'],
+        ['#', 'Name', 'Village', 'Paid / given', 'Recorded', 'Amount'],
         entries.map((entry, index) => [
           String(index + 1),
           entry.person?.name ?? 'Unknown',
           entry.person?.village ?? '—',
-          paymentTypeMeta(entry.paymentType).label,
+          // A gift names itself here; payment type says nothing about vessels.
+          entry.kind === 'gift'
+            ? (entry.giftName ?? 'Gift')
+            : paymentTypeMeta(entry.paymentType).label,
           formatTime(entry.recordedAt),
-          formatMoney(entry.amount),
+          entry.kind === 'gift'
+            ? (entry.giftValue ? `${formatMoney(entry.giftValue)}*` : '—')
+            : formatMoney(entry.amount),
         ]),
         5,
         ['', 'Total', '', '', '', formatMoney(fn.collected)],
@@ -121,6 +132,9 @@ export function buildFunctionSheetHtml({
     overview +
     `<h2>Moi details (${fn.entryCount} ${fn.entryCount === 1 ? 'entry' : 'entries'})</h2>` +
     moi +
+    (fn.giftCount
+      ? '<p class="sub">* A gift’s value is the host’s estimate and is not counted in the total.</p>'
+      : '') +
     `<h2>Expenses (${fn.expenseCount} ${fn.expenseCount === 1 ? 'item' : 'items'})</h2>` +
     expenseSheet;
 

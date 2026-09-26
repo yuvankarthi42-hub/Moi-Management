@@ -89,14 +89,23 @@ export function MoiEntrySheet({
               </T>
             </View>
             <T variant="h2" tone="success">
-              {formatMoney(entry.amount)}
+              {entry.kind === 'gift'
+                ? entry.giftName
+                : formatMoney(entry.amount)}
             </T>
           </View>
 
           <View style={styles.rows}>
             <Row label="Function" value={fn?.title ?? '—'} />
             <Row label="Date" value={formatDate(receipt.functionDate)} />
-            <Row label="Payment" value={paymentTypeMeta(entry.paymentType).label} />
+            {entry.kind === 'gift' ? (
+              <Row
+                label="Value"
+                value={entry.giftValue ? formatMoney(entry.giftValue) : 'Not priced'}
+              />
+            ) : (
+              <Row label="Payment" value={paymentTypeMeta(entry.paymentType).label} />
+            )}
             <Row label="Recorded" value={formatTime(entry.recordedAt)} />
             {entry.notes ? <Row label="Note" value={entry.notes} /> : null}
           </View>

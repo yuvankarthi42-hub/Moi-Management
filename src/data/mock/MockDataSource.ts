@@ -34,7 +34,9 @@ function migrate(stored: Partial<BackupPayload>): BackupPayload {
     people: stored.people ?? [],
     families: stored.families ?? [],
     functions: stored.functions ?? [],
-    moiEntries: stored.moiEntries ?? [],
+    // Every entry written before gifts existed was cash, so defaulting the
+    // kind leaves all of them — and every total summed from them — untouched.
+    moiEntries: (stored.moiEntries ?? []).map((e) => ({ ...e, kind: e.kind ?? 'cash' })),
     moiGiven: stored.moiGiven ?? [],
     expenses: stored.expenses ?? [],
     personEvents: stored.personEvents ?? [],
