@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, Pressable, ScrollView } from 'react-native';
 
 import { OptionPicker } from '../../src/components/app/OptionPicker';
 import { MoiEntryRow } from '../../src/components/app/PersonRow';
-import { AppHeader, Card, ChipBar, EmptyState, Screen, SearchBar, StatRow, useListBottomPadding, useListContentStyle } from '../../src/components/ui';
+import { AppHeader, Card, DropdownChip, EmptyState, Screen, SearchBar, StatRow, T, useListBottomPadding, useListContentStyle } from '../../src/components/ui';
 import { functionTypeMeta } from '../../src/domain/functionTypes';
 import type { PaymentType } from '../../src/domain/models';
 import { matchesPerson, selectFunctions, splitByPaymentType, type MoiEntryView } from '../../src/domain/selectors';
@@ -14,6 +14,21 @@ import { formatDate } from '../../src/utils/date';
 import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 
 type Sort = 'recent' | 'highest' | 'lowest' | 'name';
+
+/** Declared in the order they are offered in the picker. */
+const PAYMENT_LABELS: Record<PaymentType | 'all', string> = {
+  all: 'All payments',
+  cash: 'Cash',
+  upi: 'UPI',
+  other: 'Other',
+};
+
+const SORT_LABELS: Record<Sort, string> = {
+  recent: 'Most recent',
+  highest: 'Highest',
+  lowest: 'Lowest',
+  name: 'A–Z',
+};
 
 /** Every moi entry across every function, with the filters from spec §9. */
 export default function MoiListScreen() {
@@ -26,6 +41,8 @@ export default function MoiListScreen() {
   const [payment, setPayment] = useState<PaymentType | 'all'>('all');
   const [sort, setSort] = useState<Sort>('recent');
   const [functionOpen, setFunctionOpen] = useState(false);
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
   const listContentStyle = useListContentStyle();
   const bottomPadding = useListBottomPadding(false);
 
@@ -64,6 +81,13 @@ export default function MoiListScreen() {
 
   const split = useMemo(() => splitByPaymentType(entries), [entries]);
   const selectedFunction = functions.find((f) => f.id === functionId);
+  const filtered = functionId !== 'all' || payment !== 'all' || sort !== 'recent';
+
+  const clearFilters = () => {
+    setFunctionId('all');
+    setPayment('all');
+    setSort('recent');
+  };
 
   return (
     <Screen>
@@ -71,13 +95,6 @@ export default function MoiListScreen() {
         title="All Moi Entries"
         subtitle={selectedFunction ? selectedFunction.title : 'Across every function'}
         showBack
-        actions={[
-          {
-            icon: 'funnel-outline',
-            onPress: () => setFunctionOpen(true),
-            accessibilityLabel: 'Filter by function',
-          },
-        ]}
       >
         <SearchBar
           value={query}
@@ -87,28 +104,52 @@ export default function MoiListScreen() {
         />
       </AppHeader>
 
-      <ChipBar<PaymentType | 'all'>
-        options={[
-          { value: 'all', label: 'All payments' },
-          { value: 'cash', label: 'Cash' },
-          { value: 'upi', label: 'UPI' },
-          { value: 'other', label: 'Other' },
-        ]}
-        value={payment}
-        onChange={setPayment}
-        style={styles.chips}
-      />
-
-      <ChipBar<Sort>
-        options={[
-          { value: 'recent', label: 'Most recent' },
-          { value: 'highest', label: 'Highest' },
-          { value: 'lowest', label: 'Lowest' },
-          { value: 'name', label: 'A–Z' },
-        ]}
-        value={sort}
-        onChange={setSort}
-      />
+      {/* One row for all three filters. Chip rows grew with the options — the
+          function list is as long as the household has functions — while this
+          stays one row however many there are. */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterBar}
+        contentContainerStyle={styles.filters}
+      >
+        {/* Idle chips name the dimension rather than the "all" value: it is
+            shorter, all three fit one row, and it says what can be filtered
+            rather than restating that nothing is. */}
+        <DropdownChip
+          label={selectedFunction ? selectedFunction.title : 'Function'}
+          active={functionId !== 'all'}
+          onPress={() => setFunctionOpen(true)}
+          accessibilityLabel={`Filter by function, ${
+            selectedFunction ? selectedFunction.title : 'all functions'
+          }`}
+        />
+        <DropdownChip
+          label={payment === 'all' ? 'Payment' : PAYMENT_LABELS[payment]}
+          active={payment !== 'all'}
+          onPress={() => setPaymentOpen(true)}
+          accessibilityLabel={`Filter by payment type, ${PAYMENT_LABELS[payment]}`}
+        />
+        <DropdownChip
+          label={sort === 'recent' ? 'Sort' : SORT_LABELS[sort]}
+          active={sort !== 'recent'}
+          onPress={() => setSortOpen(true)}
+          accessibilityLabel={`Sort, ${SORT_LABELS[sort]}`}
+        />
+        {filtered ? (
+          <Pressable
+            onPress={clearFilters}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Clear all filters"
+            style={({ pressed }) => [styles.clear, pressed && styles.clearPressed]}
+          >
+            <T variant="smallStrong" tone="primary">
+              Clear
+            </T>
+          </Pressable>
+        ) : null}
+      </ScrollView>
 
       <Card style={styles.summary}>
         <StatRow
@@ -162,13 +203,61 @@ export default function MoiListScreen() {
           setFunctionOpen(false);
         }}
       />
+
+      <OptionPicker
+        visible={paymentOpen}
+        onClose={() => setPaymentOpen(false)}
+        title="Payment type"
+        selected={payment}
+        options={(Object.keys(PAYMENT_LABELS) as Array<PaymentType | 'all'>).map((value) => ({
+          value,
+          label: PAYMENT_LABELS[value],
+        }))}
+        onSelect={(value) => {
+          setPayment(value as PaymentType | 'all');
+          setPaymentOpen(false);
+        }}
+      />
+
+      <OptionPicker
+        visible={sortOpen}
+        onClose={() => setSortOpen(false)}
+        title="Sort by"
+        selected={sort}
+        options={(Object.keys(SORT_LABELS) as Sort[]).map((value) => ({
+          value,
+          label: SORT_LABELS[value],
+        }))}
+        onSelect={(value) => {
+          setSort(value as Sort);
+          setSortOpen(false);
+        }}
+      />
     </Screen>
   );
 }
 
 const useStyles = makeStyles((colors) => ({
-  chips: {
+  filterBar: {
+    // Same reason as ChipBar: a sibling list is flexGrow 1 / flexBasis 0, and
+    // the default flexShrink would let flexbox squeeze this row to nothing.
+    flexGrow: 0,
+    flexShrink: 0,
     marginTop: spacing.md,
+  },
+  filters: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+  },
+  clear: {
+    minHeight: 40,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xs,
+  },
+  clearPressed: {
+    opacity: 0.5,
   },
   summary: {
     marginHorizontal: spacing.lg,

@@ -3,7 +3,7 @@ export type { HeaderAction } from './AppHeader';
 export { Avatar, IconTile } from './Avatar';
 export { Button } from './Button';
 export { Card } from './Card';
-export { Badge, ChipBar, Segmented } from './Chips';
+export { Badge, ChipBar, DropdownChip, Segmented } from './Chips';
 export type { ChipOption } from './Chips';
 export { EmptyState } from './EmptyState';
 export { Field, PickerField } from './Field';

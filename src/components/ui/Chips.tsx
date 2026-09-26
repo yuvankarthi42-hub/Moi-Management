@@ -1,4 +1,5 @@
 import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable, ScrollView, Text, View, ViewStyle } from 'react-native';
 
 import { makeStyles, radius, spacing, typography, useColors } from '../../theme';
@@ -117,6 +118,61 @@ export function Segmented<T extends string>({
   );
 }
 
+/**
+ * A chip that opens a picker instead of toggling.
+ *
+ * Where a ChipBar spends a row per filter and grows with the options, a row of
+ * these spends one row for all of them and stays the same height however many
+ * functions the household has. `active` is for a filter that is narrowing the
+ * list, so which ones are doing something is visible without reading them.
+ */
+export function DropdownChip({
+  label,
+  active = false,
+  onPress,
+  style,
+  accessibilityLabel,
+}: {
+  label: string;
+  active?: boolean;
+  onPress: () => void;
+  style?: ViewStyle;
+  accessibilityLabel?: string;
+}) {
+  const styles = useStyles();
+  const colors = useColors();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      style={({ pressed }) => [
+        styles.dropdown,
+        active ? styles.dropdownActive : styles.chipIdle,
+        pressed && styles.pressed,
+        style,
+      ]}
+    >
+      <Text
+        style={[
+          typography.smallStrong,
+          styles.dropdownLabel,
+          { color: active ? colors.primary : colors.textSecondary },
+        ]}
+        numberOfLines={1}
+      >
+        {label}
+      </Text>
+      <Ionicons
+        name="chevron-down"
+        size={14}
+        color={active ? colors.primary : colors.textMuted}
+      />
+    </Pressable>
+  );
+}
+
 /** Small status pill — "10 Days Left", "Accepted", "Upcoming". */
 export function Badge({
   label,
@@ -181,6 +237,24 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  dropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    minHeight: 40,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+  },
+  dropdownActive: {
+    backgroundColor: colors.primarySoft,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  dropdownLabel: {
+    // Keeps one long function title from pushing the other chips off the row.
+    maxWidth: 148,
   },
   segmented: {
     flexDirection: 'row',
