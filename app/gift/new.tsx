@@ -7,6 +7,7 @@ import { Alert, Pressable, View } from 'react-native';
 
 import { OptionPicker } from '../../src/components/app/OptionPicker';
 import { PersonPicker } from '../../src/components/app/PersonPicker';
+import { SuggestField } from '../../src/components/app/SuggestField';
 import { DateField } from '../../src/components/app/DateField';
 import {
   AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, T, useToast,
@@ -44,7 +45,7 @@ export default function GiftFormScreen() {
 
   const isReturn = params.return === '1';
   const functions = useMemo(() => selectFunctions(data), [data]);
-  const giftNames = useMemo(() => selectGiftNames(data), [data]);
+  const giftNames = useMemo(() => selectGiftNames(data, 40), [data]);
 
   const defaultFunctionId = useMemo(() => {
     if (params.functionId) return params.functionId;
@@ -197,40 +198,20 @@ export default function GiftFormScreen() {
         )}
 
         {/* The one required field, and the one the host is actually thinking
-            about. Larger than the rest because it is the entry. */}
-        <Field
+            about. Names this household has used before are offered as it is
+            typed, the way the village field works. */}
+        <SuggestField
           label={isReturn ? 'What you gave' : 'What was given'}
           required
           value={name}
           onChangeText={setName}
+          suggestions={giftNames}
           placeholder="Silver bowl"
           autoCapitalize="sentences"
           leftIcon="gift-outline"
           error={errors.name}
           style={styles.nameInput}
         />
-
-        {giftNames.length > 0 ? (
-          <View style={styles.chipRow}>
-            {giftNames.map((suggestion) => (
-              <Pressable
-                key={suggestion}
-                onPress={() => setName(suggestion)}
-                accessibilityRole="button"
-                accessibilityLabel={`Set gift to ${suggestion}`}
-                style={({ pressed }) => [
-                  styles.chip,
-                  name === suggestion && styles.chipActive,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <T variant="smallStrong" tone={name === suggestion ? 'primary' : 'secondary'}>
-                  {suggestion}
-                </T>
-              </Pressable>
-            ))}
-          </View>
-        ) : null}
 
         {isReturn ? (
           <DateField label="Date" value={date} onChange={setDate} />
@@ -329,25 +310,6 @@ export default function GiftFormScreen() {
 const useStyles = makeStyles((colors) => ({
   nameInput: {
     fontSize: 17,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  chip: {
-    minHeight: 40,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceAlt,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  chipActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primarySoft,
   },
   label: {
     marginBottom: spacing.xs,

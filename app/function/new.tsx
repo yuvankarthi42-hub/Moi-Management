@@ -7,6 +7,7 @@ import { Alert, Pressable, View } from 'react-native';
 
 import { DateField } from '../../src/components/app/DateField';
 import { OptionPicker } from '../../src/components/app/OptionPicker';
+import { SuggestField } from '../../src/components/app/SuggestField';
 import { AppHeader, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, T, useToast } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { FUNCTION_TYPES, functionTypeMeta } from '../../src/domain/functionTypes';
@@ -176,38 +177,17 @@ export default function FunctionFormScreen() {
           autoCapitalize="words"
         />
 
-        {/* Typed, with the villages already on file as chips: a new venue in
-            a village nobody has been to yet must still be recordable. */}
-        <Field
+        {/* A venue in a village nobody has been to yet must still be
+            recordable, so this is typed with matches offered as it goes. */}
+        <SuggestField
           label="Village (optional)"
           value={village}
           onChangeText={setVillage}
+          suggestions={villages}
           placeholder="Tenkasi"
           autoCapitalize="words"
           leftIcon="location-outline"
         />
-
-        {villages.length > 0 ? (
-          <View style={styles.villageChips}>
-            {villages.slice(0, 6).map((name) => (
-              <Pressable
-                key={name}
-                onPress={() => setVillage(name)}
-                accessibilityRole="button"
-                accessibilityLabel={`Set village to ${name}`}
-                style={({ pressed }) => [
-                  styles.villageChip,
-                  village === name && styles.villageChipActive,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <T variant="smallStrong" tone={village === name ? 'primary' : 'secondary'}>
-                  {name}
-                </T>
-              </Pressable>
-            ))}
-          </View>
-        ) : null}
 
         <Field
           label="Host (optional)"
@@ -293,25 +273,6 @@ const useStyles = makeStyles((colors) => ({
   notes: {
     minHeight: 72,
     textAlignVertical: 'top',
-  },
-  villageChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  villageChip: {
-    minHeight: 40,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceAlt,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  villageChipActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primarySoft,
   },
   pressed: {
     opacity: 0.8,
