@@ -112,7 +112,7 @@ export default function MoreScreen() {
           <ListRow
             icon="search-outline"
             title="Search everything"
-            subtitle="Functions, people and moi entries"
+            subtitle="Functions, people, moi and gifts"
             onPress={() => router.push('/search')}
           />
           <RowDivider />
@@ -121,6 +121,13 @@ export default function MoreScreen() {
             title="All Moi Entries"
             subtitle="Every entry, with filters"
             onPress={() => router.push('/moi/list')}
+          />
+          <RowDivider />
+          <ListRow
+            icon="gift-outline"
+            title="All Gifts"
+            subtitle="Every gift received, with filters"
+            onPress={() => router.push('/gift/list')}
           />
         </Group>
 

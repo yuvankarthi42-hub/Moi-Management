@@ -150,7 +150,11 @@ export default function HomeScreen() {
 
         {recentGifts.length > 0 ? (
           <>
-            <SectionHeader title="Recent Gifts" />
+            <SectionHeader
+              title="Recent Gifts"
+              actionLabel="View All"
+              onAction={() => router.push('/gift/list')}
+            />
             <View style={styles.sideMargin}>
               {recentGifts.map((gift) => (
                 <GiftRow
