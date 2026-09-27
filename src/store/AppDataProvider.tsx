@@ -5,7 +5,7 @@ import React, {
 import { getRepositories, type Repositories } from '../data';
 import type {
   NewExpense, NewFamily, NewFamilyMember, NewFunction, NewMoiEntry, NewMoiGiven,
-  NewPerson, NewPersonEvent,
+  NewGift, NewGiftGiven, NewPerson, NewPersonEvent,
 } from '../data/DataSource';
 import {
   EMPTY_DATASET, type AppSettings, type Dataset, type FamilyRole, type ID,
@@ -51,6 +51,14 @@ interface AppDataValue {
 
   // Moi given back to a person
   addMoiGiven: (input: NewMoiGiven) => Promise<string>;
+
+  // Gifts, in both directions
+  addGift: (input: NewGift) => Promise<string>;
+  editGift: (id: ID, patch: Partial<NewGift>) => Promise<void>;
+  removeGift: (id: ID) => Promise<void>;
+  addGiftGiven: (input: NewGiftGiven) => Promise<string>;
+  editGiftGiven: (id: ID, patch: Partial<NewGiftGiven>) => Promise<void>;
+  removeGiftGiven: (id: ID) => Promise<void>;
   editMoiGiven: (id: ID, patch: Partial<NewMoiGiven>) => Promise<void>;
   removeMoiGiven: (id: ID) => Promise<void>;
 
@@ -95,14 +103,16 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const load = useCallback(async () => {
     const { source } = repositories;
     const [
-      people, families, functions, moiEntries, moiGiven, expenses, personEvents,
-      familyMembers, profile, settings,
+      people, families, functions, moiEntries, moiGiven, gifts, giftsGiven, expenses,
+      personEvents, familyMembers, profile, settings,
     ] = await Promise.all([
       source.listPeople(),
       source.listFamilies(),
       source.listFunctions(),
       source.listMoiEntries(),
       source.listMoiGiven(),
+      source.listGifts(),
+      source.listGiftsGiven(),
       source.listExpenses(),
       source.listPersonEvents(),
       source.listFamilyMembers(),
@@ -111,8 +121,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     ]);
     if (!mounted.current) return;
     setData({
-      people, families, functions, moiEntries, moiGiven, expenses, personEvents,
-      familyMembers, profile, settings,
+      people, families, functions, moiEntries, moiGiven, gifts, giftsGiven, expenses,
+      personEvents, familyMembers, profile, settings,
     });
   }, [repositories]);
 
@@ -148,7 +158,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<AppDataValue>(() => {
     const {
-      people, functions, moi, moiGiven, expenses, familyMembers, settings,
+      people, functions, moi, moiGiven, gifts, expenses, familyMembers, settings,
     } = repositories;
     return {
       data,
@@ -175,6 +185,13 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       editMoiEntry: (id, patch) => mutate(() => moi.update(id, patch)).then(() => undefined),
       removeMoiEntry: (id) => mutate(() => moi.remove(id)),
 
+      addGift: (input) => mutate(() => gifts.create(input)).then((g) => g.id),
+      editGift: (id, patch) => mutate(() => gifts.update(id, patch)).then(() => undefined),
+      removeGift: (id) => mutate(() => gifts.remove(id)),
+      addGiftGiven: (input) => mutate(() => gifts.createGiven(input)).then((g) => g.id),
+      editGiftGiven: (id, patch) =>
+        mutate(() => gifts.updateGiven(id, patch)).then(() => undefined),
+      removeGiftGiven: (id) => mutate(() => gifts.removeGiven(id)),
       addMoiGiven: (input) => mutate(() => moiGiven.create(input)).then((g) => g.id),
       editMoiGiven: (id, patch) => mutate(() => moiGiven.update(id, patch)).then(() => undefined),
       removeMoiGiven: (id) => mutate(() => moiGiven.remove(id)),

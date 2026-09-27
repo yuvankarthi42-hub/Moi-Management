@@ -1,12 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type {
-  AppSettings, Expense, Family, FamilyMember, FunctionEvent, ID, MoiEntry, MoiGiven, Person,
+  AppSettings, Expense, Family, FamilyMember, FunctionEvent, GiftEntry, GiftGiven, ID, MoiEntry,
+  MoiGiven, Person,
   PersonEvent, UserProfile,
 } from '../../domain/models';
 import type {
   BackupPayload, DataSource, NewExpense, NewFamily, NewFamilyMember, NewFunction,
-  NewMoiEntry, NewMoiGiven, NewPerson, NewPersonEvent,
+  NewGift, NewGiftGiven, NewMoiEntry, NewMoiGiven, NewPerson, NewPersonEvent,
 } from '../DataSource';
 import { buildSeed } from './seed';
 
@@ -34,10 +35,30 @@ function migrate(stored: Partial<BackupPayload>): BackupPayload {
     people: stored.people ?? [],
     families: stored.families ?? [],
     functions: stored.functions ?? [],
-    // Every entry written before gifts existed was cash, so defaulting the
-    // kind leaves all of them — and every total summed from them — untouched.
-    moiEntries: (stored.moiEntries ?? []).map((e) => ({ ...e, kind: e.kind ?? 'cash' })),
+    // Gifts were briefly a `kind` on a moi entry. Those rows move across to
+    // the gifts collection rather than being dropped, and the cash ones lose
+    // the field; either way no amount changes, because a gift's amount was
+    // always 0.
+    moiEntries: (stored.moiEntries ?? [])
+      .filter((e) => (e as { kind?: string }).kind !== 'gift')
+      .map(({ kind: _kind, giftName: _n, giftValue: _v, ...rest }: any) => rest as MoiEntry),
     moiGiven: stored.moiGiven ?? [],
+    gifts: [
+      ...(stored.gifts ?? []),
+      ...(stored.moiEntries ?? [])
+        .filter((e) => (e as { kind?: string }).kind === 'gift')
+        .map((e: any) => ({
+          id: e.id,
+          functionId: e.functionId,
+          personId: e.personId,
+          name: e.giftName ?? 'Gift',
+          value: e.giftValue,
+          notes: e.notes,
+          photoUri: e.photoUri,
+          recordedAt: e.recordedAt,
+        })),
+    ],
+    giftsGiven: stored.giftsGiven ?? [],
     expenses: stored.expenses ?? [],
     personEvents: stored.personEvents ?? [],
     // A store predating family members gets the default owner row, so the
@@ -128,10 +149,12 @@ export class MockDataSource implements DataSource {
 
   async deletePerson(id: ID): Promise<void> {
     this.db.people = this.db.people.filter((p) => p.id !== id);
-    // Cascade: a person's moi entries and their own events go with them.
+    // Cascade: a person's moi entries, gifts and their own events go with them.
     this.db.moiEntries = this.db.moiEntries.filter((m) => m.personId !== id);
     this.db.personEvents = this.db.personEvents.filter((e) => e.personId !== id);
     this.db.moiGiven = this.db.moiGiven.filter((g) => g.personId !== id);
+    this.db.gifts = this.db.gifts.filter((g) => g.personId !== id);
+    this.db.giftsGiven = this.db.giftsGiven.filter((g) => g.personId !== id);
     await this.flush();
   }
 
@@ -197,8 +220,9 @@ export class MockDataSource implements DataSource {
 
   async deleteFunction(id: ID): Promise<void> {
     this.db.functions = this.db.functions.filter((f) => f.id !== id);
-    // Moi and expenses cannot outlive their function (spec §38).
+    // Moi, gifts and expenses cannot outlive their function (spec §38).
     this.db.moiEntries = this.db.moiEntries.filter((m) => m.functionId !== id);
+    this.db.gifts = this.db.gifts.filter((g) => g.functionId !== id);
     this.db.expenses = this.db.expenses.filter((e) => e.functionId !== id);
     await this.flush();
   }
@@ -260,6 +284,64 @@ export class MockDataSource implements DataSource {
 
   async deleteMoiGiven(id: ID): Promise<void> {
     this.db.moiGiven = this.db.moiGiven.filter((g) => g.id !== id);
+    await this.flush();
+  }
+
+  // ---------------------------------------------------------------- gifts
+
+  async listGifts(): Promise<GiftEntry[]> {
+    await delay();
+    return [...this.db.gifts];
+  }
+
+  async createGift(input: NewGift): Promise<GiftEntry> {
+    const gift: GiftEntry = {
+      ...input,
+      id: newId('gift'),
+      recordedAt: input.recordedAt ?? this.nowISO(),
+    };
+    this.db.gifts = [...this.db.gifts, gift];
+    await this.flush();
+    return gift;
+  }
+
+  async updateGift(id: ID, patch: Partial<NewGift>): Promise<GiftEntry> {
+    const index = this.db.gifts.findIndex((g) => g.id === id);
+    if (index < 0) throw new Error(`Gift ${id} not found`);
+    const updated = { ...this.db.gifts[index], ...patch };
+    this.db.gifts = this.db.gifts.map((g, i) => (i === index ? updated : g));
+    await this.flush();
+    return updated;
+  }
+
+  async deleteGift(id: ID): Promise<void> {
+    this.db.gifts = this.db.gifts.filter((g) => g.id !== id);
+    await this.flush();
+  }
+
+  async listGiftsGiven(): Promise<GiftGiven[]> {
+    await delay();
+    return [...this.db.giftsGiven];
+  }
+
+  async createGiftGiven(input: NewGiftGiven): Promise<GiftGiven> {
+    const given: GiftGiven = { ...input, id: newId('giftgiv'), createdAt: this.nowISO() };
+    this.db.giftsGiven = [...this.db.giftsGiven, given];
+    await this.flush();
+    return given;
+  }
+
+  async updateGiftGiven(id: ID, patch: Partial<NewGiftGiven>): Promise<GiftGiven> {
+    const index = this.db.giftsGiven.findIndex((g) => g.id === id);
+    if (index < 0) throw new Error(`Return gift ${id} not found`);
+    const updated = { ...this.db.giftsGiven[index], ...patch };
+    this.db.giftsGiven = this.db.giftsGiven.map((g, i) => (i === index ? updated : g));
+    await this.flush();
+    return updated;
+  }
+
+  async deleteGiftGiven(id: ID): Promise<void> {
+    this.db.giftsGiven = this.db.giftsGiven.filter((g) => g.id !== id);
     await this.flush();
   }
 

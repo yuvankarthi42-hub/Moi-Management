@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 import { expenseCategoryMeta } from '../domain/categories';
 import { functionTypeMeta, paymentTypeMeta } from '../domain/functionTypes';
 import type { Expense } from '../domain/models';
-import type { FunctionWithStats, MoiEntryView } from '../domain/selectors';
+import type { FunctionWithStats, GiftView, MoiEntryView } from '../domain/selectors';
 import { formatDate, formatDateLong, formatTime } from '../utils/date';
 import { formatMoney } from '../utils/format';
 import { printHtml } from './printHtml';
@@ -21,6 +21,8 @@ import { page, table, tiles } from './reportHtml';
 export interface FunctionSheetInput {
   fn: FunctionWithStats;
   entries: MoiEntryView[];
+  /** Gifts received at the function; reported in their own section. */
+  gifts: GiftView[];
   expenses: Expense[];
   hostName: string;
 }
@@ -44,6 +46,7 @@ function slug(title: string): string {
 export function buildFunctionSheetHtml({
   fn,
   entries,
+  gifts,
   expenses,
   hostName,
 }: FunctionSheetInput): { html: string; title: string } {
@@ -92,26 +95,39 @@ export function buildFunctionSheetHtml({
   // --- 2. Moi details ------------------------------------------------------
   const moi = entries.length
     ? table(
-        ['#', 'Name', 'Village', 'Paid / given', 'Recorded', 'Amount'],
+        ['#', 'Name', 'Village', 'Payment', 'Recorded', 'Amount'],
         entries.map((entry, index) => [
           String(index + 1),
           entry.person?.name ?? 'Unknown',
           entry.person?.village ?? '—',
-          // A gift names itself here; payment type says nothing about vessels.
-          entry.kind === 'gift'
-            ? (entry.giftName ?? 'Gift')
-            : paymentTypeMeta(entry.paymentType).label,
+          paymentTypeMeta(entry.paymentType).label,
           formatTime(entry.recordedAt),
-          entry.kind === 'gift'
-            ? (entry.giftValue ? `${formatMoney(entry.giftValue)}*` : '—')
-            : formatMoney(entry.amount),
+          formatMoney(entry.amount),
         ]),
         5,
         ['', 'Total', '', '', '', formatMoney(fn.collected)],
       )
     : '<p class="sub">No moi recorded for this function.</p>';
 
-  // --- 3. Expenses ---------------------------------------------------------
+  // --- 3. Gifts ------------------------------------------------------------
+  // Their own section, not a column on the moi table: a gift has no payment
+  // type and its value, where there is one, is an estimate kept out of the
+  // collection.
+  const giftSheet = gifts.length
+    ? table(
+        ['#', 'From', 'Village', 'Gift', 'Value'],
+        gifts.map((gift, index) => [
+          String(index + 1),
+          gift.person?.name ?? 'Unknown',
+          gift.person?.village ?? '—',
+          gift.name,
+          gift.value ? `${formatMoney(gift.value)}*` : '—',
+        ]),
+        4,
+      ) + '<p class="sub">* The host’s own estimate. Not counted in moi collected.</p>'
+    : '';
+
+  // --- 4. Expenses ---------------------------------------------------------
   const expenseSheet = expenses.length
     ? table(
         ['#', 'Category', 'Paid by', 'Payment', 'Date', 'Amount'],
@@ -132,8 +148,8 @@ export function buildFunctionSheetHtml({
     overview +
     `<h2>Moi details (${fn.entryCount} ${fn.entryCount === 1 ? 'entry' : 'entries'})</h2>` +
     moi +
-    (fn.giftCount
-      ? '<p class="sub">* A gift’s value is the host’s estimate and is not counted in the total.</p>'
+    (gifts.length
+      ? `<h2>Gifts (${gifts.length} ${gifts.length === 1 ? 'gift' : 'gifts'})</h2>` + giftSheet
       : '') +
     `<h2>Expenses (${fn.expenseCount} ${fn.expenseCount === 1 ? 'item' : 'items'})</h2>` +
     expenseSheet;

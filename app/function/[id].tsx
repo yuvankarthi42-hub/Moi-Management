@@ -11,10 +11,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ExpenseRow } from '../../src/components/app/ExpenseRow';
 import { MoiEntrySheet } from '../../src/components/app/MoiEntrySheet';
+import { GiftRow } from '../../src/components/app/GiftRow';
 import { MoiEntryRow } from '../../src/components/app/PersonRow';
 import { Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll, StatRow, StatusBarScrim, T, useToast } from '../../src/components/ui';
 import { functionTypeMeta } from '../../src/domain/functionTypes';
-import { selectExpensesForFunction, selectFunctionById, selectMoiEntriesForFunction, splitByPaymentType, type FunctionWithStats } from '../../src/domain/selectors';
+import { selectExpensesForFunction, selectFunctionById, selectGiftsForFunction, selectMoiEntriesForFunction, splitByPaymentType, type FunctionWithStats } from '../../src/domain/selectors';
 import { shareFunctionSheet } from '../../src/services/functionSheet';
 import { useAppData } from '../../src/store/AppDataProvider';
 import {
@@ -29,7 +30,7 @@ const HERO_HEIGHT = 210;
 /** Height of the collapsed bar, below the status bar inset. */
 const BAR_HEIGHT = 56;
 
-type Tab = 'overview' | 'moi' | 'expenses' | 'photos';
+type Tab = 'overview' | 'moi' | 'gifts' | 'expenses' | 'photos';
 
 /**
  * A "People" tab used to list this function's unique contributors, but it
@@ -40,6 +41,7 @@ type Tab = 'overview' | 'moi' | 'expenses' | 'photos';
 const TABS: Array<{ key: Tab; label: string; icon: keyof typeof Ionicons.glyphMap }> = [
   { key: 'overview', label: 'Overview', icon: 'information-circle-outline' },
   { key: 'moi', label: 'Moi', icon: 'list-outline' },
+  { key: 'gifts', label: 'Gifts', icon: 'gift-outline' },
   { key: 'expenses', label: 'Expenses', icon: 'receipt-outline' },
   { key: 'photos', label: 'Photos', icon: 'images-outline' },
 ];
@@ -72,6 +74,7 @@ export default function FunctionDetailScreen() {
   const fn = useMemo(() => (id ? selectFunctionById(data, id) : undefined), [data, id]);
   const entries = useMemo(() => (id ? selectMoiEntriesForFunction(data, id) : []), [data, id]);
   const expenses = useMemo(() => (id ? selectExpensesForFunction(data, id) : []), [data, id]);
+  const gifts = useMemo(() => (id ? selectGiftsForFunction(data, id) : []), [data, id]);
   const expenseSplit = useMemo(() => splitByPaymentType(expenses), [expenses]);
 
   if (!fn) {
@@ -103,6 +106,7 @@ export default function FunctionDetailScreen() {
       const outcome = await shareFunctionSheet({
         fn,
         entries,
+        gifts,
         expenses,
         hostName: data.profile.name || 'My household',
       });
@@ -360,6 +364,50 @@ export default function FunctionDetailScreen() {
                 message="Entries you add for this function will appear here."
                 actionLabel="Add Moi"
                 onAction={() => router.push(`/moi/add?functionId=${fn.id}`)}
+              />
+            )
+          ) : null}
+
+          {tab === 'gifts' ? (
+            gifts.length > 0 ? (
+              <>
+                <Card style={styles.totalsCard}>
+                  <StatRow
+                    compactLabels
+                    items={[
+                      { label: 'Gifts', value: formatCount(gifts.length), tone: 'warning' },
+                      {
+                        label: 'Valued at',
+                        value: fn.giftValue ? formatMoneyCompact(fn.giftValue) : '—',
+                      },
+                      {
+                        label: 'Not priced',
+                        value: formatCount(gifts.filter((g) => !g.value).length),
+                      },
+                    ]}
+                  />
+                </Card>
+
+                {gifts.map((gift) => (
+                  <GiftRow key={gift.id} gift={gift} showPerson />
+                ))}
+
+                <Button
+                  label="Add Gift"
+                  icon="add"
+                  variant="secondary"
+                  block
+                  style={styles.addRowButton}
+                  onPress={() => router.push(`/gift/new?functionId=${fn.id}`)}
+                />
+              </>
+            ) : (
+              <EmptyState
+                icon="gift-outline"
+                title="No gifts yet"
+                message="Vessels, a saree, a watch — record what came instead of a note."
+                actionLabel="Add Gift"
+                onAction={() => router.push(`/gift/new?functionId=${fn.id}`)}
               />
             )
           ) : null}

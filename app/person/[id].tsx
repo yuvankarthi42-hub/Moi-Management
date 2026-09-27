@@ -1,15 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Alert, Animated, Linking, Pressable, StyleSheet, View,
+  ActivityIndicator, Alert, Animated, Linking, Pressable, ScrollView, StyleSheet, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { GiftGivenRow, GiftRow } from '../../src/components/app/GiftRow';
 import { AppHeader, Avatar, Badge, Button, Card, DockedFooter, EmptyState, Money, Screen, ScreenScroll, SectionHeader, StatRow, StatusBarScrim, T, useToast } from '../../src/components/ui';
 import { functionTypeMeta, paymentTypeMeta } from '../../src/domain/functionTypes';
-import { buildReturnMoiReport, describeBalance, selectMoiTimelineForPerson, selectPersonById, type MoiTimelineRow } from '../../src/domain/selectors';
+import { buildReturnMoiReport, describeBalance, selectGiftsForPerson, selectGiftsGivenForPerson, selectMoiTimelineForPerson, selectPersonById, type MoiTimelineRow } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
 import { makeStyles, radius, spacing, typography, useColors } from '../../src/theme';
 import { countdownLabel, formatDate } from '../../src/utils/date';
@@ -20,6 +21,14 @@ const HERO_HEIGHT = 200;
 
 /** Height of the collapsed bar, below the status bar inset. */
 const BAR_HEIGHT = 56;
+
+type PersonTab = 'overview' | 'moi' | 'gifts';
+
+const PERSON_TABS: Array<{ key: PersonTab; label: string; icon: keyof typeof Ionicons.glyphMap }> = [
+  { key: 'overview', label: 'Overview', icon: 'information-circle-outline' },
+  { key: 'moi', label: 'Moi', icon: 'cash-outline' },
+  { key: 'gifts', label: 'Gift', icon: 'gift-outline' },
+];
 
 export default function PersonProfileScreen() {
   const styles = useStyles();
@@ -46,6 +55,12 @@ export default function PersonProfileScreen() {
     () => buildReturnMoiReport(data, { withinDays: 365 }).filter((r) => r.person.id === id),
     [data, id],
   );
+  const gifts = useMemo(() => (id ? selectGiftsForPerson(data, id) : []), [data, id]);
+  const giftsReturned = useMemo(
+    () => (id ? selectGiftsGivenForPerson(data, id) : []),
+    [data, id],
+  );
+  const [tab, setTab] = useState<PersonTab>('overview');
 
   if (!person) {
     return (
@@ -273,6 +288,36 @@ export default function PersonProfileScreen() {
           </T>
         </View>
 
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabBar}
+        >
+          {PERSON_TABS.map((item) => {
+            const active = item.key === tab;
+            return (
+              <Pressable
+                key={item.key}
+                onPress={() => setTab(item.key)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: active }}
+                style={styles.tab}
+              >
+                <Ionicons
+                  name={item.icon}
+                  size={18}
+                  color={active ? colors.primary : colors.textMuted}
+                />
+                <T variant="caption" tone={active ? 'primary' : 'muted'}>
+                  {item.label}
+                </T>
+                <View style={[styles.tabUnderline, active && styles.tabUnderlineActive]} />
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+
+        {tab === 'overview' ? (
         <Card style={styles.detailCard}>
           {person.phone ? (
             <DetailRow icon="call-outline" label="Phone" value={formatPhone(person.phone)} />
@@ -291,14 +336,20 @@ export default function PersonProfileScreen() {
           {person.notes ? (
             <DetailRow icon="document-text-outline" label="Notes" value={person.notes} />
           ) : null}
+          <DetailRow
+            icon="gift-outline"
+            label="Gifts"
+            value={`${person.giftCount} received · ${person.giftsReturnedCount} returned`}
+          />
           {!person.phone && !person.village && !person.relation ? (
             <T variant="small" tone="muted" center>
               No contact details saved yet.
             </T>
           ) : null}
         </Card>
+        ) : null}
 
-        {upcoming.length > 0 ? (
+        {tab === 'overview' && upcoming.length > 0 ? (
           <>
             <SectionHeader title="Their Upcoming Functions" />
             <View style={styles.sideMargin}>
@@ -341,6 +392,8 @@ export default function PersonProfileScreen() {
           </>
         ) : null}
 
+        {tab === 'moi' ? (
+        <>
         <SectionHeader title="Moi History" actionLabel="Both directions" onAction={() => undefined} />
         <View style={styles.sideMargin}>
           {history.length > 0 ? (
@@ -370,28 +423,87 @@ export default function PersonProfileScreen() {
             </Card>
           )}
         </View>
+        </>
+        ) : null}
+
+        {tab === 'gifts' ? (
+          <>
+            <SectionHeader title="Received" />
+            <View style={styles.sideMargin}>
+              {gifts.length > 0 ? (
+                gifts.map((gift) => <GiftRow key={gift.id} gift={gift} />)
+              ) : (
+                <Card>
+                  <EmptyState
+                    icon="gift-outline"
+                    title="No gifts yet"
+                    message={`${person.name} has not given a gift at any of your functions.`}
+                    actionLabel="Add Gift"
+                    onAction={() => router.push(`/gift/new?personId=${person.id}`)}
+                  />
+                </Card>
+              )}
+            </View>
+
+            {giftsReturned.length > 0 ? (
+              <>
+                <SectionHeader title="Returned" />
+                <View style={styles.sideMargin}>
+                  {giftsReturned.map((gift) => (
+                    <GiftGivenRow key={gift.id} gift={gift} />
+                  ))}
+                </View>
+              </>
+            ) : null}
+          </>
+        ) : null}
 
       </ScreenScroll>
 
       {/* Docked rather than tacked onto the end of the scroll: a person with a
           long moi history would otherwise push both actions off-screen. */}
-      <DockedFooter>
-        <View style={styles.footerActions}>
-          <Button
-            label="Add received"
-            icon="arrow-down-circle-outline"
-            variant="outline"
-            block
-            onPress={() => router.push(`/moi/add?personId=${person.id}`)}
-          />
-          <Button
-            label="Record given"
-            icon="arrow-up-circle-outline"
-            block
-            onPress={() => router.push(`/moi/given?personId=${person.id}`)}
-          />
-        </View>
-      </DockedFooter>
+      {/* Each tab docks its own pair, so all four actions stay one tap away
+          without a menu. Overview keeps none: Call, Message and Edit already
+          sit in the card at the top, where they have always been. */}
+      {tab === 'moi' ? (
+        <DockedFooter>
+          <View style={styles.footerActions}>
+            <Button
+              label="Add received"
+              icon="arrow-down-circle-outline"
+              variant="outline"
+              block
+              onPress={() => router.push(`/moi/add?personId=${person.id}`)}
+            />
+            <Button
+              label="Record given"
+              icon="arrow-up-circle-outline"
+              block
+              onPress={() => router.push(`/moi/given?personId=${person.id}`)}
+            />
+          </View>
+        </DockedFooter>
+      ) : null}
+
+      {tab === 'gifts' ? (
+        <DockedFooter>
+          <View style={styles.footerActions}>
+            <Button
+              label="Add gift"
+              icon="gift-outline"
+              variant="outline"
+              block
+              onPress={() => router.push(`/gift/new?personId=${person.id}`)}
+            />
+            <Button
+              label="Return gift"
+              icon="arrow-up-circle-outline"
+              block
+              onPress={() => router.push(`/gift/new?personId=${person.id}&return=1`)}
+            />
+          </View>
+        </DockedFooter>
+      ) : null}
     </Screen>
   );
 }
@@ -413,39 +525,27 @@ function HistoryRow({
   const styles = useStyles();
   const colors = useColors();
   const received = row.direction === 'received';
-  const isGift = row.giftName != null;
 
   const body = (
     <>
       <Ionicons
-        name={isGift ? 'gift' : received ? 'arrow-down-circle' : 'arrow-up-circle'}
+        name={received ? 'arrow-down-circle' : 'arrow-up-circle'}
         size={20}
-        color={isGift ? colors.warning : received ? colors.success : colors.danger}
+        color={received ? colors.success : colors.danger}
       />
       <View style={styles.historyBody}>
         <T variant="body" numberOfLines={1}>
           {row.title}
         </T>
         <T variant="caption" tone="muted" numberOfLines={1}>
-          {formatDate(row.date)} ·{' '}
-          {isGift ? row.giftName : paymentTypeMeta(row.paymentType).label} ·{' '}
+          {formatDate(row.date)} · {paymentTypeMeta(row.paymentType).label} ·{' '}
           {received ? 'received' : 'you gave'}
         </T>
       </View>
-      {/* A gift shows its value or nothing. "+₹0" would read as a cash entry
-          for nothing, and the balance above does not count it either. */}
-      {isGift ? (
-        row.giftValue ? (
-          <T variant="bodyStrong" tone="warning">
-            {formatMoney(row.giftValue)}
-          </T>
-        ) : null
-      ) : (
-        <T variant="bodyStrong" tone={received ? 'success' : 'danger'}>
-          {received ? '+' : '\u2212'}
-          {formatMoney(row.amount)}
-        </T>
-      )}
+      <T variant="bodyStrong" tone={received ? 'success' : 'danger'}>
+        {received ? '+' : '\u2212'}
+        {formatMoney(row.amount)}
+      </T>
     </>
   );
 
@@ -527,6 +627,18 @@ const useStyles = makeStyles((colors) => ({
   loading: {
     marginTop: spacing.xxxl,
   },
+  // Mirrors the function screen's tab bar, so the two detail pages read the
+  // same way. Horizontal so a longer label set cannot clip.
+  tabBar: { paddingHorizontal: spacing.lg, gap: spacing.xxl, marginTop: spacing.lg },
+  tab: { alignItems: 'center', gap: 3, paddingBottom: spacing.sm },
+  tabUnderline: {
+    height: 2.5,
+    width: 26,
+    borderRadius: radius.pill,
+    backgroundColor: 'transparent',
+    marginTop: 2,
+  },
+  tabUnderlineActive: { backgroundColor: colors.primary },
   hero: {
     height: HERO_HEIGHT,
     justifyContent: 'flex-end',

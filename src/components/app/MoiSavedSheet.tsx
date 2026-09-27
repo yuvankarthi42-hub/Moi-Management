@@ -12,10 +12,7 @@ import { Confetti } from '../ui/Confetti';
 import { T } from '../ui/Text';
 
 export interface MoiSavedDetails {
-  /** The rupees, or a priced gift's value. 0 when a gift was left unpriced. */
   amount: number;
-  /** Set when a gift was recorded; the headline then reads the gift, not a figure. */
-  giftName?: string;
   personName: string;
   functionTitle?: string;
   paymentLabel?: string;
@@ -80,21 +77,9 @@ export function MoiSavedSheet({
             <Ionicons name="checkmark" size={26} color={colors.success} />
           </View>
 
-          {/* A gift leads with what it was: "₹0" would be a lie, and the host
-              knows the vessels by name, not by a price they may not have set. */}
-          <T
-            variant={details?.giftName ? 'h2' : 'display'}
-            tone={given ? 'danger' : 'success'}
-            center
-            style={styles.amount}
-          >
-            {details?.giftName ?? formatMoney(details?.amount ?? 0)}
+          <T variant="display" tone={given ? 'danger' : 'success'} center style={styles.amount}>
+            {formatMoney(details?.amount ?? 0)}
           </T>
-          {details?.giftName && details.amount ? (
-            <T variant="small" tone="muted" center>
-              Valued at {formatMoney(details.amount)}
-            </T>
-          ) : null}
 
           <T variant="body" center>
             {given

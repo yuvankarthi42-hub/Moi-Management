@@ -52,6 +52,9 @@ export function describeBackup(json: string): string | undefined {
       `${payload.functions?.length ?? 0} functions`,
       `${payload.people?.length ?? 0} people`,
       `${payload.moiEntries?.length ?? 0} moi entries`,
+      // Only when there are any, so a household that records none is not told
+      // about a feature it does not use every time it restores.
+      ...(payload.gifts?.length ? [`${payload.gifts.length} gifts`] : []),
       `${payload.expenses?.length ?? 0} expenses`,
     ];
     return counts.join(', ');

@@ -2,6 +2,7 @@ import { makeDataset } from '../../domain/__tests__/fixtures';
 import {
   selectExpensesForFunction,
   selectFunctionById,
+  selectGiftsForFunction,
   selectMoiEntriesForFunction,
 } from '../../domain/selectors';
 import { buildFunctionSheetHtml } from '../functionSheet';
@@ -18,6 +19,7 @@ function sheet() {
   return buildFunctionSheetHtml({
     fn,
     entries: selectMoiEntriesForFunction(data, 'fn1'),
+    gifts: selectGiftsForFunction(data, 'fn1'),
     expenses: selectExpensesForFunction(data, 'fn1'),
     hostName: data.profile.name,
   });
@@ -67,6 +69,7 @@ describe('function sheet', () => {
     const { html } = buildFunctionSheetHtml({
       fn,
       entries: [],
+      gifts: [],
       expenses: [],
       hostName: data.profile.name,
     });
@@ -81,6 +84,7 @@ describe('function sheet', () => {
     const { html } = buildFunctionSheetHtml({
       fn: { ...fn, title: '<script>x</script>' },
       entries: [],
+      gifts: [],
       expenses: [],
       hostName: data.profile.name,
     });

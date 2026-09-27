@@ -71,7 +71,6 @@ export function MoiEntryRow({
   const colors = useColors();
   const payment = paymentTypeMeta(entry.paymentType);
   const name = entry.person?.name ?? 'Unknown';
-  const isGift = entry.kind === 'gift';
 
   return (
     <Card onPress={onPress} style={styles.card} padded={false}>
@@ -83,34 +82,16 @@ export function MoiEntryRow({
             {name}
           </T>
           <View style={styles.metaRow}>
-            {/* A gift says what it was; payment type means nothing when
-                somebody hands over a set of vessels. */}
-            <Ionicons
-              name={isGift ? 'gift-outline' : payment.icon}
-              size={11}
-              color={isGift ? colors.warning : colors.textMuted}
-            />
+            <Ionicons name={payment.icon} size={11} color={colors.textMuted} />
             <T variant="caption" tone="muted" numberOfLines={1} style={styles.flex}>
-              {isGift ? entry.giftName : payment.label}
+              {payment.label}
               {entry.person?.village ? ` · ${entry.person.village}` : ''}
             </T>
           </View>
         </View>
 
         <View style={styles.trailing}>
-          {/* An unpriced gift shows nothing here rather than a hollow "₹0" —
-              the row already names it on the line above. */}
-          {isGift ? (
-            entry.giftValue ? (
-              <T variant="bodyStrong" tone="warning">
-                {formatMoney(entry.giftValue)}
-              </T>
-            ) : (
-              <Ionicons name="gift" size={17} color={colors.warning} />
-            )
-          ) : (
-            <Money value={entry.amount} flow="in" variant="bodyStrong" />
-          )}
+          <Money value={entry.amount} flow="in" variant="bodyStrong" />
           <T variant="caption" tone="muted" style={styles.trailingSub}>
             {formatTime(entry.recordedAt)}
           </T>

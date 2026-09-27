@@ -7,6 +7,8 @@ import type {
   FunctionEvent,
   ID,
   MoiEntry,
+  GiftEntry,
+  GiftGiven,
   MoiGiven,
   Person,
   PersonEvent,
@@ -34,6 +36,8 @@ export type NewMoiEntry = Omit<MoiEntry, 'id' | 'recordedAt'> & { recordedAt?: s
 export type NewPersonEvent = Omit<PersonEvent, 'id' | 'createdAt'>;
 export type NewExpense = Omit<Expense, 'id' | 'createdAt'>;
 export type NewMoiGiven = Omit<MoiGiven, 'id' | 'createdAt'>;
+export type NewGift = Omit<GiftEntry, 'id' | 'recordedAt'> & { recordedAt?: string };
+export type NewGiftGiven = Omit<GiftGiven, 'id' | 'createdAt'>;
 export type NewFamilyMember = Omit<FamilyMember, 'id' | 'createdAt'>;
 
 export interface DataSource {
@@ -71,6 +75,18 @@ export interface DataSource {
   createMoiGiven(input: NewMoiGiven): Promise<MoiGiven>;
   updateMoiGiven(id: ID, patch: Partial<NewMoiGiven>): Promise<MoiGiven>;
   deleteMoiGiven(id: ID): Promise<void>;
+
+  // Gifts received at our functions
+  listGifts(): Promise<GiftEntry[]>;
+  createGift(input: NewGift): Promise<GiftEntry>;
+  updateGift(id: ID, patch: Partial<NewGift>): Promise<GiftEntry>;
+  deleteGift(id: ID): Promise<void>;
+
+  // Gifts given back at someone else's event
+  listGiftsGiven(): Promise<GiftGiven[]>;
+  createGiftGiven(input: NewGiftGiven): Promise<GiftGiven>;
+  updateGiftGiven(id: ID, patch: Partial<NewGiftGiven>): Promise<GiftGiven>;
+  deleteGiftGiven(id: ID): Promise<void>;
 
   // Expenses (always scoped to a function)
   listExpenses(): Promise<Expense[]>;

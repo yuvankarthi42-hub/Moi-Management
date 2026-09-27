@@ -6,6 +6,7 @@ import type {
   FamilyMember,
   FunctionEvent,
   FunctionType,
+  GiftEntry,
   MoiEntry,
   MoiGiven,
   PaymentType,
@@ -188,12 +189,13 @@ function pick<T>(list: T[], r: () => number): T {
 }
 
 /** Builds the full demo dataset. Called once, or again on "reset demo data". */
-/** What actually turns up instead of a note, with a plausible worth. */
+/** What actually turns up alongside a note, with a plausible worth. */
 const GIFTS: Array<{ name: string; value: number }> = [
   { name: 'Vessels set', value: 3500 },
-  { name: 'Silver lamp', value: 8000 },
-  { name: 'Gold chain, 2 sovereigns', value: 64000 },
-  { name: 'Silk saree', value: 6500 },
+  { name: 'Silver bowl', value: 8000 },
+  { name: 'Gold chain', value: 64000 },
+  { name: 'Saree', value: 6500 },
+  { name: 'Watch', value: 4500 },
   { name: 'Mixie', value: 4500 },
   { name: 'Brass kuthuvilakku', value: 2800 },
   { name: 'Steel dinner set', value: 2200 },
@@ -236,6 +238,7 @@ export function buildSeed(now = new Date()): BackupPayload {
 
   const functions: FunctionEvent[] = [];
   const moiEntries: MoiEntry[] = [];
+  const gifts: GiftEntry[] = [];
   const expenses: Expense[] = [];
 
   FUNCTION_BLUEPRINT.forEach((bp, fi) => {
@@ -263,23 +266,29 @@ export function buildSeed(now = new Date()): BackupPayload {
       const minutesIn = 30 + Math.floor((idx / Math.max(donors.length, 1)) * 300);
       const recordedAt = new Date(`${date}T04:00:00.000Z`);
       recordedAt.setUTCMinutes(recordedAt.getUTCMinutes() + minutesIn);
-      // Roughly one entry in twenty is a gift rather than cash, and half of
-      // those go unpriced — which is how a real moi book reads, and what the
-      // gift-aware totals need to be exercised against.
-      const isGift = r() < 0.05;
-      const gift = isGift ? pick(GIFTS, r) : undefined;
       moiEntries.push({
         id: `moi_${fi + 1}_${idx + 1}`,
         functionId: fn.id,
         personId: person.id,
-        kind: isGift ? 'gift' : 'cash',
-        amount: isGift ? 0 : pick(DENOMINATIONS, r),
+        amount: pick(DENOMINATIONS, r),
         paymentType: pick(PAYMENT_TYPES, r),
-        giftName: gift?.name,
-        giftValue: gift && r() < 0.5 ? gift.value : undefined,
         notes: pick(MOI_NOTES, r),
         recordedAt: recordedAt.toISOString(),
       });
+
+      // Some guests bring a gift as well as, or instead of, a note. Half go
+      // unpriced, which is how a real moi book reads.
+      if (r() < 0.06) {
+        const gift = pick(GIFTS, r);
+        gifts.push({
+          id: `gift_${fi + 1}_${idx + 1}`,
+          functionId: fn.id,
+          personId: person.id,
+          name: gift.name,
+          value: r() < 0.5 ? gift.value : undefined,
+          recordedAt: recordedAt.toISOString(),
+        });
+      }
     });
 
     // Expenses: split the function's budget across the usual categories, with
@@ -375,6 +384,8 @@ export function buildSeed(now = new Date()): BackupPayload {
     functions,
     moiEntries,
     moiGiven,
+    gifts,
+    giftsGiven: [],
     expenses,
     personEvents,
     familyMembers,

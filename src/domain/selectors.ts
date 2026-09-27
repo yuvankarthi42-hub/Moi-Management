@@ -1,6 +1,6 @@
 import type {
-  Dataset, Expense, ExpenseCategory, FunctionEvent, FunctionStatus, ID, ISODate,
-  MoiEntry, MoiGiven, PaymentType, Person, PersonEvent,
+  Dataset, Expense, ExpenseCategory, FunctionEvent, FunctionStatus, GiftEntry, GiftGiven,
+  ID, ISODate, MoiEntry, MoiGiven, PaymentType, Person, PersonEvent,
 } from './models';
 import { expenseCategoryMeta } from './categories';
 import { daysUntil, fromISODate, isUpcoming } from '../utils/date';
@@ -20,9 +20,9 @@ export interface FunctionWithStats extends FunctionEvent {
    * is money that actually arrived.
    */
   collected: number;
-  /** Number of moi entries recorded, gifts included. */
+  /** Number of moi entries recorded. Gifts are counted separately. */
   entryCount: number;
-  /** How many of those entries were a gift rather than cash. */
+  /** Gifts received at this function. */
   giftCount: number;
   /** What the host put on those gifts, for the ones they priced. Reported apart from `collected`. */
   giftValue: number;
@@ -42,7 +42,7 @@ export function functionStatus(fn: FunctionEvent, now = new Date()): FunctionSta
 
 export function withFunctionStats(
   fn: FunctionEvent,
-  data: Pick<Dataset, 'moiEntries' | 'expenses'>,
+  data: Pick<Dataset, 'moiEntries' | 'gifts' | 'expenses'>,
   now = new Date(),
 ): FunctionWithStats {
   const entries = data.moiEntries.filter((e) => e.functionId === fn.id);
@@ -50,7 +50,7 @@ export function withFunctionStats(
 
   const collected = sumAmount(entries);
   const expenses = expenseRows.reduce((total, e) => total + e.amount, 0);
-  const gifts = entries.filter((e) => e.kind === 'gift');
+  const gifts = data.gifts.filter((g) => g.functionId === fn.id);
 
   return {
     ...fn,
@@ -58,7 +58,7 @@ export function withFunctionStats(
     collected,
     entryCount: entries.length,
     giftCount: gifts.length,
-    giftValue: gifts.reduce((total, e) => total + (e.giftValue ?? 0), 0),
+    giftValue: gifts.reduce((total, g) => total + (g.value ?? 0), 0),
     expenses,
     expenseCount: expenseRows.length,
     daysAway: daysUntil(fn.date, now),
@@ -110,6 +110,71 @@ export interface MoiEntryView extends MoiEntry {
   functionTitle?: string;
 }
 
+export interface GiftView extends GiftEntry {
+  person?: Person;
+  functionTitle?: string;
+}
+
+export interface GiftGivenView extends GiftGiven {
+  person?: Person;
+}
+
+/** Gifts received at one function, most recently recorded first. */
+export function selectGiftsForFunction(data: Dataset, functionId: ID): GiftView[] {
+  const peopleById = indexBy(data.people, (p) => p.id);
+  return data.gifts
+    .filter((g) => g.functionId === functionId)
+    .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt))
+    .map((g) => ({ ...g, person: peopleById.get(g.personId) }));
+}
+
+/** Gifts one person has given the household, newest first. */
+export function selectGiftsForPerson(data: Dataset, personId: ID): GiftView[] {
+  const functionsById = indexBy(data.functions, (f) => f.id);
+  return data.gifts
+    .filter((g) => g.personId === personId)
+    .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt))
+    .map((g) => ({ ...g, functionTitle: functionsById.get(g.functionId)?.title }));
+}
+
+/** Gifts the household has given back to one person, newest first. */
+export function selectGiftsGivenForPerson(data: Dataset, personId: ID): GiftGivenView[] {
+  return data.giftsGiven
+    .filter((g) => g.personId === personId)
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+/** The most recently recorded gifts across every function. */
+export function selectRecentGifts(data: Dataset, limit = 5): GiftView[] {
+  const peopleById = indexBy(data.people, (p) => p.id);
+  const functionsById = indexBy(data.functions, (f) => f.id);
+  return [...data.gifts]
+    .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt))
+    .slice(0, limit)
+    .map((g) => ({
+      ...g,
+      person: peopleById.get(g.personId),
+      functionTitle: functionsById.get(g.functionId)?.title,
+    }));
+}
+
+/**
+ * Gift names the household has used before, most used first.
+ *
+ * Offered as chips on both gift forms: it learns what this family actually
+ * gives and receives, which no fixed category list could.
+ */
+export function selectGiftNames(data: Dataset, limit = 6): string[] {
+  const counts = new Map<string, number>();
+  for (const name of [...data.gifts, ...data.giftsGiven].map((g) => g.name?.trim())) {
+    if (name) counts.set(name, (counts.get(name) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit)
+    .map(([name]) => name);
+}
+
 /** Moi entries for one function, most recently recorded first. */
 export function selectMoiEntriesForFunction(
   data: Dataset,
@@ -139,11 +204,7 @@ export function selectMoiEntriesForPerson(data: Dataset, personId: ID): MoiEntry
 export interface MoiTimelineRow {
   id: ID;
   direction: 'received' | 'given';
-  /** 0 on a gift row — what it was is `giftName`. */
   amount: number;
-  /** Set when this row is a gift rather than cash. */
-  giftName?: string;
-  giftValue?: number;
   date: ISODate;
   paymentType: PaymentType;
   /** The function it relates to — ours when received, theirs when given. */
@@ -169,8 +230,6 @@ export function selectMoiTimelineForPerson(data: Dataset, personId: ID): MoiTime
       id: e.id,
       direction: 'received' as const,
       amount: e.amount,
-      giftName: e.kind === 'gift' ? e.giftName : undefined,
-      giftValue: e.kind === 'gift' ? e.giftValue : undefined,
       date: functionsById.get(e.functionId)?.date ?? e.recordedAt.slice(0, 10),
       paymentType: e.paymentType,
       title: functionsById.get(e.functionId)?.title ?? 'Function',
@@ -223,6 +282,9 @@ export interface PersonWithStats extends Person {
   /** How many of our functions they contributed to. */
   functionCount: number;
   /** Their most recent contribution, if any. */
+  /** Gifts they have given the household, and gifts given back to them. */
+  giftCount: number;
+  giftsReturnedCount: number;
   lastAmount?: number;
   lastFunctionId?: ID;
   lastDate?: ISODate;
@@ -249,6 +311,18 @@ export function selectPeople(data: Dataset): PersonWithStats[] {
     else givenByPerson.set(given.personId, [given]);
   }
 
+  const giftsByPerson = new Map<ID, number>();
+  for (const gift of data.gifts) {
+    giftsByPerson.set(gift.personId, (giftsByPerson.get(gift.personId) ?? 0) + 1);
+  }
+  const giftsReturnedByPerson = new Map<ID, number>();
+  for (const gift of data.giftsGiven) {
+    giftsReturnedByPerson.set(
+      gift.personId,
+      (giftsReturnedByPerson.get(gift.personId) ?? 0) + 1,
+    );
+  }
+
   return data.people
     .map((person) => {
       const entries = byPerson.get(person.id) ?? [];
@@ -267,6 +341,8 @@ export function selectPeople(data: Dataset): PersonWithStats[] {
         totalGiven,
         balance: totalReceived - totalGiven,
         functionCount: new Set(entries.map((e) => e.functionId)).size,
+        giftCount: giftsByPerson.get(person.id) ?? 0,
+        giftsReturnedCount: giftsReturnedByPerson.get(person.id) ?? 0,
         lastAmount: latest?.entry.amount,
         lastFunctionId: latest?.entry.functionId,
         lastDate: latest?.date || undefined,
@@ -288,10 +364,9 @@ export interface OverviewStats {
   totalMoi: number;
   peopleCount: number;
   entryCount: number;
-  /** Entries that were a gift rather than cash, across every function. */
+  /** Gifts received across every function. */
   giftCount: number;
   totalExpenses: number;
-  /** Averaged over cash entries only, so a run of gifts cannot drag it down. */
   averageMoi: number;
   /** Moi collected minus everything spent. */
   balance: number;
@@ -301,7 +376,6 @@ export interface OverviewStats {
 export function selectOverview(data: Dataset, now = new Date()): OverviewStats {
   const totalMoi = sumAmount(data.moiEntries);
   const entryCount = data.moiEntries.length;
-  const cashCount = data.moiEntries.filter((e) => e.kind !== 'gift').length;
   const totalExpenses = data.expenses.reduce((sum, e) => sum + e.amount, 0);
 
   return {
@@ -310,9 +384,9 @@ export function selectOverview(data: Dataset, now = new Date()): OverviewStats {
     totalMoi,
     peopleCount: data.people.length,
     entryCount,
-    giftCount: entryCount - cashCount,
+    giftCount: data.gifts.length,
     totalExpenses,
-    averageMoi: cashCount ? Math.round(totalMoi / cashCount) : 0,
+    averageMoi: entryCount ? Math.round(totalMoi / entryCount) : 0,
     balance: totalMoi - totalExpenses,
   };
 }
@@ -790,7 +864,7 @@ export function buildCollectionReport(data: Dataset, range?: DateRange): Collect
 
 // ---------------------------------------------------------- global search
 
-export type SearchResultKind = 'function' | 'person' | 'moi';
+export type SearchResultKind = 'function' | 'person' | 'moi' | 'gift';
 
 export interface SearchResult {
   kind: SearchResultKind;
@@ -854,7 +928,6 @@ export function searchAll(data: Dataset, query: string, limitPerKind = 8): Searc
       return (
         (person ? matchesPerson(person, q) : false) ||
         String(entry.amount).includes(q) ||
-        (entry.giftName ?? '').toLowerCase().includes(q) ||
         (entry.notes ?? '').toLowerCase().includes(q)
       );
     })
@@ -865,15 +938,37 @@ export function searchAll(data: Dataset, query: string, limitPerKind = 8): Searc
       kind: 'moi',
       id: entry.id,
       title: peopleById.get(entry.personId)?.name ?? 'Unknown',
+      subtitle: functionsById.get(entry.functionId)?.title ?? 'Function',
+      amount: entry.amount,
+      href: `/function/${entry.functionId}`,
+    });
+  }
+
+  // Gifts match on what they were called, which is how anyone looks for one.
+  const gifts = data.gifts
+    .filter((g) => {
+      const person = peopleById.get(g.personId);
+      return (
+        g.name.toLowerCase().includes(q) ||
+        (person ? matchesPerson(person, q) : false) ||
+        (g.notes ?? '').toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt))
+    .slice(0, limitPerKind);
+  for (const gift of gifts) {
+    results.push({
+      kind: 'gift',
+      id: gift.id,
+      title: gift.name,
       subtitle: [
-        functionsById.get(entry.functionId)?.title ?? 'Function',
-        entry.kind === 'gift' ? entry.giftName : undefined,
+        peopleById.get(gift.personId)?.name,
+        functionsById.get(gift.functionId)?.title,
       ]
         .filter(Boolean)
         .join(' \u00B7 '),
-      // A gift has no cash amount; the row then shows only its name.
-      amount: entry.kind === 'gift' ? undefined : entry.amount,
-      href: `/function/${entry.functionId}`,
+      amount: gift.value,
+      href: `/function/${gift.functionId}`,
     });
   }
 

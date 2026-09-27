@@ -17,6 +17,7 @@ const GROUPS: Array<{
   { kind: 'function', label: 'Functions', icon: 'calendar-outline', tint: '#E8912A' },
   { kind: 'person', label: 'People', icon: 'person-outline', tint: '#2563EB' },
   { kind: 'moi', label: 'Moi entries', icon: 'cash-outline', tint: '#0FA968' },
+  { kind: 'gift', label: 'Gifts', icon: 'gift-outline', tint: '#C37312' },
 ];
 
 /**

@@ -91,37 +91,64 @@ export interface FunctionEvent {
   createdAt: ISODateTime;
 }
 
-/**
- * How the moi arrived. Cash is the moi book's usual business; a gift is the
- * vessels, saree or chain that comes instead of a note.
- */
-export type MoiKind = 'cash' | 'gift';
-
 export interface MoiEntry {
   id: ID;
   functionId: ID;
   personId: ID;
-  kind: MoiKind;
-  /**
-   * Whole rupees, and the household's collection. Always 0 on a gift: a gift's
-   * worth is `giftValue`, which is deliberately kept out of every total, so
-   * every sum of `amount` in the app means cash and nothing else.
-   */
+  /** Whole rupees. */
   amount: number;
-  /** Meaningless on a gift — nobody hands over vessels by UPI. */
   paymentType: PaymentType;
-  /** What the gift was, in the host's own words: "Vessels set", "Gold chain". */
-  giftName?: string;
-  /**
-   * What the host reckons the gift is worth, if they want to say. Reported on
-   * its own and never folded into moi collected, so the collection figure is
-   * money that actually arrived rather than money plus an estimate.
-   */
-  giftValue?: number;
   notes?: string;
   photoUri?: string;
   /** When the entry was recorded — drives the "10:30 AM" line in the list. */
   recordedAt: ISODateTime;
+}
+
+/**
+ * A gift received at one of our functions — the vessels, saree or chain that
+ * comes instead of a note.
+ *
+ * Its own record rather than a flag on `MoiEntry`, for the same reason
+ * `MoiGiven` is: the two are kept, listed and reported separately, and a gift
+ * has no amount to sum or payment type to split by. Keeping them apart means
+ * every total over `MoiEntry.amount` means cash without having to say so.
+ */
+export interface GiftEntry {
+  id: ID;
+  functionId: ID;
+  personId: ID;
+  /** What it was, in the host's own words: "Silver bowl", "Saree", "Watch". */
+  name: string;
+  /**
+   * What the host reckons it is worth, if they care to say. Optional and
+   * never summed into anything the app calls a collection.
+   */
+  value?: number;
+  notes?: string;
+  photoUri?: string;
+  recordedAt: ISODateTime;
+}
+
+/**
+ * A gift the household gave back, at the other family's own event.
+ *
+ * Mirrors `MoiGiven`: no function of ours to belong to, so the occasion is
+ * free text and optional — a return gift is often remembered by the person,
+ * not by the event.
+ */
+export interface GiftGiven {
+  id: ID;
+  personId: ID;
+  /** The guest's event it was given at, when that event is in the app. */
+  personEventId?: ID;
+  /** What it was for, when there is no `PersonEvent` — e.g. "Their daughter's wedding". */
+  occasion?: string;
+  name: string;
+  value?: number;
+  date: ISODate;
+  notes?: string;
+  photoUri?: string;
+  createdAt: ISODateTime;
 }
 
 /**
@@ -239,6 +266,8 @@ export interface Dataset {
   functions: FunctionEvent[];
   moiEntries: MoiEntry[];
   moiGiven: MoiGiven[];
+  gifts: GiftEntry[];
+  giftsGiven: GiftGiven[];
   expenses: Expense[];
   personEvents: PersonEvent[];
   familyMembers: FamilyMember[];
@@ -252,6 +281,8 @@ export const EMPTY_DATASET: Dataset = {
   functions: [],
   moiEntries: [],
   moiGiven: [],
+  gifts: [],
+  giftsGiven: [],
   expenses: [],
   personEvents: [],
   familyMembers: [],

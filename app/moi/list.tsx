@@ -16,19 +16,13 @@ import { formatCount, formatMoneyCompact } from '../../src/utils/format';
 type Sort = 'recent' | 'highest' | 'lowest' | 'name';
 
 /** Declared in the order they are offered in the picker. */
-/**
- * Gift sits among the payment types rather than in a filter of its own: from
- * the reader's side "how did this arrive" has one answer per entry, and a gift
- * is one of them.
- */
-type PaymentFilter = PaymentType | 'all' | 'gift';
+type PaymentFilter = PaymentType | 'all';
 
 const PAYMENT_LABELS: Record<PaymentFilter, string> = {
   all: 'All payments',
   cash: 'Cash',
   upi: 'UPI',
   other: 'Other',
-  gift: 'Gifts',
 };
 
 const SORT_LABELS: Record<Sort, string> = {
@@ -67,18 +61,12 @@ export default function MoiListScreen() {
     }));
 
     if (functionId !== 'all') rows = rows.filter((e) => e.functionId === functionId);
-    if (payment === 'gift') rows = rows.filter((e) => e.kind === 'gift');
-    else if (payment !== 'all') {
-      // A gift carries a payment type it never used, so exclude it explicitly
-      // rather than letting the stored default match "Cash".
-      rows = rows.filter((e) => e.kind !== 'gift' && e.paymentType === payment);
-    }
+    if (payment !== 'all') rows = rows.filter((e) => e.paymentType === payment);
     if (query.trim()) {
       rows = rows.filter(
         (e) =>
           (e.person ? matchesPerson(e.person, query) : false) ||
           String(e.amount).includes(query.trim()) ||
-          (e.giftName ?? '').toLowerCase().includes(query.trim().toLowerCase()) ||
           (e.functionTitle ?? '').toLowerCase().includes(query.trim().toLowerCase()),
       );
     }
@@ -94,7 +82,6 @@ export default function MoiListScreen() {
   }, [data, functionId, payment, query, sort]);
 
   const split = useMemo(() => splitByPaymentType(entries), [entries]);
-  const giftCount = useMemo(() => entries.filter((e) => e.kind === 'gift').length, [entries]);
   const selectedFunction = functions.find((f) => f.id === functionId);
   const filtered = functionId !== 'all' || payment !== 'all' || sort !== 'recent';
 
@@ -188,12 +175,7 @@ export default function MoiListScreen() {
               items={[
                 { label: 'Entries', value: formatCount(entries.length) },
                 { label: 'Total', value: formatMoneyCompact(split.total), tone: 'success' },
-                // Gifts take the Cash tile's place once there are any: the
-                // total already says what cash came to, and a count that is
-                // otherwise invisible earns the space more.
-                ...(giftCount
-                  ? [{ label: 'Gifts', value: formatCount(giftCount), tone: 'warning' as const }]
-                  : [{ label: 'Cash', value: formatMoneyCompact(split.cash) }]),
+                { label: 'Cash', value: formatMoneyCompact(split.cash) },
                 { label: 'UPI', value: formatMoneyCompact(split.upi) },
               ]}
             />

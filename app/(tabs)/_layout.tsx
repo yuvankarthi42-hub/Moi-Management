@@ -47,8 +47,15 @@ export default function TabsLayout() {
           <ListRow
             icon="cash-outline"
             title="Add Moi"
-            subtitle="Record a gift at a function"
+            subtitle="Cash recorded at a function"
             onPress={() => go('/moi/add')}
+          />
+          <RowDivider />
+          <ListRow
+            icon="gift-outline"
+            title="Add Gift"
+            subtitle="Vessels, a saree, a watch"
+            onPress={() => go('/gift/new')}
           />
           <RowDivider />
           <ListRow

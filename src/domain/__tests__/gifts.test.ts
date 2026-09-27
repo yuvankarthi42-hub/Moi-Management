@@ -1,86 +1,118 @@
-import type { MoiEntry } from '../models';
-import { selectFunctions, selectOverview, selectPeople } from '../selectors';
+import type { GiftEntry, GiftGiven } from '../models';
+import {
+  selectFunctions,
+  selectGiftNames,
+  selectGiftsForPerson,
+  selectGiftsGivenForPerson,
+  selectOverview,
+  selectPeople,
+} from '../selectors';
 import { makeDataset, NOW } from './fixtures';
 
 const T = '2026-01-01T00:00:00.000Z';
 
-function gift(over: Partial<MoiEntry> = {}): MoiEntry {
+function gift(over: Partial<GiftEntry> = {}): GiftEntry {
   return {
-    id: 'g1',
+    id: 'gf1',
     functionId: 'fn1',
     personId: 'p1',
-    kind: 'gift',
-    amount: 0,
-    paymentType: 'cash',
-    giftName: 'Vessels set',
+    name: 'Silver bowl',
     recordedAt: T,
+    ...over,
+  };
+}
+
+function returned(over: Partial<GiftGiven> = {}): GiftGiven {
+  return {
+    id: 'gg1',
+    personId: 'p1',
+    name: 'Saree',
+    date: '2026-03-01',
+    createdAt: T,
     ...over,
   };
 }
 
 /**
  * fn1 in the fixture collects 1001 + 2001 + 500 = 3502 in cash across three
- * entries. Every figure below is that arithmetic, plus whatever the gift does
- * or — the point of these tests — does not do to it.
+ * entries. A gift is a separate record, so none of that arithmetic can move —
+ * which is what these check.
  */
-describe('a gift never joins the collection', () => {
-  it('leaves moi collected alone when it carries no value', () => {
+describe('gifts are kept apart from moi', () => {
+  it('leaves a function’s collection untouched, priced or not', () => {
     const base = makeDataset();
-    const withGift = makeDataset({ moiEntries: [...base.moiEntries, gift()] });
+    const unpriced = makeDataset({ gifts: [gift()] });
+    const priced = makeDataset({ gifts: [gift({ value: 8000 })] });
 
     const before = selectFunctions(base, NOW).find((f) => f.id === 'fn1')!;
-    const after = selectFunctions(withGift, NOW).find((f) => f.id === 'fn1')!;
-
     expect(before.collected).toBe(3502);
-    expect(after.collected).toBe(3502);
+    expect(selectFunctions(unpriced, NOW).find((f) => f.id === 'fn1')!.collected).toBe(3502);
+    expect(selectFunctions(priced, NOW).find((f) => f.id === 'fn1')!.collected).toBe(3502);
   });
 
-  it('leaves it alone when the host did put a price on it', () => {
-    const base = makeDataset();
-    const withGift = makeDataset({
-      moiEntries: [...base.moiEntries, gift({ giftValue: 64000 })],
-    });
+  it('counts gifts on the function without touching its entry count', () => {
+    const data = makeDataset({ gifts: [gift(), gift({ id: 'gf2', value: 8000 })] });
+    const fn = selectFunctions(data, NOW).find((f) => f.id === 'fn1')!;
 
-    const fn = selectFunctions(withGift, NOW).find((f) => f.id === 'fn1')!;
-    expect(fn.collected).toBe(3502);
-    // Reported, but on its own.
-    expect(fn.giftValue).toBe(64000);
+    expect(fn.entryCount).toBe(3);
+    expect(fn.giftCount).toBe(2);
+    // Reported, never added to `collected`.
+    expect(fn.giftValue).toBe(8000);
   });
 
-  it('counts toward entries and gifts, so it is never invisible', () => {
-    const base = makeDataset();
-    const withGift = makeDataset({ moiEntries: [...base.moiEntries, gift()] });
-    const fn = selectFunctions(withGift, NOW).find((f) => f.id === 'fn1')!;
+  it('leaves the household totals and the average alone', () => {
+    const base = selectOverview(makeDataset(), NOW);
+    const after = selectOverview(makeDataset({ gifts: [gift({ value: 64000 })] }), NOW);
 
-    expect(fn.entryCount).toBe(4);
-    expect(fn.giftCount).toBe(1);
-  });
-
-  it('keeps out of the household total and its average', () => {
-    const base = makeDataset();
-    const withGift = makeDataset({
-      moiEntries: [...base.moiEntries, gift({ giftValue: 64000 })],
-    });
-
-    const before = selectOverview(base, NOW);
-    const after = selectOverview(withGift, NOW);
-
-    expect(after.totalMoi).toBe(before.totalMoi);
-    // Averaged over cash entries, so three gifts cannot drag it down.
-    expect(after.averageMoi).toBe(before.averageMoi);
+    expect(after.totalMoi).toBe(base.totalMoi);
+    expect(after.averageMoi).toBe(base.averageMoi);
     expect(after.giftCount).toBe(1);
   });
 
-  it('keeps out of what a person has given, and so out of their balance', () => {
-    const base = makeDataset();
-    const withGift = makeDataset({
-      moiEntries: [...base.moiEntries, gift({ personId: 'p1', giftValue: 5000 })],
+  it('leaves what a person has given, and so their balance, alone', () => {
+    const base = selectPeople(makeDataset()).find((p) => p.id === 'p1')!;
+    const after = selectPeople(
+      makeDataset({ gifts: [gift({ value: 5000 })], giftsGiven: [returned()] }),
+    ).find((p) => p.id === 'p1')!;
+
+    expect(after.totalReceived).toBe(base.totalReceived);
+    expect(after.balance).toBe(base.balance);
+    expect(after.giftCount).toBe(1);
+    expect(after.giftsReturnedCount).toBe(1);
+  });
+});
+
+describe('a person’s gifts', () => {
+  it('lists what they gave and what went back, newest first', () => {
+    const data = makeDataset({
+      gifts: [
+        gift({ id: 'a', recordedAt: '2026-01-01T00:00:00.000Z' }),
+        gift({ id: 'b', name: 'Watch', recordedAt: '2026-06-01T00:00:00.000Z' }),
+      ],
+      giftsGiven: [returned()],
     });
 
-    const before = selectPeople(base).find((p) => p.id === 'p1')!;
-    const after = selectPeople(withGift).find((p) => p.id === 'p1')!;
+    expect(selectGiftsForPerson(data, 'p1').map((g) => g.id)).toEqual(['b', 'a']);
+    expect(selectGiftsGivenForPerson(data, 'p1').map((g) => g.name)).toEqual(['Saree']);
+  });
 
-    expect(after.totalReceived).toBe(before.totalReceived);
-    expect(after.balance).toBe(before.balance);
+  it('does not mix in another person’s', () => {
+    const data = makeDataset({ gifts: [gift({ personId: 'p2' })] });
+    expect(selectGiftsForPerson(data, 'p1')).toHaveLength(0);
+  });
+});
+
+describe('gift name suggestions', () => {
+  it('learn from both directions, most used first', () => {
+    const data = makeDataset({
+      gifts: [
+        gift({ id: 'a', name: 'Saree' }),
+        gift({ id: 'b', name: 'Saree' }),
+        gift({ id: 'c', name: 'Watch' }),
+      ],
+      giftsGiven: [returned({ name: 'Saree' })],
+    });
+
+    expect(selectGiftNames(data)).toEqual(['Saree', 'Watch']);
   });
 });

@@ -5,9 +5,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { FunctionCard, UpcomingFunctionCard } from '../../src/components/app/FunctionCard';
+import { GiftRow } from '../../src/components/app/GiftRow';
 import { MoiEntryRow } from '../../src/components/app/PersonRow';
 import { Avatar, Card, EmptyState, HeaderCanvas, Screen, ScreenScroll, SectionHeader, StatRow, StatusBarScrim, T } from '../../src/components/ui';
-import { selectFunctions, selectNextFunction, selectOverview, selectRecentMoi } from '../../src/domain/selectors';
+import { selectFunctions, selectNextFunction, selectOverview, selectRecentGifts, selectRecentMoi } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
 import { makeStyles, spacing, useColors } from '../../src/theme';
 import { greeting } from '../../src/utils/date';
@@ -34,6 +35,7 @@ export default function HomeScreen() {
     [data],
   );
   const recentMoi = useMemo(() => selectRecentMoi(data, 4), [data]);
+  const recentGifts = useMemo(() => selectRecentGifts(data, 3), [data]);
 
   return (
     <Screen>
@@ -88,7 +90,11 @@ export default function HomeScreen() {
             items={[
               { label: 'Functions', value: formatCount(overview.functionCount) },
               { label: 'Moi', value: formatMoneyCompact(overview.totalMoi), tone: 'success' },
-              { label: 'People', value: formatCount(overview.peopleCount) },
+              // Only once there are gifts: an always-zero tile would take a
+              // quarter of the row from figures that are never zero.
+              ...(overview.giftCount
+                ? [{ label: 'Gifts', value: formatCount(overview.giftCount), tone: 'warning' as const }]
+                : [{ label: 'People', value: formatCount(overview.peopleCount) }]),
               { label: 'Expenses', value: formatMoneyCompact(overview.totalExpenses), tone: 'danger' },
             ]}
           />
@@ -136,6 +142,22 @@ export default function HomeScreen() {
                   key={entry.id}
                   entry={entry}
                   onPress={() => router.push(`/function/${entry.functionId}`)}
+                />
+              ))}
+            </View>
+          </>
+        ) : null}
+
+        {recentGifts.length > 0 ? (
+          <>
+            <SectionHeader title="Recent Gifts" />
+            <View style={styles.sideMargin}>
+              {recentGifts.map((gift) => (
+                <GiftRow
+                  key={gift.id}
+                  gift={gift}
+                  showPerson
+                  onPress={() => router.push(`/function/${gift.functionId}`)}
                 />
               ))}
             </View>
