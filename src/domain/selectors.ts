@@ -137,6 +137,59 @@ export function selectGiftsForPerson(data: Dataset, personId: ID): GiftView[] {
     .map((g) => ({ ...g, functionTitle: functionsById.get(g.functionId)?.title }));
 }
 
+/** One row of a person's gift history, in either direction. */
+export interface GiftTimelineRow {
+  id: ID;
+  direction: 'received' | 'returned';
+  /** What it was — the headline, since a gift is remembered by its name. */
+  name: string;
+  date: ISODate;
+  /** Our function when received, their occasion when returned. */
+  title?: string;
+  value?: number;
+  notes?: string;
+  /** Set on received rows, so the row can open the function. */
+  functionId?: ID;
+}
+
+/**
+ * A person's gifts, both directions on one date-ordered list.
+ *
+ * Two lists made it hard to see what had been returned against what: the
+ * answer is chronological, so the rows are too, and the direction is carried
+ * by the icon the way the moi history carries it.
+ */
+export function selectGiftTimelineForPerson(data: Dataset, personId: ID): GiftTimelineRow[] {
+  const functionsById = indexBy(data.functions, (f) => f.id);
+
+  const received: GiftTimelineRow[] = data.gifts
+    .filter((g) => g.personId === personId)
+    .map((g) => ({
+      id: g.id,
+      direction: 'received' as const,
+      name: g.name,
+      date: functionsById.get(g.functionId)?.date ?? g.recordedAt.slice(0, 10),
+      title: functionsById.get(g.functionId)?.title,
+      value: g.value,
+      notes: g.notes,
+      functionId: g.functionId,
+    }));
+
+  const returned: GiftTimelineRow[] = data.giftsGiven
+    .filter((g) => g.personId === personId)
+    .map((g) => ({
+      id: g.id,
+      direction: 'returned' as const,
+      name: g.name,
+      date: g.date,
+      title: g.occasion,
+      value: g.value,
+      notes: g.notes,
+    }));
+
+  return [...received, ...returned].sort((a, b) => b.date.localeCompare(a.date));
+}
+
 /** Gifts the household has given back to one person, newest first. */
 export function selectGiftsGivenForPerson(data: Dataset, personId: ID): GiftGivenView[] {
   return data.giftsGiven

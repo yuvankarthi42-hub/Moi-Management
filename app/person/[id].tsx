@@ -8,10 +8,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddActionsButton } from '../../src/components/app/AddActions';
-import { GiftGivenRow, GiftRow } from '../../src/components/app/GiftRow';
 import { AppHeader, Avatar, Badge, Button, Card, DockedFooter, EmptyState, Money, Screen, ScreenScroll, SectionHeader, StatRow, StatusBarScrim, T, useToast } from '../../src/components/ui';
 import { functionTypeMeta, paymentTypeMeta } from '../../src/domain/functionTypes';
-import { buildReturnMoiReport, describeBalance, selectGiftsForPerson, selectGiftsGivenForPerson, selectMoiTimelineForPerson, selectPersonById, type MoiTimelineRow } from '../../src/domain/selectors';
+import { buildReturnMoiReport, describeBalance, selectGiftTimelineForPerson, selectMoiTimelineForPerson, selectPersonById, type GiftTimelineRow, type MoiTimelineRow } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
 import { makeStyles, radius, spacing, typography, useColors } from '../../src/theme';
 import { countdownLabel, formatDate } from '../../src/utils/date';
@@ -56,9 +55,8 @@ export default function PersonProfileScreen() {
     () => buildReturnMoiReport(data, { withinDays: 365 }).filter((r) => r.person.id === id),
     [data, id],
   );
-  const gifts = useMemo(() => (id ? selectGiftsForPerson(data, id) : []), [data, id]);
-  const giftsReturned = useMemo(
-    () => (id ? selectGiftsGivenForPerson(data, id) : []),
+  const giftHistory = useMemo(
+    () => (id ? selectGiftTimelineForPerson(data, id) : []),
     [data, id],
   );
   const [tab, setTab] = useState<PersonTab>('overview');
@@ -427,31 +425,37 @@ export default function PersonProfileScreen() {
 
         {tab === 'gifts' ? (
           <>
-            <SectionHeader title="Received" />
+            <SectionHeader
+              title="Gift History"
+              actionLabel="Both directions"
+              onAction={() => undefined}
+            />
             <View style={styles.sideMargin}>
-              {gifts.length > 0 ? (
-                gifts.map((gift) => <GiftRow key={gift.id} gift={gift} />)
+              {giftHistory.length > 0 ? (
+                <Card padded={false}>
+                  {giftHistory.map((row, index) => (
+                    <GiftHistoryRow
+                      key={`${row.direction}-${row.id}`}
+                      row={row}
+                      divider={index > 0}
+                      onPress={
+                        row.functionId
+                          ? () => router.push(`/function/${row.functionId}`)
+                          : undefined
+                      }
+                    />
+                  ))}
+                </Card>
               ) : (
                 <Card>
                   <EmptyState
                     icon="gift-outline"
                     title="No gifts yet"
-                    message={`No gifts from ${person.name} yet. Use Add below.`}
+                    message={`No gifts either way with ${person.name}. Use Add below.`}
                   />
                 </Card>
               )}
             </View>
-
-            {giftsReturned.length > 0 ? (
-              <>
-                <SectionHeader title="Returned" />
-                <View style={styles.sideMargin}>
-                  {giftsReturned.map((gift) => (
-                    <GiftGivenRow key={gift.id} gift={gift} />
-                  ))}
-                </View>
-              </>
-            ) : null}
           </>
         ) : null}
 
@@ -550,6 +554,67 @@ function HistoryRow({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`${row.title}, ${received ? 'received' : 'given'}`}
+      android_ripple={{ color: colors.primarySoft }}
+      style={({ pressed }) => [...style, pressed && styles.pressed]}
+    >
+      {body}
+    </Pressable>
+  );
+}
+
+/**
+ * One line of the two-way gift history.
+ *
+ * The mirror of `HistoryRow`: the gift's name is the headline, since that is
+ * how a gift is remembered, and the arrow carries which way it went. A value
+ * shows only when the host set one — most never do.
+ */
+function GiftHistoryRow({
+  row,
+  divider,
+  onPress,
+}: {
+  row: GiftTimelineRow;
+  divider: boolean;
+  onPress?: () => void;
+}) {
+  const styles = useStyles();
+  const colors = useColors();
+  const received = row.direction === 'received';
+
+  const body = (
+    <>
+      <Ionicons
+        name={received ? 'gift' : 'arrow-up-circle'}
+        size={20}
+        color={received ? colors.warning : colors.danger}
+      />
+      <View style={styles.historyBody}>
+        <T variant="body" numberOfLines={1}>
+          {row.name}
+        </T>
+        <T variant="caption" tone="muted" numberOfLines={1}>
+          {[formatDate(row.date), row.title, received ? 'received' : 'you gave']
+            .filter(Boolean)
+            .join(' · ')}
+        </T>
+      </View>
+      {row.value ? (
+        <T variant="bodyStrong" tone="warning">
+          {formatMoney(row.value)}
+        </T>
+      ) : null}
+    </>
+  );
+
+  const style = [styles.historyRow, divider && styles.historyDivider];
+  if (!onPress) return <View style={style}>{body}</View>;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${row.name}, ${received ? 'received' : 'given'}`}
       android_ripple={{ color: colors.primarySoft }}
       style={({ pressed }) => [...style, pressed && styles.pressed]}
     >

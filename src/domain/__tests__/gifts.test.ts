@@ -2,6 +2,7 @@ import type { GiftEntry, GiftGiven } from '../models';
 import {
   selectFunctions,
   selectGiftNames,
+  selectGiftTimelineForPerson,
   selectGiftsForPerson,
   selectGiftsGivenForPerson,
   selectOverview,
@@ -114,5 +115,48 @@ describe('gift name suggestions', () => {
     });
 
     expect(selectGiftNames(data)).toEqual(['Saree', 'Watch']);
+  });
+});
+
+describe('the gift timeline', () => {
+  it('interleaves both directions by date, newest first', () => {
+    const data = makeDataset({
+      gifts: [
+        // fn1 is dated 2026-01-10, which is the date a received gift takes.
+        gift({ id: 'recv', name: 'Gold chain' }),
+      ],
+      giftsGiven: [
+        returned({ id: 'ret-old', name: 'Saree', date: '2025-06-01' }),
+        returned({ id: 'ret-new', name: 'Watch', date: '2026-08-01' }),
+      ],
+    });
+
+    expect(selectGiftTimelineForPerson(data, 'p1').map((r) => [r.id, r.direction])).toEqual([
+      ['ret-new', 'returned'],
+      ['recv', 'received'],
+      ['ret-old', 'returned'],
+    ]);
+  });
+
+  it('gives a received row its function, and a returned row its occasion', () => {
+    const data = makeDataset({
+      gifts: [gift()],
+      giftsGiven: [returned({ occasion: 'Their daughter\u2019s wedding' })],
+    });
+    const rows = selectGiftTimelineForPerson(data, 'p1');
+
+    const received = rows.find((r) => r.direction === 'received')!;
+    expect(received.title).toBe('Wedding');
+    expect(received.functionId).toBe('fn1');
+
+    const back = rows.find((r) => r.direction === 'returned')!;
+    expect(back.title).toBe('Their daughter\u2019s wedding');
+    // Nothing to open: a return gift belongs to their event, not ours.
+    expect(back.functionId).toBeUndefined();
+  });
+
+  it('leaves another person out of it', () => {
+    const data = makeDataset({ gifts: [gift({ personId: 'p2' })] });
+    expect(selectGiftTimelineForPerson(data, 'p1')).toHaveLength(0);
   });
 });

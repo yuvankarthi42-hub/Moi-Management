@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { View } from 'react-native';
 
-import type { GiftGivenView, GiftView } from '../../domain/selectors';
+import type { GiftView } from '../../domain/selectors';
 import { makeStyles, radius, spacing, useColors } from '../../theme';
 import { formatDate } from '../../utils/date';
 import { formatMoney } from '../../utils/format';
@@ -64,43 +64,6 @@ export function GiftRow({
   );
 }
 
-/** A gift the household gave back, at somebody else's event. */
-export function GiftGivenRow({
-  gift,
-  onPress,
-}: {
-  gift: GiftGivenView;
-  onPress?: () => void;
-}) {
-  const styles = useStyles();
-  const colors = useColors();
-
-  return (
-    <Card onPress={onPress} style={styles.card} padded={false}>
-      <View style={styles.row}>
-        <View style={[styles.icon, styles.iconGiven]}>
-          <Ionicons name="arrow-up" size={18} color={colors.danger} />
-        </View>
-
-        <View style={styles.body}>
-          <T variant="bodyStrong" numberOfLines={1}>
-            {gift.name}
-          </T>
-          <T variant="caption" tone="muted" numberOfLines={1}>
-            {[gift.occasion, formatDate(gift.date)].filter(Boolean).join(' · ')}
-          </T>
-        </View>
-
-        {gift.value ? (
-          <T variant="smallStrong" tone="warning">
-            {formatMoney(gift.value)}
-          </T>
-        ) : null}
-      </View>
-    </Card>
-  );
-}
-
 const useStyles = makeStyles((colors) => ({
   card: {
     marginBottom: spacing.sm + 2,
@@ -118,9 +81,6 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: `${colors.warning}22`,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  iconGiven: {
-    backgroundColor: `${colors.danger}22`,
   },
   body: {
     flex: 1,
