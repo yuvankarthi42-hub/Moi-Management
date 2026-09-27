@@ -43,7 +43,6 @@ export default function FunctionFormScreen() {
   const [coverImage, setCoverImage] = useState<string | undefined>();
 
   const [typeOpen, setTypeOpen] = useState(false);
-  const [villageOpen, setVillageOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -177,14 +176,38 @@ export default function FunctionFormScreen() {
           autoCapitalize="words"
         />
 
-        <PickerField
+        {/* Typed, with the villages already on file as chips: a new venue in
+            a village nobody has been to yet must still be recordable. */}
+        <Field
           label="Village (optional)"
-          value={village || undefined}
-          placeholder="Choose or leave blank"
+          value={village}
+          onChangeText={setVillage}
+          placeholder="Tenkasi"
+          autoCapitalize="words"
           leftIcon="location-outline"
-          onPress={() => setVillageOpen(true)}
-          onClear={village ? () => setVillage('') : undefined}
         />
+
+        {villages.length > 0 ? (
+          <View style={styles.villageChips}>
+            {villages.slice(0, 6).map((name) => (
+              <Pressable
+                key={name}
+                onPress={() => setVillage(name)}
+                accessibilityRole="button"
+                accessibilityLabel={`Set village to ${name}`}
+                style={({ pressed }) => [
+                  styles.villageChip,
+                  village === name && styles.villageChipActive,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <T variant="smallStrong" tone={village === name ? 'primary' : 'secondary'}>
+                  {name}
+                </T>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
 
         <Field
           label="Host (optional)"
@@ -235,17 +258,6 @@ export default function FunctionFormScreen() {
         }}
       />
 
-      <OptionPicker
-        visible={villageOpen}
-        onClose={() => setVillageOpen(false)}
-        title="Village"
-        selected={village}
-        options={villages.map((v) => ({ value: v, label: v }))}
-        onSelect={(value) => {
-          setVillage(value);
-          setVillageOpen(false);
-        }}
-      />
     </Screen>
   );
 }
@@ -281,6 +293,25 @@ const useStyles = makeStyles((colors) => ({
   notes: {
     minHeight: 72,
     textAlignVertical: 'top',
+  },
+  villageChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  villageChip: {
+    minHeight: 40,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  villageChipActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySoft,
   },
   pressed: {
     opacity: 0.8,

@@ -6,11 +6,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
 
 import { OptionPicker } from '../../src/components/app/OptionPicker';
-import { AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, useToast } from '../../src/components/ui';
+import { AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, T, useToast } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { selectVillages } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { makeStyles, spacing, useColors } from '../../src/theme';
+import { makeStyles, radius, spacing, useColors } from '../../src/theme';
 
 const RELATIONS = [
   'Mama', 'Athai', 'Chithappa', 'Periappa', 'Cousin', 'Friend',
@@ -39,7 +39,6 @@ export default function PersonFormScreen() {
   const [notes, setNotes] = useState('');
   const [photoUri, setPhotoUri] = useState<string | undefined>();
 
-  const [villageOpen, setVillageOpen] = useState(false);
   const [relationOpen, setRelationOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -150,14 +149,39 @@ export default function PersonFormScreen() {
           hint="Used to spot duplicate entries for the same person."
         />
 
-        <PickerField
+        {/* Typed, not picked: a dropdown of villages already on file cannot
+            take the one this person is from the first time it comes up. The
+            chips keep the picking, without closing the door on a new name. */}
+        <Field
           label="Village (optional)"
-          value={village || undefined}
-          placeholder="Choose village"
+          value={village}
+          onChangeText={setVillage}
+          placeholder="Tenkasi"
+          autoCapitalize="words"
           leftIcon="location-outline"
-          onPress={() => setVillageOpen(true)}
-          onClear={village ? () => setVillage('') : undefined}
         />
+
+        {villages.length > 0 ? (
+          <View style={styles.chipRow}>
+            {villages.slice(0, 6).map((name) => (
+              <Pressable
+                key={name}
+                onPress={() => setVillage(name)}
+                accessibilityRole="button"
+                accessibilityLabel={`Set village to ${name}`}
+                style={({ pressed }) => [
+                  styles.chip,
+                  village === name && styles.chipActive,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <T variant="smallStrong" tone={village === name ? 'primary' : 'secondary'}>
+                  {name}
+                </T>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
 
         <PickerField
           label="Relation (optional)"
@@ -190,18 +214,6 @@ export default function PersonFormScreen() {
       </DockedFooter>
 
       <OptionPicker
-        visible={villageOpen}
-        onClose={() => setVillageOpen(false)}
-        title="Village"
-        selected={village}
-        options={villages.map((v) => ({ value: v, label: v }))}
-        onSelect={(value) => {
-          setVillage(value);
-          setVillageOpen(false);
-        }}
-      />
-
-      <OptionPicker
         visible={relationOpen}
         onClose={() => setRelationOpen(false)}
         title="Relation"
@@ -217,6 +229,25 @@ export default function PersonFormScreen() {
 }
 
 const useStyles = makeStyles((colors) => ({
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  chip: {
+    minHeight: 40,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  chipActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySoft,
+  },
   avatarBlock: {
     alignItems: 'center',
     marginBottom: spacing.xxl,
