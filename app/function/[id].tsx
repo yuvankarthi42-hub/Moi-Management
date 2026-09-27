@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ExpenseRow } from '../../src/components/app/ExpenseRow';
 import { MoiEntrySheet } from '../../src/components/app/MoiEntrySheet';
+import { AddActionsButton } from '../../src/components/app/AddActions';
 import { GiftRow } from '../../src/components/app/GiftRow';
 import { MoiEntryRow } from '../../src/components/app/PersonRow';
 import { Badge, Button, Card, EmptyState, Money, Screen, ScreenScroll, StatRow, StatusBarScrim, T, useToast } from '../../src/components/ui';
@@ -361,9 +362,7 @@ export default function FunctionDetailScreen() {
               <EmptyState
                 icon="cash-outline"
                 title="No moi recorded yet"
-                message="Entries you add for this function will appear here."
-                actionLabel="Add Moi"
-                onAction={() => router.push(`/moi/add?functionId=${fn.id}`)}
+                message="Use Add below to record moi, a gift or an expense."
               />
             )
           ) : null}
@@ -392,22 +391,12 @@ export default function FunctionDetailScreen() {
                   <GiftRow key={gift.id} gift={gift} showPerson />
                 ))}
 
-                <Button
-                  label="Add Gift"
-                  icon="add"
-                  variant="secondary"
-                  block
-                  style={styles.addRowButton}
-                  onPress={() => router.push(`/gift/new?functionId=${fn.id}`)}
-                />
               </>
             ) : (
               <EmptyState
                 icon="gift-outline"
                 title="No gifts yet"
-                message="Vessels, a saree, a watch — record what came instead of a note."
-                actionLabel="Add Gift"
-                onAction={() => router.push(`/gift/new?functionId=${fn.id}`)}
+                message="Vessels, a saree, a watch. Use Add below to record one."
               />
             )
           ) : null}
@@ -435,22 +424,12 @@ export default function FunctionDetailScreen() {
                   />
                 ))}
 
-                <Button
-                  label="Add Expense"
-                  icon="add"
-                  variant="secondary"
-                  block
-                  style={styles.addRowButton}
-                  onPress={() => router.push(`/expense/new?functionId=${fn.id}`)}
-                />
               </>
             ) : (
               <EmptyState
                 icon="receipt-outline"
                 title="No expenses yet"
-                message="Record what this function costs so you can see it against the moi collected."
-                actionLabel="Add Expense"
-                onAction={() => router.push(`/expense/new?functionId=${fn.id}`)}
+                message="Use Add below to record what this function costs."
               />
             )
           ) : null}
@@ -497,19 +476,34 @@ export default function FunctionDetailScreen() {
         </View>
       </ScreenScroll>
 
+      {/* One button for all three things a function takes, rather than a
+          button each competing for the same strip. */}
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
-        <Button
-          label="Add Moi"
-          icon="add"
-          block
-          onPress={() => router.push(`/moi/add?functionId=${fn.id}`)}
-        />
-        <Button
-          label="Add Expense"
-          icon="receipt-outline"
-          variant="secondary"
-          block
-          onPress={() => router.push(`/expense/new?functionId=${fn.id}`)}
+        <AddActionsButton
+          title={`Add to ${fn.title}`}
+          actions={[
+            {
+              icon: 'cash-outline',
+              title: 'Add Moi',
+              subtitle: 'Cash someone gave at this function',
+              tint: colors.success,
+              onPress: () => router.push(`/moi/add?functionId=${fn.id}`),
+            },
+            {
+              icon: 'gift-outline',
+              title: 'Add Gift',
+              subtitle: 'Vessels, a saree, a watch',
+              tint: colors.warning,
+              onPress: () => router.push(`/gift/new?functionId=${fn.id}`),
+            },
+            {
+              icon: 'receipt-outline',
+              title: 'Add Expense',
+              subtitle: 'What this function cost',
+              tint: colors.danger,
+              onPress: () => router.push(`/expense/new?functionId=${fn.id}`),
+            },
+          ]}
         />
       </View>
     </Screen>
@@ -674,7 +668,6 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  addRowButton: { marginTop: spacing.sm },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',

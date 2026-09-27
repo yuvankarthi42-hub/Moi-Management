@@ -1,3 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
@@ -13,7 +16,7 @@ import { functionTypeMeta } from '../../src/domain/functionTypes';
 import type { ID, ISODate } from '../../src/domain/models';
 import { selectFunctions, selectGiftNames } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { makeStyles, radius, spacing } from '../../src/theme';
+import { makeStyles, radius, spacing, useColors } from '../../src/theme';
 import { formatDate, toISODate } from '../../src/utils/date';
 
 /**
@@ -29,6 +32,7 @@ import { formatDate, toISODate } from '../../src/utils/date';
  */
 export default function GiftFormScreen() {
   const styles = useStyles();
+  const colors = useColors();
   const router = useRouter();
   const { showToast } = useToast();
   const { data, addGift, addGiftGiven } = useAppData();
@@ -57,7 +61,7 @@ export default function GiftFormScreen() {
   const [date, setDate] = useState<ISODate>(toISODate(new Date()));
   const [value, setValue] = useState('');
   const [notes, setNotes] = useState('');
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [photoUri, setPhotoUri] = useState<string | undefined>();
 
   const [functionOpen, setFunctionOpen] = useState(false);
   const [personOpen, setPersonOpen] = useState(false);
@@ -73,6 +77,20 @@ export default function GiftFormScreen() {
     defaultApplied.current = true;
     setFunctionId(defaultFunctionId);
   }, [defaultFunctionId, functionId]);
+
+  const pickPhoto = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission needed', 'Allow photo access to attach a picture.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.6,
+      allowsEditing: true,
+    });
+    if (!result.canceled && result.assets[0]) setPhotoUri(result.assets[0].uri);
+  };
 
   const person = data.people.find((p) => p.id === personId);
   const fn = functions.find((f) => f.id === functionId);
@@ -96,6 +114,7 @@ export default function GiftFormScreen() {
           date,
           value: numericValue,
           notes: notes.trim() || undefined,
+          photoUri,
         });
       } else {
         await addGift({
@@ -104,6 +123,7 @@ export default function GiftFormScreen() {
           name: name.trim(),
           value: numericValue,
           notes: notes.trim() || undefined,
+          photoUri,
         });
       }
       showToast({
@@ -216,42 +236,55 @@ export default function GiftFormScreen() {
           <DateField label="Date" value={date} onChange={setDate} />
         ) : null}
 
-        {/* Folded away: none of it is required, and asking a host to price a
-            set of vessels at the moi table is how entries stop getting made. */}
-        <Pressable
-          onPress={() => setDetailsOpen((open) => !open)}
-          accessibilityRole="button"
-          accessibilityState={{ expanded: detailsOpen }}
-          style={({ pressed }) => [styles.disclosure, pressed && styles.pressed]}
-        >
-          <T variant="smallStrong" tone="primary">
-            {detailsOpen ? 'Hide details' : 'Add details — value, notes'}
-          </T>
-        </Pressable>
+        <Field
+          label="Value (optional)"
+          prefix="₹"
+          value={value}
+          onChangeText={(text) => setValue(text.replace(/[^\d]/g, ''))}
+          keyboardType="number-pad"
+          placeholder="0"
+          error={errors.value}
+          hint="Never counted into moi collected."
+        />
 
-        {detailsOpen ? (
-          <>
-            <Field
-              label="Value (optional)"
-              prefix="₹"
-              value={value}
-              onChangeText={(text) => setValue(text.replace(/[^\d]/g, ''))}
-              keyboardType="number-pad"
-              placeholder="0"
-              error={errors.value}
-              hint="Never counted into moi collected."
-            />
-            <Field
-              label="Notes (optional)"
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="Happy wishes to Harthick"
-              multiline
-              numberOfLines={3}
-              style={styles.notes}
-            />
-          </>
-        ) : null}
+        <Field
+          label="Notes (optional)"
+          value={notes}
+          onChangeText={setNotes}
+          placeholder="Happy wishes to Harthick"
+          multiline
+          numberOfLines={3}
+          style={styles.notes}
+        />
+
+        <T variant="smallStrong" tone="secondary" style={styles.label}>
+          Photo (optional)
+        </T>
+        <View style={styles.photoRow}>
+          <Pressable
+            onPress={pickPhoto}
+            accessibilityRole="button"
+            accessibilityLabel="Attach a photo"
+            style={({ pressed }) => [styles.photoBox, pressed && styles.pressed]}
+          >
+            {photoUri ? (
+              <Image source={{ uri: photoUri }} style={styles.photo} contentFit="cover" />
+            ) : (
+              <Ionicons name="camera-outline" size={24} color={colors.textMuted} />
+            )}
+          </Pressable>
+          {photoUri ? (
+            <Pressable onPress={() => setPhotoUri(undefined)} hitSlop={8}>
+              <T variant="smallStrong" tone="danger">
+                Remove
+              </T>
+            </Pressable>
+          ) : (
+            <T variant="caption" tone="muted" style={styles.photoHint}>
+              A picture of the gift, for when the name alone stops being enough.
+            </T>
+          )}
+        </View>
       </KeyboardForm>
 
       <DockedFooter>
@@ -316,15 +349,32 @@ const useStyles = makeStyles((colors) => ({
     borderColor: colors.primary,
     backgroundColor: colors.primarySoft,
   },
-  disclosure: {
-    minHeight: 44,
-    justifyContent: 'center',
+  label: {
+    marginBottom: spacing.xs,
+  },
+  photoRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: colors.borderStrong,
+    gap: spacing.md,
+  },
+  photoBox: {
+    width: 72,
+    height: 72,
     borderRadius: radius.md,
-    marginBottom: spacing.lg,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    backgroundColor: colors.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  photo: {
+    width: '100%',
+    height: '100%',
+  },
+  photoHint: {
+    flex: 1,
   },
   notes: {
     minHeight: 84,

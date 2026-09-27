@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AddActionsButton } from '../../src/components/app/AddActions';
 import { GiftGivenRow, GiftRow } from '../../src/components/app/GiftRow';
 import { AppHeader, Avatar, Badge, Button, Card, DockedFooter, EmptyState, Money, Screen, ScreenScroll, SectionHeader, StatRow, StatusBarScrim, T, useToast } from '../../src/components/ui';
 import { functionTypeMeta, paymentTypeMeta } from '../../src/domain/functionTypes';
@@ -416,9 +417,7 @@ export default function PersonProfileScreen() {
               <EmptyState
                 icon="receipt-outline"
                 title="No moi recorded"
-                message={`${person.name} has not been recorded at any of your functions yet.`}
-                actionLabel="Add Moi"
-                onAction={() => router.push(`/moi/add?personId=${person.id}`)}
+                message={`Nothing recorded for ${person.name} yet. Use Add below.`}
               />
             </Card>
           )}
@@ -437,9 +436,7 @@ export default function PersonProfileScreen() {
                   <EmptyState
                     icon="gift-outline"
                     title="No gifts yet"
-                    message={`${person.name} has not given a gift at any of your functions.`}
-                    actionLabel="Add Gift"
-                    onAction={() => router.push(`/gift/new?personId=${person.id}`)}
+                    message={`No gifts from ${person.name} yet. Use Add below.`}
                   />
                 </Card>
               )}
@@ -462,48 +459,43 @@ export default function PersonProfileScreen() {
 
       {/* Docked rather than tacked onto the end of the scroll: a person with a
           long moi history would otherwise push both actions off-screen. */}
-      {/* Each tab docks its own pair, so all four actions stay one tap away
-          without a menu. Overview keeps none: Call, Message and Edit already
-          sit in the card at the top, where they have always been. */}
-      {tab === 'moi' ? (
-        <DockedFooter>
-          <View style={styles.footerActions}>
-            <Button
-              label="Add received"
-              icon="arrow-down-circle-outline"
-              variant="outline"
-              block
-              onPress={() => router.push(`/moi/add?personId=${person.id}`)}
-            />
-            <Button
-              label="Record given"
-              icon="arrow-up-circle-outline"
-              block
-              onPress={() => router.push(`/moi/given?personId=${person.id}`)}
-            />
-          </View>
-        </DockedFooter>
-      ) : null}
-
-      {tab === 'gifts' ? (
-        <DockedFooter>
-          <View style={styles.footerActions}>
-            <Button
-              label="Add gift"
-              icon="gift-outline"
-              variant="outline"
-              block
-              onPress={() => router.push(`/gift/new?personId=${person.id}`)}
-            />
-            <Button
-              label="Return gift"
-              icon="arrow-up-circle-outline"
-              block
-              onPress={() => router.push(`/gift/new?personId=${person.id}&return=1`)}
-            />
-          </View>
-        </DockedFooter>
-      ) : null}
+      {/* One button on every tab, like the function screen. Call, Message and
+          Edit stay in the card at the top, where they have always been. */}
+      <DockedFooter>
+        <AddActionsButton
+          title={`Add for ${person.name}`}
+          actions={[
+            {
+              icon: 'arrow-down-circle-outline',
+              title: 'Add moi received',
+              subtitle: 'Cash they gave at one of your functions',
+              tint: colors.success,
+              onPress: () => router.push(`/moi/add?personId=${person.id}`),
+            },
+            {
+              icon: 'arrow-up-circle-outline',
+              title: 'Record moi given',
+              subtitle: 'Cash you gave back at theirs',
+              tint: colors.danger,
+              onPress: () => router.push(`/moi/given?personId=${person.id}`),
+            },
+            {
+              icon: 'gift-outline',
+              title: 'Add gift',
+              subtitle: 'A gift they brought',
+              tint: colors.warning,
+              onPress: () => router.push(`/gift/new?personId=${person.id}`),
+            },
+            {
+              icon: 'return-up-forward-outline',
+              title: 'Return gift',
+              subtitle: 'A gift you gave back',
+              tint: colors.warning,
+              onPress: () => router.push(`/gift/new?personId=${person.id}&return=1`),
+            },
+          ]}
+        />
+      </DockedFooter>
     </Screen>
   );
 }
@@ -797,10 +789,6 @@ const useStyles = makeStyles((colors) => ({
   },
   historyBody: {
     flex: 1,
-  },
-  footerActions: {
-    flexDirection: 'row',
-    gap: spacing.md,
   },
   pressed: {
     opacity: 0.7,
