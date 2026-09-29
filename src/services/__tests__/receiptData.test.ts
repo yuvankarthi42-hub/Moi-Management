@@ -1,4 +1,4 @@
-import { buildSeed } from '../../data/mock/seed';
+import { buildSeed } from '../../data/testing/seed';
 import { buildReceipt, buildReceiptText } from '../receiptService';
 
 /**

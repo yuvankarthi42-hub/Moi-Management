@@ -3,29 +3,31 @@ import { Redirect } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
-import { useAuth } from '../src/auth';
 import { BrandMark } from '../src/components/app/BrandMark';
 import { T } from '../src/components/ui';
+import { useAuthDestination } from '../src/navigation/useAuthDestination';
 import { useAppData } from '../src/store/AppDataProvider';
 import { makeStyles, spacing, useColors } from '../src/theme';
 
 /**
  * Launch screen.
  *
- * Holds the branded splash until both the session and the dataset are known,
- * then routes once: a signed-in phone goes straight to the tabs, a new one to
- * the landing screen. Waiting for both avoids the welcome screen flashing at
- * someone who is already signed in.
+ * Holds the branded splash until `useAuthDestination` knows where this phone
+ * belongs, then sends it there once. This is not the only screen that can
+ * make that call — see `useAuthDestination`'s own comment for why `/welcome`
+ * and `/auth/phone` each repeat the same check — but it is the one shown
+ * while the answer is still 'loading', and the one that surfaces a dataset
+ * load failure rather than bouncing away from it.
  */
 export default function Launch() {
   const styles = useStyles();
   const colors = useColors();
-  const { loading, error } = useAppData();
-  const { account, loading: authLoading } = useAuth();
+  const { error } = useAppData();
+  const destination = useAuthDestination();
 
-  if (!loading && !authLoading && !error) {
-    return <Redirect href={account ? '/(tabs)' : '/welcome'} />;
-  }
+  if (destination === 'welcome') return <Redirect href="/welcome" />;
+  if (destination === 'phone') return <Redirect href="/auth/phone" />;
+  if (destination === 'home') return <Redirect href="/(tabs)" />;
 
   return (
     <LinearGradient colors={colors.splashGradient} style={styles.root}>

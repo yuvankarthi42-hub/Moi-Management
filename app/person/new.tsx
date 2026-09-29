@@ -5,13 +5,16 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
 
+import { DEFAULT_COUNTRY } from '../../src/auth';
 import { OptionPicker } from '../../src/components/app/OptionPicker';
+import { PhoneField } from '../../src/components/app/PhoneField';
 import { SuggestField } from '../../src/components/app/SuggestField';
-import { AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, useToast } from '../../src/components/ui';
+import { AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, PickerField, Screen, T, useToast } from '../../src/components/ui';
 import { ValidationError } from '../../src/data';
 import { selectVillages } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
 import { makeStyles, spacing, useColors } from '../../src/theme';
+import { persistentPhotoUri } from '../../src/utils/persistentPhotoUri';
 
 const RELATIONS = [
   'Mama', 'Athai', 'Chithappa', 'Periappa', 'Cousin', 'Friend',
@@ -34,6 +37,7 @@ export default function PersonFormScreen() {
   const villages = useMemo(() => selectVillages(data), [data]);
 
   const [name, setName] = useState(params.name ?? '');
+  const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY.code);
   const [phone, setPhone] = useState('');
   const [village, setVillage] = useState('');
   const [relation, setRelation] = useState('');
@@ -47,6 +51,9 @@ export default function PersonFormScreen() {
   useEffect(() => {
     if (!existing) return;
     setName(existing.name);
+    // A phone number from before this field existed has no code of its own —
+    // it defaults here rather than showing a number with none selected.
+    setCountryCode(existing.countryCode ?? DEFAULT_COUNTRY.code);
     setPhone(existing.phone ?? '');
     setVillage(existing.village ?? '');
     setRelation(existing.relation ?? '');
@@ -65,8 +72,14 @@ export default function PersonFormScreen() {
       quality: 0.6,
       allowsEditing: true,
       aspect: [1, 1],
+      // A cropped, compressed avatar is small enough to store as its own
+      // bytes — see persistentPhotoUri for why that beats the URI this would
+      // otherwise return.
+      base64: true,
     });
-    if (!result.canceled && result.assets[0]) setPhotoUri(result.assets[0].uri);
+    if (!result.canceled && result.assets[0]) {
+      setPhotoUri(persistentPhotoUri(result.assets[0]));
+    }
   };
 
   const save = async () => {
@@ -74,6 +87,7 @@ export default function PersonFormScreen() {
     setSaving(true);
     const payload = {
       name,
+      countryCode: phone ? countryCode : undefined,
       phone: phone || undefined,
       village: village || undefined,
       relation: relation || undefined,
@@ -134,21 +148,25 @@ export default function PersonFormScreen() {
           required
           value={name}
           onChangeText={setName}
-          placeholder="Murugan"
+          placeholder="Sindhu"
           autoCapitalize="words"
           error={errors.name}
         />
 
-        <Field
+        <PhoneField
           label="Phone (optional)"
-          value={phone}
-          onChangeText={setPhone}
-          placeholder="98765 43210"
-          keyboardType="phone-pad"
-          leftIcon="call-outline"
+          required={false}
+          countryCode={countryCode}
+          onChangeCountryCode={setCountryCode}
+          phone={phone}
+          onChangePhone={setPhone}
           error={errors.phone}
-          hint="Used to spot duplicate entries for the same person."
         />
+        {!errors.phone ? (
+          <T variant="caption" tone="muted" style={styles.phoneHint}>
+            Used to spot duplicate entries for the same person.
+          </T>
+        ) : null}
 
         {/* Typed, not picked: a list of villages already on file cannot take
             the one this person is from the first time it comes up, and every
@@ -158,7 +176,7 @@ export default function PersonFormScreen() {
           value={village}
           onChangeText={setVillage}
           suggestions={villages}
-          placeholder="Tenkasi"
+          placeholder="Dindigul"
           autoCapitalize="words"
           leftIcon="location-outline"
         />
@@ -212,6 +230,12 @@ const useStyles = makeStyles((colors) => ({
   avatarBlock: {
     alignItems: 'center',
     marginBottom: spacing.xxl,
+  },
+  // PhoneField carries its own bottom margin already (spacing.lg) — this only
+  // needs to sit closer to the field above it than that default gives.
+  phoneHint: {
+    marginTop: -spacing.md,
+    marginBottom: spacing.md,
   },
   avatarImage: {
     width: 88,

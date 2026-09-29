@@ -1,4 +1,4 @@
-import { MockDataSource } from '../mock/MockDataSource';
+import { InMemoryDataSource } from '../testing/InMemoryDataSource';
 import { ExpenseRepository } from '../repositories/ExpenseRepository';
 import { FunctionRepository } from '../repositories/FunctionRepository';
 import { MoiRepository } from '../repositories/MoiRepository';
@@ -7,7 +7,7 @@ import { ValidationError } from '../repositories/errors';
 
 // The in-memory source persists through AsyncStorage, which jest-expo mocks.
 function makeRepos() {
-  const source = new MockDataSource();
+  const source = new InMemoryDataSource();
   return {
     source,
     people: new PeopleRepository(source),
@@ -36,6 +36,40 @@ describe('PeopleRepository', () => {
     expect(normalisePhone('+91 98765 43210')).toBe('9876543210');
     expect(normalisePhone('098765 43210')).toBe('9876543210');
     expect(normalisePhone('9876543210')).toBe('9876543210');
+  });
+
+  describe('country code', () => {
+    it('keeps the code a caller chose', async () => {
+      const { people } = makeRepos();
+      const person = await people.create({
+        name: 'Priya', phone: '9876543210', countryCode: '+44',
+      });
+      expect(person.countryCode).toBe('+44');
+    });
+
+    it('defaults to +91 for a phone with no code given', async () => {
+      const { people } = makeRepos();
+      const person = await people.create({ name: 'Priya', phone: '9876543210' });
+      expect(person.countryCode).toBe('+91');
+    });
+
+    it('stores no code at all when there is no phone number either', async () => {
+      const { people } = makeRepos();
+      const person = await people.create({ name: 'Priya' });
+      expect(person.countryCode).toBeUndefined();
+      expect(person.phone).toBeUndefined();
+    });
+
+    it('is not part of what makes two phone numbers a duplicate', async () => {
+      // The dialling code is metadata about the number, not part of its
+      // identity — two people cannot share a number just because one of them
+      // typed it with a different code attached.
+      const { people } = makeRepos();
+      await people.create({ name: 'Murugan', phone: '9876543210', countryCode: '+91' });
+      await expect(
+        people.create({ name: 'Murugan M', phone: '9876543210', countryCode: '+44' }),
+      ).rejects.toThrow(/already uses this phone/i);
+    });
   });
 });
 

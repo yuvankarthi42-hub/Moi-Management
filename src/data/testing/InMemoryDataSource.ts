@@ -76,14 +76,22 @@ function newId(prefix: string): ID {
 }
 
 /**
- * In-memory data source backed by AsyncStorage.
+ * An in-memory `DataSource`, for tests only.
+ *
+ * The app talks to Turso; nothing in `app/` or in either composition root
+ * reaches this file, and `src/data/__tests__/noMockInApp.test.ts` fails the
+ * build if that ever stops being true. It stays because the repository layer's
+ * validation rules are worth testing without a network, and `buildSeed` is a
+ * useful fixture for the report and receipt tests.
+ *
+ * Originally the app's only data source, backed by AsyncStorage.
  *
  * The whole dataset is held in memory and flushed to AsyncStorage after every
  * mutation, which is more than fast enough at this scale (a heavy user has a
  * few thousand moi entries) and keeps reads synchronous internally. When the
  * app graduates to SQLite or a server, only this class is replaced.
  */
-export class MockDataSource implements DataSource {
+export class InMemoryDataSource implements DataSource {
   private db: BackupPayload = buildSeed();
   private ready = false;
   /** Serialises writes so two quick saves can't interleave. */

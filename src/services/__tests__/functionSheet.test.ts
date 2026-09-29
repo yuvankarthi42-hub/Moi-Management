@@ -92,3 +92,68 @@ describe('function sheet', () => {
     expect(html).toContain('&lt;script&gt;');
   });
 });
+
+describe('financial summary is separate from gifts', () => {
+  it('has its own heading, apart from Function overview', () => {
+    const { html } = sheet();
+    expect(html).toContain('Financial summary');
+    expect(html).toContain('Function overview');
+  });
+
+  it('keeps Moi collected, Expenses and Net out of the Function overview table', () => {
+    const { html } = sheet();
+    const overviewSection = html.slice(
+      html.indexOf('Function overview'),
+      html.indexOf('Financial summary'),
+    );
+    expect(overviewSection).not.toContain('Moi collected');
+    expect(overviewSection).not.toContain('>Net<');
+  });
+
+  it('says plainly that a gift is not counted in the totals', () => {
+    const data = makeDataset();
+    const fn = selectFunctionById(data, 'fn1');
+    if (!fn) throw new Error('fixture lost fn1');
+    const { html } = buildFunctionSheetHtml({
+      fn,
+      entries: selectMoiEntriesForFunction(data, 'fn1'),
+      gifts: [{
+        id: 'gtest', functionId: 'fn1', personId: 'p1', name: 'Silver bowl',
+        value: 8000, recordedAt: '2026-01-01T00:00:00.000Z',
+      }],
+      expenses: selectExpensesForFunction(data, 'fn1'),
+      hostName: data.profile.name,
+    });
+    expect(html).toContain('Not counted in moi collected, expenses or net.');
+    // A gift's value never leaks into the Financial summary table.
+    const financialSection = html.slice(
+      html.indexOf('Financial summary'),
+      html.indexOf('Gifts ('),
+    );
+    expect(financialSection).not.toContain('8,000');
+  });
+
+  it('never mentions Gifts inside the Function overview table itself any more', () => {
+    // Regression: Gifts, with its value, used to be a row in the same table
+    // as Moi collected and Net.
+    const data = makeDataset();
+    const fn = selectFunctionById(data, 'fn1');
+    if (!fn) throw new Error('fixture lost fn1');
+    const { html } = buildFunctionSheetHtml({
+      fn,
+      entries: [],
+      gifts: [{
+        id: 'gtest', functionId: 'fn1', personId: 'p1', name: 'Silver bowl',
+        value: 8000, recordedAt: '2026-01-01T00:00:00.000Z',
+      }],
+      expenses: [],
+      hostName: data.profile.name,
+    });
+    const overviewSection = html.slice(
+      html.indexOf('Function overview'),
+      html.indexOf('Financial summary'),
+    );
+    expect(overviewSection).not.toContain('Gifts');
+    expect(overviewSection).not.toContain('8,000');
+  });
+});

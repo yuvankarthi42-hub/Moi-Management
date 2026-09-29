@@ -131,13 +131,18 @@ export default function MoreScreen() {
           />
         </Group>
 
-        <Group title="Family">
+        <Group title="Sharing">
+          {/* Not built yet, and shown rather than hidden so the plan is
+              visible: a function will be shared one at a time, with the person
+              at the moi table able to add entries to that function and nothing
+              else. The database is already shaped for it (function_shares in
+              docs/DATABASE.md), so nothing here has to move when it lands. */}
           <ListRow
             icon="people-outline"
-            title="Family Members"
-            value={`${data.familyMembers.length}`}
-            subtitle="Who can view and edit your records"
-            onPress={() => router.push('/settings/members')}
+            title="Share a function"
+            value="Soon"
+            subtitle="Let someone help collect moi at one function, without giving them your whole book"
+            showChevron={false}
           />
         </Group>
 
@@ -149,15 +154,6 @@ export default function MoreScreen() {
               account ? `${account.countryCode} ${account.phone}` : 'Sign in to keep your books'
             }
             showChevron={false}
-          />
-          <RowDivider />
-          <ListRow
-            icon="log-out-outline"
-            title="Sign out"
-            subtitle="Your records stay on this device"
-            destructive
-            showChevron={false}
-            onPress={confirmSignOut}
           />
         </Group>
 
@@ -212,6 +208,21 @@ export default function MoreScreen() {
             showChevron={false}
           />
         </Group>
+
+        {/* Standalone, with no group title, and last on the page — signing out
+            is not a setting alongside the others above, it is how the visit
+            ends, and it stays away from everything else so it is never an
+            accidental neighbour of an ordinary row. */}
+        <Card padded={false} style={styles.signOutCard}>
+          <ListRow
+            icon="log-out-outline"
+            title="Sign out"
+            subtitle="Your records stay on this device"
+            destructive
+            showChevron={false}
+            onPress={confirmSignOut}
+          />
+        </Card>
 
         <T variant="caption" tone="muted" center style={styles.footer}>
           Your records stay on this device.
@@ -297,6 +308,11 @@ const useStyles = makeStyles((colors) => ({
     letterSpacing: 0.6,
   },
   groupCard: {
+    borderRadius: radius.lg,
+  },
+  signOutCard: {
+    marginTop: spacing.xl,
+    marginHorizontal: spacing.lg,
     borderRadius: radius.lg,
   },
   footer: {

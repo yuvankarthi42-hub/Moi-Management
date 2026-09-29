@@ -23,6 +23,7 @@ export interface ReceiptData {
   amountWords: string;
   personName: string;
   personPhone?: string;
+  personCountryCode?: string;
   personVillage?: string;
   functionTitle: string;
   functionDate: string;
@@ -72,6 +73,7 @@ export function buildReceipt({
     amountWords: amountInWords(entry.amount),
     personName: person?.name ?? 'Guest',
     personPhone: person?.phone,
+    personCountryCode: person?.countryCode,
     personVillage: person?.village,
     functionTitle: fn?.title ?? 'Function',
     functionDate: fn?.date ?? entry.recordedAt.slice(0, 10),
@@ -151,7 +153,7 @@ export function buildReceiptHtml(receipt: ReceiptData): string {
 
     <div class="details"><table>
       ${row('From', receipt.personName)}
-      ${row('Phone', receipt.personPhone ? formatPhone(receipt.personPhone) : undefined)}
+      ${row('Phone', receipt.personPhone ? formatPhone(receipt.personPhone, receipt.personCountryCode) : undefined)}
       ${row('Village', receipt.personVillage)}
       ${row('Payment', receipt.paymentLabel)}
       ${row('Recorded', `${formatDate(receipt.recordedAt.slice(0, 10))}, ${formatTime(receipt.recordedAt)}`)}
@@ -201,7 +203,7 @@ export function buildReceiptText(receipt: ReceiptData): string {
     receipt.amountWords,
     '',
     line('From', receipt.personName),
-    line('Phone', receipt.personPhone ? formatPhone(receipt.personPhone) : undefined),
+    line('Phone', receipt.personPhone ? formatPhone(receipt.personPhone, receipt.personCountryCode) : undefined),
     line('Village', receipt.personVillage),
     line('Payment', receipt.paymentLabel),
     line(

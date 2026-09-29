@@ -1,5 +1,6 @@
+import { userScope } from '../auth/currentUser';
+import { getAuthSource } from '../auth/source';
 import type { DataSource } from './DataSource';
-import { MockDataSource } from './mock/MockDataSource';
 import { ExpenseRepository } from './repositories/ExpenseRepository';
 import { FamilyMemberRepository } from './repositories/FamilyMemberRepository';
 import { FunctionRepository } from './repositories/FunctionRepository';
@@ -8,19 +9,23 @@ import { MoiGivenRepository } from './repositories/MoiGivenRepository';
 import { MoiRepository } from './repositories/MoiRepository';
 import { PeopleRepository } from './repositories/PeopleRepository';
 import { SettingsRepository } from './repositories/SettingsRepository';
+import { getSqlClient } from './turso/client';
+import { TursoDataSource } from './turso/TursoDataSource';
 
 /**
  * Composition root.
  *
- * This is the single place that decides *where the data lives*. Today it is the
- * AsyncStorage-backed mock; pointing the app at SQLite or a REST API means
- * writing one more `DataSource` and changing the line below — no repository,
- * selector or screen changes.
+ * The single place that decides *where the data lives*. It is Turso, reached
+ * either directly or through an API — `EXPO_PUBLIC_DATA_MODE` picks which, and
+ * `src/data/turso/client.ts` explains why there are two.
  *
- *   const source: DataSource = new ApiDataSource(baseUrl, token);
+ * The user id is not passed in: it comes from `userScope`, which the auth layer
+ * fills in when Firebase hands over a session. That indirection is what lets
+ * this graph be built once at module load, before anybody has signed in.
  */
 function createDataSource(): DataSource {
-  return new MockDataSource();
+  const sql = getSqlClient(async () => getAuthSource().idToken());
+  return new TursoDataSource(sql, userScope);
 }
 
 export interface Repositories {

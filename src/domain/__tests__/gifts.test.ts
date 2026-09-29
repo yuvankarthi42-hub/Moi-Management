@@ -160,3 +160,35 @@ describe('the gift timeline', () => {
     expect(selectGiftTimelineForPerson(data, 'p1')).toHaveLength(0);
   });
 });
+
+describe('a function someone attended, now that a gift alone counts', () => {
+  it('counts a gift with no moi at all as one function attended', () => {
+    // Priya (p3) gives nothing by moi in the base fixture.
+    const before = selectPeople(makeDataset()).find((p) => p.id === 'p3')!;
+    expect(before.functionCount).toBe(0);
+
+    const after = selectPeople(
+      makeDataset({ gifts: [gift({ personId: 'p3' })] }),
+    ).find((p) => p.id === 'p3')!;
+
+    expect(after.functionCount).toBe(1);
+    expect(after.totalReceived).toBe(0); // still no moi — a gift's value never becomes one
+  });
+
+  it('does not double count a function where they gave both moi and a gift', () => {
+    // Murugan (p1) already has two moi entries at fn1 in the base fixture.
+    const data = makeDataset({ gifts: [gift({ personId: 'p1' })] });
+    const murugan = selectPeople(data).find((p) => p.id === 'p1')!;
+
+    expect(murugan.functionCount).toBe(1);
+    expect(murugan.giftCount).toBe(1);
+  });
+
+  it('counts two functions when a gift is at one they have not otherwise given at', () => {
+    // Murugan gave moi only at fn1. A gift at fn2 is a second function.
+    const data = makeDataset({ gifts: [gift({ personId: 'p1', functionId: 'fn2' })] });
+    const murugan = selectPeople(data).find((p) => p.id === 'p1')!;
+
+    expect(murugan.functionCount).toBe(2);
+  });
+});

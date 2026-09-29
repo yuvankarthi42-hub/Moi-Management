@@ -1,11 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import React from 'react';
+import { Redirect } from 'expo-router';
+import React, { useState } from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AuthError, useAuth } from '../src/auth';
 import { BrandMark } from '../src/components/app/BrandMark';
-import { Button, T } from '../src/components/ui';
+import { GoogleSignInButton } from '../src/components/app/GoogleSignInButton';
+import { T } from '../src/components/ui';
+import { useAuthDestination } from '../src/navigation/useAuthDestination';
 import { makeStyles, spacing, useColors } from '../src/theme';
 
 /**
@@ -18,8 +21,34 @@ import { makeStyles, spacing, useColors } from '../src/theme';
 export default function WelcomeScreen() {
   const styles = useStyles();
   const colors = useColors();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { signInWithGoogle } = useAuth();
+  const destination = useAuthDestination();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+
+  const onGoogle = async () => {
+    setError(undefined);
+    setBusy(true);
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      setError(err instanceof AuthError ? err.message : 'Sign-in failed. Try again.');
+      setBusy(false);
+    }
+  };
+
+  // `onGoogle` succeeding sets the account in place — the popup closes, this
+  // component stays exactly as mounted, nothing navigates anywhere on its
+  // own. So this screen has to notice its own state changing and send itself
+  // on; nothing upstream (`app/index.tsx` included) is watching for that once
+  // this one has been reached. See `useAuthDestination`.
+  //
+  // 'loading' is deliberately not redirected: it also covers the brief window
+  // on first mount before `AuthProvider.init()` has restored any existing
+  // session, which resolves to one of the other three within one render.
+  if (destination === 'phone') return <Redirect href="/auth/phone" />;
+  if (destination === 'home') return <Redirect href="/(tabs)" />;
 
   return (
     <LinearGradient colors={colors.splashGradient} style={styles.root}>
@@ -43,24 +72,22 @@ export default function WelcomeScreen() {
         </View>
 
         <View style={styles.actions}>
-          <Button
-            label="Create account"
-            size="lg"
-            block
-            onPress={() => router.push('/auth/sign-up')}
+          {/* One way in. Google is the only provider, so offering a choice
+              would only be offering the same thing twice. */}
+          <GoogleSignInButton
+            label={busy ? 'Signing in\u2026' : 'Continue with Google'}
+            loading={busy}
+            onPress={onGoogle}
           />
-          <Button
-            label="I already have an account"
-            variant="ghost"
-            size="lg"
-            block
-            // The gradient is the same deep purple in both themes, so the
-            // label takes its colour from the surface it sits on, not the
-            // palette's page foregrounds.
-            textColor={colors.onPrimary}
-            style={styles.secondary}
-            onPress={() => router.push('/auth/sign-in')}
-          />
+          {error ? (
+            <T variant="small" tone="onPrimary" center style={styles.error}>
+              {error}
+            </T>
+          ) : (
+            <T variant="caption" color={colors.onPrimaryMuted} center style={styles.error}>
+              New here? Signing in creates your moi book.
+            </T>
+          )}
         </View>
       </View>
     </LinearGradient>
@@ -89,9 +116,7 @@ const useStyles = makeStyles(() => ({
     alignSelf: 'stretch',
     gap: spacing.sm,
   },
-  secondary: {
-    // Ghost on the gradient, so it reads as the quieter of the two without a
-    // second filled button competing with "Create account".
-    backgroundColor: 'rgba(255,255,255,0.12)',
+  error: {
+    marginTop: spacing.xs,
   },
 }));

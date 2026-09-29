@@ -64,7 +64,7 @@ export function PersonPicker({
           {item.name}
         </T>
         <T variant="caption" tone="muted" numberOfLines={1}>
-          {[item.village, item.phone ? formatPhone(item.phone) : undefined]
+          {[item.village, item.phone ? formatPhone(item.phone, item.countryCode) : undefined]
             .filter(Boolean)
             .join(' · ') || 'No details yet'}
         </T>

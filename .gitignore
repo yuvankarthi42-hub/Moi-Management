@@ -16,3 +16,8 @@ yarn-error.*
 ios/
 android/
 expo-env.d.ts
+
+# Secrets. The Turso token is read-write and the repo is public: never commit it.
+.env
+.env.*
+!.env.example

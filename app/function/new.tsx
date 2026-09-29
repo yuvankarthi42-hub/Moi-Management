@@ -173,7 +173,7 @@ export default function FunctionFormScreen() {
           label="Venue (optional)"
           value={venue}
           onChangeText={setVenue}
-          placeholder="Sri Lakshmi Mahal, Tenkasi"
+          placeholder="Sri Lakshmi Mahal, Dindigul"
           autoCapitalize="words"
         />
 
@@ -184,7 +184,7 @@ export default function FunctionFormScreen() {
           value={village}
           onChangeText={setVillage}
           suggestions={villages}
-          placeholder="Tenkasi"
+          placeholder="Dindigul"
           autoCapitalize="words"
           leftIcon="location-outline"
         />

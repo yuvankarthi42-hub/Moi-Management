@@ -107,7 +107,7 @@ describe('receipt', () => {
       '₹1,001',
       'One Thousand and One Rupees Only',
       'From: B. Murugan',
-      'Phone: 98765 43210',
+      'Phone: +91 98765 43210',
       'Village: Tenkasi',
       'Payment: Cash',
       'Recorded: 13 May 2026',

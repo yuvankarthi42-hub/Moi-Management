@@ -332,7 +332,10 @@ export interface PersonWithStats extends Person {
    * they have had back, so the household still owes a return.
    */
   balance: number;
-  /** How many of our functions they contributed to. */
+  /**
+   * How many of our functions they attended — gave moi at, gave a gift at, or
+   * both. Deduplicated per function, so both at once still counts as one.
+   */
   functionCount: number;
   /** Their most recent contribution, if any. */
   /** Gifts they have given the household, and gifts given back to them. */
@@ -364,9 +367,13 @@ export function selectPeople(data: Dataset): PersonWithStats[] {
     else givenByPerson.set(given.personId, [given]);
   }
 
-  const giftsByPerson = new Map<ID, number>();
+  // Kept as the entries themselves, not a running count — functionCount below
+  // needs each gift's functionId too, to know which function it was for.
+  const giftsByPerson = new Map<ID, GiftEntry[]>();
   for (const gift of data.gifts) {
-    giftsByPerson.set(gift.personId, (giftsByPerson.get(gift.personId) ?? 0) + 1);
+    const list = giftsByPerson.get(gift.personId);
+    if (list) list.push(gift);
+    else giftsByPerson.set(gift.personId, [gift]);
   }
   const giftsReturnedByPerson = new Map<ID, number>();
   for (const gift of data.giftsGiven) {
@@ -388,13 +395,23 @@ export function selectPeople(data: Dataset): PersonWithStats[] {
         (total, g) => total + g.amount,
         0,
       );
+      const gifts = giftsByPerson.get(person.id) ?? [];
+      // A function they attended: one they gave moi at, gave a gift at, or
+      // both — a function where they did both still counts once, the same as
+      // two moi entries at one function always have. A person can give a gift
+      // with no moi at all, so the gift side has to be counted here too, not
+      // only the moi side.
+      const functionCount = new Set([
+        ...entries.map((e) => e.functionId),
+        ...gifts.map((g) => g.functionId),
+      ]).size;
       return {
         ...person,
         totalReceived,
         totalGiven,
         balance: totalReceived - totalGiven,
-        functionCount: new Set(entries.map((e) => e.functionId)).size,
-        giftCount: giftsByPerson.get(person.id) ?? 0,
+        functionCount,
+        giftCount: gifts.length,
         giftsReturnedCount: giftsReturnedByPerson.get(person.id) ?? 0,
         lastAmount: latest?.entry.amount,
         lastFunctionId: latest?.entry.functionId,

@@ -1,14 +1,18 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext, useCallback, useContext, useEffect, useMemo, useState,
+} from 'react';
 
+import type { Account } from './AuthSource';
 import { getAuthSource } from './source';
-import type { Account, SignInInput, SignUpInput } from './AuthSource';
 
 interface AuthValue {
   account?: Account;
   /** True until the stored session has been read; routing waits on this. */
   loading: boolean;
-  signUp: (input: SignUpInput) => Promise<void>;
-  signIn: (input: SignInInput) => Promise<void>;
+  /** Signed in, but has not given a mobile number yet. */
+  needsPhone: boolean;
+  signInWithGoogle: () => Promise<void>;
+  savePhone: (countryCode: string, phone: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -20,6 +24,10 @@ const AuthContext = createContext<AuthValue | undefined>(undefined);
  * Kept outside `AppDataProvider` rather than folded into it: the dataset is the
  * household's books and loads the same way whoever is holding the phone, while
  * this decides which screens they get to see at all.
+ *
+ * It also subscribes to Firebase rather than only reading once, so a session
+ * that expires or is signed out in another tab drops this app back to the
+ * welcome screen instead of leaving it on a page it can no longer load.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const source = useMemo(() => getAuthSource(), []);
@@ -28,29 +36,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
+
     (async () => {
       try {
         await source.init();
         const current = await source.currentAccount();
         if (!cancelled) setAccount(current);
+        unsubscribe = source.onChange((next) => {
+          if (!cancelled) setAccount(next);
+        });
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
+
     return () => {
       cancelled = true;
+      unsubscribe?.();
     };
   }, [source]);
 
-  // Errors are deliberately not caught here: the forms show them against the
-  // field that caused them, which needs the AuthError itself.
-  const signUp = useCallback(
-    async (input: SignUpInput) => setAccount(await source.signUp(input)),
-    [source],
-  );
+  // Errors are deliberately not caught here: the screens show them where they
+  // belong, which needs the AuthError itself.
+  const signInWithGoogle = useCallback(async () => {
+    setAccount(await source.signInWithGoogle());
+  }, [source]);
 
-  const signIn = useCallback(
-    async (input: SignInInput) => setAccount(await source.signIn(input)),
+  const savePhone = useCallback(
+    async (countryCode: string, phone: string) => {
+      setAccount(await source.savePhone(countryCode, phone));
+    },
     [source],
   );
 
@@ -60,8 +76,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [source]);
 
   const value = useMemo<AuthValue>(
-    () => ({ account, loading, signUp, signIn, signOut }),
-    [account, loading, signUp, signIn, signOut],
+    () => ({
+      account,
+      loading,
+      needsPhone: !!account && !account.phone,
+      signInWithGoogle,
+      savePhone,
+      signOut,
+    }),
+    [account, loading, signInWithGoogle, savePhone, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

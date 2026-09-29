@@ -22,6 +22,7 @@ export function PhoneField({
   error,
   label = 'Mobile number',
   autoFocus,
+  required = true,
 }: {
   countryCode: string;
   onChangeCountryCode: (code: string) => void;
@@ -30,6 +31,8 @@ export function PhoneField({
   error?: string;
   label?: string;
   autoFocus?: boolean;
+  /** Sign-up cannot skip a number; a contact's own phone can. */
+  required?: boolean;
 }) {
   const styles = useStyles();
   const colors = useColors();
@@ -39,7 +42,7 @@ export function PhoneField({
   return (
     <View style={styles.wrap}>
       <T variant="smallStrong" tone="secondary" style={styles.label}>
-        {label} <T variant="smallStrong" tone="danger">*</T>
+        {label} {required ? <T variant="smallStrong" tone="danger">*</T> : null}
       </T>
 
       <View style={[styles.row, error ? styles.rowError : null]}>

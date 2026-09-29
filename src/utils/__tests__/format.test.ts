@@ -45,11 +45,19 @@ describe('names and phones', () => {
     expect(initials('  ')).toBe('?');
   });
 
-  it('formats Indian mobile numbers, leaving others alone', () => {
-    expect(formatPhone('9876543210')).toBe('98765 43210');
+  it('formats a bare 10-digit number, leaving others alone', () => {
+    // No country code given: defaults to +91, the one this app supported
+    // before `Person.countryCode` existed — a bare number never comes back
+    // with no code on it at all.
+    expect(formatPhone('9876543210')).toBe('+91 98765 43210');
     expect(formatPhone('919876543210')).toBe('+91 98765 43210');
     expect(formatPhone('123')).toBe('123');
     expect(formatPhone(undefined)).toBe('');
+  });
+
+  it('uses the contact’s own stored country code over the +91 default', () => {
+    expect(formatPhone('9876543210', '+44')).toBe('+44 98765 43210');
+    expect(formatPhone('9876543210', '+91')).toBe('+91 98765 43210');
   });
 });
 

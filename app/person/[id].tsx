@@ -14,7 +14,7 @@ import { buildReturnMoiReport, describeBalance, selectGiftTimelineForPerson, sel
 import { useAppData } from '../../src/store/AppDataProvider';
 import { makeStyles, radius, spacing, typography, useColors } from '../../src/theme';
 import { countdownLabel, formatDate } from '../../src/utils/date';
-import { formatMoney, formatMoneyCompact, formatPhone } from '../../src/utils/format';
+import { formatCount, formatMoney, formatMoneyCompact, formatPhone } from '../../src/utils/format';
 
 /** Kept in sync with `styles.hero`, since the collapse threshold derives from it. */
 const HERO_HEIGHT = 200;
@@ -83,7 +83,7 @@ export default function PersonProfileScreen() {
   /** Opens the dialler / SMS app. Silently ignored if no app can handle it. */
   const openLink = async (scheme: 'tel' | 'sms') => {
     if (!person.phone) return;
-    const url = `${scheme}:${person.phone}`;
+    const url = `${scheme}:${person.countryCode ?? '+91'}${person.phone}`;
     const supported = await Linking.canOpenURL(url);
     if (supported) await Linking.openURL(url);
     else Alert.alert('Not available', 'This device cannot open that app.');
@@ -237,6 +237,25 @@ export default function PersonProfileScreen() {
               },
             ]}
           />
+          {/* Counts only, in the same card as moi — a gift's value is not
+              summed into anything here, on purpose (spec: a gift's value is
+              never as prominent as its name). Kept unconditional, same as the
+              moi row above it, so this card always has the same shape. */}
+          <StatRow
+            compactLabels
+            style={styles.giftStatRow}
+            items={[
+              {
+                label: 'Gifts Received',
+                value: formatCount(person.giftCount),
+                tone: person.giftCount > 0 ? 'warning' : 'default',
+              },
+              {
+                label: 'Gifts Returned',
+                value: formatCount(person.giftsReturnedCount),
+              },
+            ]}
+          />
         </Card>
 
         {/* States the balance in words — a signed number alone leaves the
@@ -319,7 +338,11 @@ export default function PersonProfileScreen() {
         {tab === 'overview' ? (
         <Card style={styles.detailCard}>
           {person.phone ? (
-            <DetailRow icon="call-outline" label="Phone" value={formatPhone(person.phone)} />
+            <DetailRow
+              icon="call-outline"
+              label="Phone"
+              value={formatPhone(person.phone, person.countryCode)}
+            />
           ) : null}
           {person.village ? (
             <DetailRow icon="location-outline" label="Village" value={person.village} />
@@ -770,6 +793,12 @@ const useStyles = makeStyles((colors) => ({
     marginHorizontal: spacing.lg,
     marginTop: spacing.md,
     paddingVertical: spacing.md,
+  },
+  giftStatRow: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
   },
   detailCard: {
     marginHorizontal: spacing.lg,

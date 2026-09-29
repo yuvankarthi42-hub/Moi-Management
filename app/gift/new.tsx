@@ -232,7 +232,7 @@ export default function GiftFormScreen() {
           label="Notes (optional)"
           value={notes}
           onChangeText={setNotes}
-          placeholder="Happy wishes to Harthick"
+          placeholder="Happy wishes to Karthick"
           multiline
           numberOfLines={3}
           style={styles.notes}

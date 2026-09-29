@@ -34,7 +34,7 @@ export function PersonRow({
             <View style={styles.metaRow}>
               <Ionicons name="call-outline" size={11} color={colors.textMuted} />
               <T variant="caption" tone="muted" numberOfLines={1}>
-                {formatPhone(person.phone)}
+                {formatPhone(person.phone, person.countryCode)}
               </T>
             </View>
           ) : null}

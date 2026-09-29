@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider } from '../src/auth';
+import { OfflineBanner } from '../src/components/app/OfflineBanner';
 import { AppDataProvider, useAppData } from '../src/store/AppDataProvider';
 import { ToastProvider } from '../src/components/ui';
 import { ThemeProvider, useTheme } from '../src/theme';
@@ -51,6 +52,8 @@ function ThemedApp() {
       {/* Inside the theme so toasts follow it, outside the navigator so one
           survives the screen that raised it closing. */}
       <ToastProvider>
+        {/* Above everything, so it is visible on whichever screen is open. */}
+        <OfflineBanner />
         <AppChrome />
       </ToastProvider>
     </ThemeProvider>

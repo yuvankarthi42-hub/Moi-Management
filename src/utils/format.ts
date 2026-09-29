@@ -48,12 +48,23 @@ export function initials(name: string): string {
 }
 
 /** `98765 43210` for Indian ten-digit numbers; returned unchanged otherwise. */
-export function formatPhone(phone?: string): string {
+/**
+ * `countryCode` is what a contact actually has stored (`Person.countryCode`).
+ * It is optional only for numbers saved before that field existed — those
+ * fall back to +91, the one dialling code the app supported until now, rather
+ * than showing a number with no code on it at all.
+ */
+export function formatPhone(phone?: string, countryCode?: string): string {
   if (!phone) return '';
   const digits = phone.replace(/\D/g, '');
-  if (digits.length === 10) return `${digits.slice(0, 5)} ${digits.slice(5)}`;
+  // A code already embedded in the digits — the shape every number saved
+  // before `countryCode` existed as its own field. Read here rather than
+  // migrated, since nothing about that old data was actually wrong.
   if (digits.length === 12 && digits.startsWith('91')) {
     return `+91 ${digits.slice(2, 7)} ${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `${countryCode ?? '+91'} ${digits.slice(0, 5)} ${digits.slice(5)}`;
   }
   return phone;
 }

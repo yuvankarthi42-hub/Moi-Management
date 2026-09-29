@@ -2,7 +2,9 @@ import React, {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
 
+import { useAuth } from '../auth';
 import { getRepositories, type Repositories } from '../data';
+import { useOnline } from '../data/connectivity';
 import type {
   NewExpense, NewFamily, NewFamilyMember, NewFunction, NewMoiEntry, NewMoiGiven,
   NewGift, NewGiftGiven, NewPerson, NewPersonEvent,
@@ -11,6 +13,7 @@ import {
   EMPTY_DATASET, type AppSettings, type Dataset, type FamilyRole, type ID,
   type UserProfile,
 } from '../domain/models';
+import { clearSnapshot, readSnapshot, saveSnapshot } from './DatasetCache';
 
 /**
  * Loads the whole dataset into memory once, then hands screens a snapshot plus
@@ -19,6 +22,13 @@ import {
  * Reloading everything after a write is deliberate: the dataset is small, and
  * it guarantees every screen (home totals, reports, person history) agrees
  * after any edit, with no cache-invalidation logic to get wrong.
+ *
+ * Offline is read-only, by design and not by accident. When the database cannot
+ * be reached the last fetched snapshot is shown and every mutation is refused
+ * here — not only hidden in the UI, so a screen that forgets to disable a
+ * button still cannot write. And only fetched data is ever cached: a write goes
+ * to the database, the snapshot is re-fetched, and it is that fetch which is
+ * stored, so the cache can never hold a record the database does not have.
  */
 
 interface AppDataValue {
@@ -26,6 +36,12 @@ interface AppDataValue {
   loading: boolean;
   error?: string;
   repositories: Repositories;
+  /** False when the database is unreachable. Nothing can be written. */
+  online: boolean;
+  /** When the records on screen came from the cache rather than the database. */
+  showingCached: boolean;
+  /** When that cached snapshot was fetched, for the offline banner. */
+  cachedAt?: string;
 
   refresh: () => Promise<void>;
 
@@ -83,14 +99,47 @@ interface AppDataValue {
   restoreBackup: (json: string) => Promise<void>;
 }
 
+/**
+ * Raised when a write is attempted with no connection.
+ *
+ * Its own type so screens can tell "you are offline" apart from a validation
+ * failure and say the right thing, rather than showing a network message
+ * against a field.
+ */
+export class OfflineWriteError extends Error {
+  constructor() {
+    super('You are offline. Reconnect to add, edit or delete.');
+    this.name = 'OfflineWriteError';
+  }
+}
+
+/**
+ * Whether a write may go ahead.
+ *
+ * A named function rather than an inline condition so the rule can be stated
+ * and tested on its own: showing a cached snapshot is enough to refuse, even
+ * if the connection has come back, because what is on screen is not what the
+ * database holds and an edit would be applied to the wrong numbers.
+ */
+export function canWrite(state: { online: boolean; showingCached: boolean }): boolean {
+  return state.online && !state.showingCached;
+}
+
 const AppDataContext = createContext<AppDataValue | undefined>(undefined);
 
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const repositories = useMemo(() => getRepositories(), []);
+  const { account, loading: authLoading } = useAuth();
+  const online = useOnline();
   const [data, setData] = useState<Dataset>(EMPTY_DATASET);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | undefined>();
+  const [showingCached, setShowingCached] = useState(false);
+  const [cachedAt, setCachedAt] = useState<string | undefined>();
   const mounted = useRef(true);
+  /** Remembered so a sign-out can clear the snapshot it leaves behind. */
+  const lastUserId = useRef<string | undefined>(undefined);
+  const userId = account?.id;
 
   useEffect(() => {
     mounted.current = true;
@@ -120,28 +169,76 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       source.getSettings(),
     ]);
     if (!mounted.current) return;
-    setData({
+    const snapshot: Dataset = {
       people, families, functions, moiEntries, moiGiven, gifts, giftsGiven, expenses,
       personEvents, familyMembers, profile, settings,
-    });
-  }, [repositories]);
+    };
+    setData(snapshot);
+    setShowingCached(false);
+    setCachedAt(undefined);
+    // Cached only here, where the data has just come from the database. No
+    // mutation writes to the cache, so it cannot drift from what is stored.
+    if (userId) void saveSnapshot(userId, snapshot);
+  }, [repositories, userId]);
 
   useEffect(() => {
     let cancelled = false;
+
+    // Nothing to fetch until somebody is signed in, and every query would
+    // throw for want of a user id. Hold the empty dataset instead.
+    if (authLoading) return;
+    if (!userId) {
+      // Signing out is a request to leave nothing behind on this phone, so the
+      // snapshot goes with the session. It is keyed by user id, so another
+      // account could never have read it anyway — this is about the person who
+      // just signed out, on a phone they may be handing back.
+      const previous = lastUserId.current;
+      if (previous) void clearSnapshot(previous);
+      lastUserId.current = undefined;
+      setData(EMPTY_DATASET);
+      setShowingCached(false);
+      setError(undefined);
+      setLoading(false);
+      return;
+    }
+    lastUserId.current = userId;
+
+    setLoading(true);
     (async () => {
       try {
         await repositories.source.init();
         if (!cancelled) await load();
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Could not load your data.');
+        if (cancelled) return;
+        // The database could not be reached. Fall back to the last snapshot
+        // fetched for *this* user — never another account's.
+        const cached = await readSnapshot(userId);
+        if (cancelled) return;
+        if (cached) {
+          setData(cached.dataset);
+          setShowingCached(true);
+          setCachedAt(cached.fetchedAt);
+          setError(undefined);
+        } else {
+          setError(e instanceof Error ? e.message : 'Could not load your data.');
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
+
     return () => {
       cancelled = true;
     };
-  }, [repositories, load]);
+  }, [repositories, load, userId, authLoading]);
+
+  /** Retries the fetch when the connection comes back. */
+  useEffect(() => {
+    if (!online || !userId || !showingCached) return;
+    void load().catch(() => {
+      // Still unreachable. The cached snapshot stays on screen.
+    });
+  }, [online, userId, showingCached, load]);
 
   /**
    * Runs a mutation and refreshes the snapshot. Errors propagate so the calling
@@ -149,11 +246,17 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
    */
   const mutate = useCallback(
     async <T,>(op: () => Promise<T>): Promise<T> => {
+      // The single gate on every write in the app. Screens also disable their
+      // own buttons, but this is what makes offline read-only true rather than
+      // merely discouraged: a screen that forgets still cannot get through.
+      if (!canWrite({ online, showingCached })) {
+        throw new OfflineWriteError();
+      }
       const result = await op();
       await load();
       return result;
     },
-    [load],
+    [load, online, showingCached],
   );
 
   const value = useMemo<AppDataValue>(() => {
@@ -165,6 +268,9 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       loading,
       error,
       repositories,
+      online,
+      showingCached,
+      cachedAt,
       refresh: load,
 
       addPerson: (input) => mutate(() => people.create(input)).then((p) => p.id),
@@ -212,7 +318,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       resetDemoData: () => mutate(() => settings.resetDemoData()),
       restoreBackup: (json) => mutate(() => settings.restoreBackup(json)),
     };
-  }, [data, loading, error, repositories, load, mutate]);
+  }, [data, loading, error, repositories, load, mutate, online, showingCached, cachedAt]);
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
 }

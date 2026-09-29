@@ -9,6 +9,7 @@ import { AppHeader, Avatar, Button, DockedFooter, Field, KeyboardForm, Screen, u
 import { ValidationError } from '../../src/data';
 import { useAppData } from '../../src/store/AppDataProvider';
 import { makeStyles, spacing, useColors } from '../../src/theme';
+import { persistentPhotoUri } from '../../src/utils/persistentPhotoUri';
 
 export default function ProfileScreen() {
   const styles = useStyles();
@@ -37,8 +38,13 @@ export default function ProfileScreen() {
       quality: 0.6,
       allowsEditing: true,
       aspect: [1, 1],
+      // See persistentPhotoUri — the URI this would otherwise return does
+      // not survive a reload.
+      base64: true,
     });
-    if (!result.canceled && result.assets[0]) setPhotoUri(result.assets[0].uri);
+    if (!result.canceled && result.assets[0]) {
+      setPhotoUri(persistentPhotoUri(result.assets[0]));
+    }
   };
 
   const save = async () => {
@@ -91,7 +97,7 @@ export default function ProfileScreen() {
           label="Phone"
           value={phone}
           onChangeText={setPhone}
-          placeholder="98765 43210"
+          placeholder="701xxxxx70"
           keyboardType="phone-pad"
           leftIcon="call-outline"
         />
@@ -108,7 +114,7 @@ export default function ProfileScreen() {
           label="Village"
           value={village}
           onChangeText={setVillage}
-          placeholder="Tenkasi"
+          placeholder="Dindigul"
           autoCapitalize="words"
           leftIcon="location-outline"
         />

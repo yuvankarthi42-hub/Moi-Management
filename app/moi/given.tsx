@@ -244,7 +244,7 @@ export default function MoiGivenScreen() {
             label="Occasion (optional)"
             value={occasion}
             onChangeText={setOccasion}
-            placeholder="Murugan Marriage"
+            placeholder="Nithin Birthday"
             autoCapitalize="words"
             leftIcon="sparkles-outline"
           />

@@ -1,3 +1,4 @@
+import { DEFAULT_COUNTRY } from '../../auth/countryCodes';
 import type { Family, ID, Person } from '../../domain/models';
 import type { DataSource, NewFamily, NewPerson } from '../DataSource';
 import { NotFoundError, ValidationError } from './errors';
@@ -85,10 +86,15 @@ export class PeopleRepository {
     if (phone && (phone.length < 6 || phone.length > 15)) {
       throw new ValidationError('Enter a valid phone number.', 'phone');
     }
+    // A code only means anything alongside a number, and a number always
+    // needs one — including a contact saved before this field existed, where
+    // it defaults here rather than at every place the number is later shown.
+    const countryCode = phone ? input.countryCode || DEFAULT_COUNTRY.code : undefined;
 
     return {
       ...input,
       name,
+      countryCode,
       phone,
       village: input.village?.trim() || undefined,
       relation: input.relation?.trim() || undefined,

@@ -61,7 +61,15 @@ export function buildFunctionSheetHtml({
 
   const net = fn.collected - fn.expenses;
 
-  // --- 1. Overview ---------------------------------------------------------
+  // --- 1. Overview -----------------------------------------------------
+  // Details only — what the function was, not what it cost or brought in.
+  // Moi collected, Gifts and Net used to be rows in this same table,
+  // underneath a Status row, in the same left-aligned column of "Detail /
+  // Value" pairs. Nothing here was ever wrong arithmetically — Net already
+  // never counted a gift's value — but the *table* did not say that, and
+  // reading three unrelated kinds of figure straight down one column reads as
+  // one running total. Financial summary below is the only place money
+  // appears now, and gifts get their own section entirely.
   const overviewRows: string[][] = [
     ['Function Type', `${meta.emoji}  ${meta.label}`],
     ['Date', formatDateLong(fn.date)],
@@ -70,14 +78,6 @@ export function buildFunctionSheetHtml({
     ...(fn.village ? [['Village', fn.village]] : []),
     ...(fn.host ? [['Host', fn.host]] : []),
     ['Status', fn.status === 'upcoming' ? 'Upcoming' : 'Completed'],
-    ['Moi collected', `${formatMoney(fn.collected)} from ${fn.entryCount} entries`],
-    ...(fn.giftCount
-      ? [['Gifts', `${fn.giftCount} ${fn.giftCount === 1 ? 'gift' : 'gifts'}${
-          fn.giftValue ? `, valued at ${formatMoney(fn.giftValue)}` : ', not priced'
-        }`]]
-      : []),
-    ['Expenses', `${formatMoney(fn.expenses)} across ${fn.expenseCount} items`],
-    ['Net', `${net < 0 ? '-' : ''}${formatMoney(Math.abs(net))}`],
   ];
 
   const overview =
@@ -91,6 +91,17 @@ export function buildFunctionSheetHtml({
     // numericFrom 2 keeps both columns left-aligned: these are labels and
     // values, not figures to compare down a column.
     table(['Detail', 'Value'], overviewRows, 2);
+
+  // --- 1b. Financial summary --------------------------------------------
+  // Moi and expenses only. A gift's value is never in this table, in Net, or
+  // anywhere near it — see the Gifts section below instead.
+  const financialRows: string[][] = [
+    ['Moi collected', `${formatMoney(fn.collected)} from ${fn.entryCount} entries`],
+    ['Expenses', `${formatMoney(fn.expenses)} across ${fn.expenseCount} items`],
+    ['Net', `${net < 0 ? '-' : ''}${formatMoney(Math.abs(net))}`],
+  ];
+  const financialSummary =
+    '<h2>Financial summary</h2>' + table(['Detail', 'Value'], financialRows, 2);
 
   // --- 2. Moi details ------------------------------------------------------
   const moi = entries.length
@@ -111,10 +122,11 @@ export function buildFunctionSheetHtml({
 
   // --- 3. Gifts ------------------------------------------------------------
   // Their own section, not a column on the moi table: a gift has no payment
-  // type and its value, where there is one, is an estimate kept out of the
-  // collection.
+  // type, and its value — where there is one — is the host's own estimate,
+  // never summed into moi collected, expenses or Net above.
   const giftSheet = gifts.length
-    ? table(
+    ? '<p class="sub">Not counted in moi collected, expenses or net.</p>' +
+      table(
         ['#', 'From', 'Village', 'Gift', 'Value'],
         gifts.map((gift, index) => [
           String(index + 1),
@@ -124,7 +136,7 @@ export function buildFunctionSheetHtml({
           gift.value ? `${formatMoney(gift.value)}*` : '—',
         ]),
         4,
-      ) + '<p class="sub">* The host’s own estimate. Not counted in moi collected.</p>'
+      ) + '<p class="sub">* The host’s own estimate.</p>'
     : '';
 
   // --- 4. Expenses ---------------------------------------------------------
@@ -146,11 +158,12 @@ export function buildFunctionSheetHtml({
 
   const body =
     overview +
-    `<h2>Moi details (${fn.entryCount} ${fn.entryCount === 1 ? 'entry' : 'entries'})</h2>` +
-    moi +
+    financialSummary +
     (gifts.length
       ? `<h2>Gifts (${gifts.length} ${gifts.length === 1 ? 'gift' : 'gifts'})</h2>` + giftSheet
       : '') +
+    `<h2>Moi details (${fn.entryCount} ${fn.entryCount === 1 ? 'entry' : 'entries'})</h2>` +
+    moi +
     `<h2>Expenses (${fn.expenseCount} ${fn.expenseCount === 1 ? 'item' : 'items'})</h2>` +
     expenseSheet;
 

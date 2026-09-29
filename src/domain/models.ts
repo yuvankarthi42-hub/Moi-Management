@@ -54,6 +54,14 @@ export type FamilyRole = 'owner' | 'admin' | 'editor' | 'viewer';
 export interface Person {
   id: ID;
   name: string;
+  /**
+   * Dialling code including the plus, e.g. "+91". Kept apart from `phone`
+   * rather than folded into it: `PeopleRepository.normalisePhone` strips a
+   * country code off `phone` on every save, on purpose, so two numbers typed
+   * with and without one still dedupe as the same person — a code baked into
+   * that same string would just be stripped straight back out.
+   */
+  countryCode?: string;
   phone?: string;
   village?: string;
   /** Owning family, when the person has been grouped into one. */

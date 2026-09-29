@@ -38,7 +38,12 @@ export function GiftRow({
     <Card onPress={onPress} style={styles.card} padded={false}>
       <View style={styles.row}>
         {showPerson ? (
-          <Avatar name={gift.person?.name ?? '?'} seed={gift.personId} size={42} />
+          <Avatar
+            name={gift.person?.name ?? '?'}
+            uri={gift.person?.photoUri}
+            seed={gift.personId}
+            size={42}
+          />
         ) : (
           <View style={styles.icon}>
             <Ionicons name="gift" size={19} color={colors.warning} />

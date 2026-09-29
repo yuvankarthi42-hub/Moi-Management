@@ -332,7 +332,9 @@ export default function FunctionDetailScreen() {
         </ScrollView>
 
         <View style={styles.tabContent}>
-          {tab === 'overview' ? <OverviewTab fn={fn} /> : null}
+          {tab === 'overview' ? (
+            <OverviewTab fn={fn} onViewGifts={() => setTab('gifts')} />
+          ) : null}
 
           {tab === 'moi' ? (
             entries.length > 0 ? (
@@ -510,49 +512,59 @@ export default function FunctionDetailScreen() {
   );
 }
 
-/** Overview tab — the details the host entered, plus the money summary. */
-function OverviewTab({ fn }: { fn: FunctionWithStats }) {
+/**
+ * Overview tab — the details the host entered, the money summary, and gifts.
+ *
+ * Three separate cards rather than one long one, and that split is the point:
+ * a gift's value was previously a row inside the same money block as Moi
+ * collected and Expenses, in the same column of figures as Net — arithmetic
+ * never added it in, but sitting there made it look like it should. Financial
+ * summary is now its own card with nothing else in it, and gifts are reported
+ * by count, in a card that says outright that the count is not part of the
+ * total above it.
+ */
+function OverviewTab({
+  fn,
+  onViewGifts,
+}: {
+  fn: FunctionWithStats;
+  onViewGifts: () => void;
+}) {
   const styles = useStyles();
+  const colors = useColors();
   const meta = functionTypeMeta(fn.type);
   return (
-    <Card>
-      <DetailRow label="Function Type" value={`${meta.emoji}  ${meta.label}`} />
-      <DetailRow label="Date" value={formatDateLong(fn.date)} />
-      {fn.time ? <DetailRow label="Time" value={fn.time} /> : null}
-      {fn.village ? <DetailRow label="Village" value={fn.village} /> : null}
-      {fn.host ? <DetailRow label="Host" value={fn.host} /> : null}
-      <DetailRow label="Created On" value={formatDate(fn.createdAt.slice(0, 10))} />
+    <>
+      <Card style={styles.detailsCard}>
+        <DetailRow label="Function Type" value={`${meta.emoji}  ${meta.label}`} />
+        <DetailRow label="Date" value={formatDateLong(fn.date)} />
+        {fn.time ? <DetailRow label="Time" value={fn.time} /> : null}
+        {fn.village ? <DetailRow label="Village" value={fn.village} /> : null}
+        {fn.host ? <DetailRow label="Host" value={fn.host} /> : null}
+        <DetailRow label="Created On" value={formatDate(fn.createdAt.slice(0, 10))} />
 
-      {fn.notes ? (
-        <View style={styles.detailBlock}>
-          <T variant="caption" tone="muted">
-            Notes
-          </T>
-          <T variant="body" style={styles.detailNotes}>
-            {fn.notes}
-          </T>
-        </View>
-      ) : null}
+        {fn.notes ? (
+          <View style={styles.detailBlock}>
+            <T variant="caption" tone="muted">
+              Notes
+            </T>
+            <T variant="body" style={styles.detailNotes}>
+              {fn.notes}
+            </T>
+          </View>
+        ) : null}
+      </Card>
 
-      <View style={styles.moneyBlock}>
+      <T variant="captionStrong" tone="muted" style={styles.sectionEyebrow}>
+        FINANCIAL SUMMARY
+      </T>
+      <Card style={styles.moneyCard}>
         <View style={styles.moneyRow}>
           <T variant="small" tone="secondary">
             Moi collected ({fn.entryCount} entries)
           </T>
           <Money value={fn.collected} flow="in" />
         </View>
-        {fn.giftCount ? (
-          <View style={styles.moneyRow}>
-            <T variant="small" tone="secondary">
-              Gifts ({fn.giftCount} {fn.giftCount === 1 ? 'gift' : 'gifts'})
-            </T>
-            {/* Sits outside the collection on purpose, so it is reported on its
-                own line and never added into the figure above. */}
-            <T variant="bodyStrong" tone="warning">
-              {fn.giftValue ? formatMoney(fn.giftValue) : 'Not priced'}
-            </T>
-          </View>
-        ) : null}
         <View style={styles.moneyRow}>
           <T variant="small" tone="secondary">
             Expenses ({fn.expenseCount} items)
@@ -563,9 +575,32 @@ function OverviewTab({ fn }: { fn: FunctionWithStats }) {
           <T variant="bodyStrong">Net</T>
           <Money value={fn.net} flow={fn.net >= 0 ? 'in' : 'out'} variant="h3" />
         </View>
-      </View>
+      </Card>
 
-    </Card>
+      {fn.giftCount ? (
+        <>
+          <T variant="captionStrong" tone="muted" style={styles.sectionEyebrow}>
+            GIFTS
+          </T>
+          <Card onPress={onViewGifts} style={styles.giftCard} padded={false}>
+            <View style={styles.giftRow}>
+              <View style={styles.giftIcon}>
+                <Ionicons name="gift" size={17} color={colors.warning} />
+              </View>
+              <View style={styles.flex}>
+                <T variant="bodyStrong">
+                  {fn.giftCount} {fn.giftCount === 1 ? 'gift' : 'gifts'} received
+                </T>
+                <T variant="caption" tone="muted">
+                  Not counted in moi, expenses or net
+                </T>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </View>
+          </Card>
+        </>
+      ) : null}
+    </>
   );
 }
 
@@ -679,11 +714,16 @@ const useStyles = makeStyles((colors) => ({
   detailValue: { flex: 1, textAlign: 'right' },
   detailBlock: { marginTop: spacing.md },
   detailNotes: { marginTop: spacing.xs },
-  moneyBlock: {
-    marginTop: spacing.lg,
-    paddingTop: spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
+  detailsCard: {
+    marginBottom: spacing.lg,
+  },
+  sectionEyebrow: {
+    letterSpacing: 0.6,
+    marginBottom: spacing.sm,
+    marginLeft: spacing.xs,
+  },
+  moneyCard: {
+    marginBottom: spacing.lg,
   },
   moneyRow: {
     flexDirection: 'row',
@@ -696,6 +736,23 @@ const useStyles = makeStyles((colors) => ({
     paddingTop: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
+  },
+  giftCard: {
+    marginBottom: spacing.lg,
+  },
+  giftRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+  },
+  giftIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.pill,
+    backgroundColor: `${colors.warning}22`,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   photoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   photoCell: {
