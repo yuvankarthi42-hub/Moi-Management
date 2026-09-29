@@ -1,8 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
 import { paymentTypeMeta } from '../../domain/functionTypes';
-import { buildReceipt, printReceipt, shareReceipt } from '../../services/receiptService';
+import {
+  buildReceipt, buildReceiptText, printReceipt, shareReceipt,
+} from '../../services/receiptService';
 import { useAppData } from '../../store/AppDataProvider';
 import { makeStyles, spacing } from '../../theme';
 import { formatDate, formatTime } from '../../utils/date';
@@ -12,6 +14,7 @@ import { Button } from '../ui/Button';
 import { Sheet } from '../ui/Sheet';
 import { useToast } from '../ui/Toast';
 import { T } from '../ui/Text';
+import { ShareOptionsSheet } from './ShareOptionsSheet';
 
 /**
  * What a single recorded moi looks like after the fact.
@@ -31,8 +34,12 @@ export function MoiEntrySheet({
   const styles = useStyles();
   const { data } = useAppData();
   const { showToast } = useToast();
+  const [shareOpen, setShareOpen] = useState(false);
 
-  const share = async () => {
+  /** The existing generic share — PDF on native, text on web. Reached now
+   * through "More options" on the sheet below, rather than being the only
+   * choice a tap on Share led to. */
+  const shareMore = async () => {
     if (!receipt) return;
     const outcome = await shareReceipt(receipt);
     if (outcome === 'copied') {
@@ -114,7 +121,7 @@ export function MoiEntrySheet({
               icon="share-social-outline"
               variant="outline"
               block
-              onPress={share}
+              onPress={() => setShareOpen(true)}
             />
           </View>
 
@@ -125,6 +132,16 @@ export function MoiEntrySheet({
             block
             style={styles.openPerson}
             onPress={() => onOpenPerson(entry.personId)}
+          />
+
+          <ShareOptionsSheet
+            visible={shareOpen}
+            onClose={() => setShareOpen(false)}
+            personName={person?.name}
+            phone={person?.phone}
+            countryCode={person?.countryCode}
+            text={buildReceiptText(receipt)}
+            onMore={shareMore}
           />
         </View>
       ) : null}
