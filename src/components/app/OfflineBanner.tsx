@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppData } from '../../store/AppDataProvider';
-import { makeStyles, spacing, useColors } from '../../theme';
+import { makeStyles, safeAreaFloor, spacing, useColors } from '../../theme';
 import { T } from '../ui/Text';
 
 /**
@@ -24,7 +24,7 @@ export function OfflineBanner() {
   if (online && !showingCached) return null;
 
   return (
-    <View style={[styles.bar, { paddingTop: insets.top + spacing.xs }]}>
+    <View style={[styles.bar, { paddingTop: safeAreaFloor(insets.top, 'top', spacing.xs) }]}>
       <Ionicons name="cloud-offline-outline" size={15} color={colors.onPrimary} />
       <T variant="caption" tone="onPrimary" numberOfLines={1} style={styles.text}>
         Offline — viewing only{cachedAt ? `, saved ${describeAge(cachedAt)}` : ''}

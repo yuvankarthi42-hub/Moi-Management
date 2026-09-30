@@ -12,7 +12,7 @@ import { AppHeader, Avatar, Badge, Button, Card, DockedFooter, EmptyState, Money
 import { functionTypeMeta, paymentTypeMeta } from '../../src/domain/functionTypes';
 import { buildReturnMoiReport, describeBalance, selectGiftTimelineForPerson, selectMoiTimelineForPerson, selectPersonById, type GiftTimelineRow, type MoiTimelineRow } from '../../src/domain/selectors';
 import { useAppData } from '../../src/store/AppDataProvider';
-import { makeStyles, radius, spacing, typography, useColors } from '../../src/theme';
+import { makeStyles, radius, safeAreaFloor, spacing, typography, useColors } from '../../src/theme';
 import { countdownLabel, formatDate } from '../../src/utils/date';
 import { formatCount, formatMoney, formatMoneyCompact, formatPhone } from '../../src/utils/format';
 
@@ -116,11 +116,11 @@ export default function PersonProfileScreen() {
       <StatusBarScrim color="rgba(12, 6, 32, 0.55)" />
 
       <Animated.View
-        style={[styles.pinnedBar, { height: insets.top + BAR_HEIGHT, opacity: barProgress }]}
+        style={[styles.pinnedBar, { height: safeAreaFloor(insets.top, 'top', BAR_HEIGHT), opacity: barProgress }]}
         pointerEvents="none"
       />
 
-      <View style={[styles.controls, { paddingTop: insets.top + spacing.xs }]}>
+      <View style={[styles.controls, { paddingTop: safeAreaFloor(insets.top, 'top', spacing.xs) }]}>
         <Pressable
           onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/people'))}
           hitSlop={8}

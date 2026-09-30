@@ -4,7 +4,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { TAB_BAR_HEIGHT, contentColumn, makeStyles, spacing, useColors } from '../../theme';
+import {
+  TAB_BAR_HEIGHT, contentColumn, makeStyles, safeAreaFloor, spacing, useColors,
+} from '../../theme';
 
 /**
  * Root container for every screen.
@@ -61,8 +63,9 @@ export const ScreenScroll = forwardRef<ScrollView, ScreenScrollProps>(function S
 ) {
   const styles = useStyles();
   const insets = useSafeAreaInsets();
-  const paddingBottom =
-    insets.bottom + spacing.xxl + extraBottomSpace + (withTabBar ? TAB_BAR_HEIGHT : 0);
+  const paddingBottom = safeAreaFloor(
+    insets.bottom, 'bottom', spacing.xxl + extraBottomSpace + (withTabBar ? TAB_BAR_HEIGHT : 0),
+  );
 
   return (
     // Animated.ScrollView so a screen can drive a collapsing header off the
@@ -96,7 +99,7 @@ export const ScreenScroll = forwardRef<ScrollView, ScreenScrollProps>(function S
  */
 export function useListBottomPadding(withTabBar = false, extra = 0): number {
   const insets = useSafeAreaInsets();
-  return insets.bottom + spacing.xxl + extra + (withTabBar ? TAB_BAR_HEIGHT : 0);
+  return safeAreaFloor(insets.bottom, 'bottom', spacing.xxl + extra + (withTabBar ? TAB_BAR_HEIGHT : 0));
 }
 
 /**
@@ -112,13 +115,19 @@ export function StatusBarScrim({ color }: { color?: string }) {
   const styles = useStyles();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  if (insets.top === 0) return null;
+  // Native's own measurement is trustworthy, so skip rendering an empty view
+  // for the common case of no notch at all. Web cannot make that call in JS
+  // — this is the exact value `react-native-safe-area-context` can get wrong
+  // in a standalone iOS PWA — so there it always renders, with the browser's
+  // own `env()` deciding the height in CSS; on an unnotched device that
+  // still resolves to 0 and costs nothing.
+  if (Platform.OS !== 'web' && insets.top === 0) return null;
   return (
     <View
       pointerEvents="none"
       style={[
         styles.scrim,
-        { height: insets.top, backgroundColor: color ?? colors.headerGradient[0] },
+        { height: safeAreaFloor(insets.top, 'top'), backgroundColor: color ?? colors.headerGradient[0] },
       ]}
     />
   );
@@ -141,7 +150,7 @@ export function DockedFooter({
     <View
       style={[
         styles.footer,
-        { paddingBottom: Math.max(insets.bottom, spacing.md) + spacing.xs },
+        { paddingBottom: safeAreaFloor(Math.max(insets.bottom, spacing.md), 'bottom', spacing.xs) },
         style,
       ]}
     >

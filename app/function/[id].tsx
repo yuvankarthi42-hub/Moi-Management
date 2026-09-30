@@ -20,7 +20,7 @@ import { selectExpensesForFunction, selectFunctionById, selectGiftsForFunction, 
 import { shareFunctionSheet } from '../../src/services/functionSheet';
 import { useAppData } from '../../src/store/AppDataProvider';
 import {
-  makeStyles, radius, spacing, typography, useColors,
+  makeStyles, radius, safeAreaFloor, spacing, typography, useColors,
 } from '../../src/theme';
 import { countdownLabel, formatDate, formatDateLong } from '../../src/utils/date';
 import { formatCount, formatMoney, formatMoneyCompact } from '../../src/utils/format';
@@ -81,7 +81,7 @@ export default function FunctionDetailScreen() {
   if (!fn) {
     return (
       <Screen>
-        <View style={[styles.missing, { paddingTop: insets.top + spacing.xxxl }]}>
+        <View style={[styles.missing, { paddingTop: safeAreaFloor(insets.top, 'top', spacing.xxxl) }]}>
           {loading ? (
             <ActivityIndicator color={colors.primary} />
           ) : (
@@ -170,11 +170,11 @@ export default function FunctionDetailScreen() {
       />
 
       <Animated.View
-        style={[styles.pinnedBar, { height: insets.top + BAR_HEIGHT, opacity: barProgress }]}
+        style={[styles.pinnedBar, { height: safeAreaFloor(insets.top, 'top', BAR_HEIGHT), opacity: barProgress }]}
         pointerEvents="none"
       />
 
-      <View style={[styles.controls, { paddingTop: insets.top + spacing.xs }]}>
+      <View style={[styles.controls, { paddingTop: safeAreaFloor(insets.top, 'top', spacing.xs) }]}>
         <Pressable
           onPress={() =>
             router.canGoBack() ? router.back() : router.replace('/(tabs)/functions')
@@ -480,7 +480,7 @@ export default function FunctionDetailScreen() {
 
       {/* One button for all three things a function takes, rather than a
           button each competing for the same strip. */}
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
+      <View style={[styles.footer, { paddingBottom: safeAreaFloor(Math.max(insets.bottom, spacing.md), 'bottom') }]}>
         <AddActionsButton
           title={`Add to ${fn.title}`}
           actions={[

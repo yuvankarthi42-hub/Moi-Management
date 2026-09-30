@@ -9,7 +9,7 @@ import { BrandMark } from '../src/components/app/BrandMark';
 import { GoogleSignInButton } from '../src/components/app/GoogleSignInButton';
 import { T } from '../src/components/ui';
 import { useAuthDestination } from '../src/navigation/useAuthDestination';
-import { makeStyles, spacing, useColors } from '../src/theme';
+import { makeStyles, safeAreaFloor, spacing, useColors } from '../src/theme';
 
 /**
  * Landing screen — the first thing a new phone sees.
@@ -55,7 +55,10 @@ export default function WelcomeScreen() {
       <View
         style={[
           styles.body,
-          { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl },
+          {
+            paddingTop: safeAreaFloor(insets.top, 'top', spacing.xl),
+            paddingBottom: safeAreaFloor(insets.bottom, 'bottom', spacing.xl),
+          },
         ]}
       >
         {/* Takes the whole space above the buttons and centres the mark in it,

@@ -64,3 +64,37 @@ export const TAB_BAR_HEIGHT = 60;
 
 /** Diameter of the centre "add" action button that floats over the tab bar. */
 export const TAB_FAB_SIZE = 56;
+
+/**
+ * The inset `useSafeAreaInsets()` reports, reinforced with the browser's own
+ * `env(safe-area-inset-*)` on web — never in place of it.
+ *
+ * `react-native-safe-area-context`'s web detection measures a hidden element
+ * once, on mount, and depends on a CSS `transitionend` firing to know when to
+ * re-measure. That is reliable in an ordinary browser tab; running as an
+ * installed, standalone app on iOS is a different rendering context, and — by
+ * report — the top and bottom insets have come back wrong there, which reads
+ * as the header and tab bar ignoring the notch and the home indicator.
+ *
+ * `max()` is what makes this only ever a floor: on native this is inert
+ * (`Platform.OS !== 'web'` returns the plain number, unchanged); on web, if
+ * the library's own measurement is already correct, `max()` of two equal
+ * numbers changes nothing — it only takes over the moment that measurement
+ * comes back short.
+ */
+export function safeAreaFloor(
+  inset: number,
+  side: 'top' | 'bottom' | 'left' | 'right',
+  /** Breathing room wanted *in addition* to the inset — e.g. the gap below
+   * the status bar that a header keeps even on a device with no notch at
+   * all. Added outside the `max()`, never inside it: it is a design gap, not
+   * part of what the safe area itself requires. */
+  extra = 0,
+): number {
+  if (Platform.OS !== 'web') return inset + extra;
+  // A CSS function string in place of a number is a react-native-web escape
+  // hatch: RN's own types only allow a number here, but react-native-web's
+  // style engine passes a string straight through as real CSS, which is
+  // exactly what `calc()`/`max()`/`env()` need to be.
+  return `calc(max(${inset}px, env(safe-area-inset-${side})) + ${extra}px)` as unknown as number;
+}

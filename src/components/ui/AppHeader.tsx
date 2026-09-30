@@ -5,7 +5,9 @@ import React from 'react';
 import { Platform, Pressable, Text, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { contentColumn, makeStyles, radius, spacing, typography, useColors } from '../../theme';
+import {
+  contentColumn, makeStyles, radius, safeAreaFloor, spacing, typography, useColors,
+} from '../../theme';
 
 export interface HeaderAction {
   icon: keyof typeof Ionicons.glyphMap;
@@ -63,7 +65,7 @@ export function AppHeader({
       style={[
         styles.header,
         {
-          paddingTop: insets.top + spacing.sm,
+          paddingTop: safeAreaFloor(insets.top, 'top', spacing.sm),
           paddingBottom: spacing.lg + bleed,
           marginBottom: -bleed,
         },
@@ -140,7 +142,7 @@ export function HeaderCanvas({
       style={[
         styles.header,
         {
-          paddingTop: insets.top + spacing.md,
+          paddingTop: safeAreaFloor(insets.top, 'top', spacing.md),
           paddingBottom: spacing.lg + bleed,
           marginBottom: -bleed,
         },

@@ -3,7 +3,7 @@ import React from 'react';
 import { Modal, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { makeStyles, radius, shadow, spacing, useColors } from '../../theme';
+import { makeStyles, radius, safeAreaFloor, shadow, spacing, useColors } from '../../theme';
 import { printReceipt, shareReceipt, type ReceiptData } from '../../services/receiptService';
 import { formatMoney } from '../../utils/format';
 import { Button } from '../ui/Button';
@@ -69,7 +69,7 @@ export function MoiSavedSheet({
         <View
           style={[
             styles.sheet,
-            { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.sm },
+            { paddingBottom: safeAreaFloor(Math.max(insets.bottom, spacing.lg), 'bottom', spacing.sm) },
             shadow(3),
           ]}
         >

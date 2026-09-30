@@ -8,7 +8,7 @@ import { AuthError, DEFAULT_COUNTRY, useAuth } from '../../src/auth';
 import { PhoneField } from '../../src/components/app/PhoneField';
 import { Button, Card, T } from '../../src/components/ui';
 import { useAuthDestination } from '../../src/navigation/useAuthDestination';
-import { makeStyles, spacing, useColors } from '../../src/theme';
+import { makeStyles, safeAreaFloor, spacing, useColors } from '../../src/theme';
 
 /**
  * Collected once, after the first Google sign-in.
@@ -68,7 +68,10 @@ export default function PhoneScreen() {
         <ScrollView
           contentContainerStyle={[
             styles.body,
-            { paddingTop: insets.top + spacing.xxxl, paddingBottom: insets.bottom + spacing.xl },
+            {
+              paddingTop: safeAreaFloor(insets.top, 'top', spacing.xxxl),
+              paddingBottom: safeAreaFloor(insets.bottom, 'bottom', spacing.xl),
+            },
           ]}
           keyboardShouldPersistTaps="handled"
         >

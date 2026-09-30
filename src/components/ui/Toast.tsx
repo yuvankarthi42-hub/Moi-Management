@@ -5,7 +5,9 @@ import React, {
 import { AccessibilityInfo, Animated, Easing, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { makeStyles, radius, shadow, spacing, TAB_BAR_HEIGHT, useColors } from '../../theme';
+import {
+  makeStyles, radius, safeAreaFloor, shadow, spacing, TAB_BAR_HEIGHT, useColors,
+} from '../../theme';
 import { T } from './Text';
 
 export type ToastVariant = 'success' | 'error' | 'info' | 'destructive';
@@ -102,8 +104,9 @@ function ToastView({ toast, onDismiss }: { toast: ToastOptions; onDismiss: () =>
         ? colors.info
         : colors.success;
 
-  const bottom =
-    insets.bottom + spacing.lg + (toast.aboveTabBar === false ? 0 : TAB_BAR_HEIGHT);
+  const bottom = safeAreaFloor(
+    insets.bottom, 'bottom', spacing.lg + (toast.aboveTabBar === false ? 0 : TAB_BAR_HEIGHT),
+  );
 
   return (
     <Animated.View

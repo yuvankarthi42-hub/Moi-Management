@@ -3,7 +3,7 @@ import React from 'react';
 import { Modal, Pressable, StyleSheet, useWindowDimensions, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { makeStyles, radius, shadow, spacing, useColors } from '../../theme';
+import { makeStyles, radius, safeAreaFloor, shadow, spacing, useColors } from '../../theme';
 import { T } from './Text';
 
 /**
@@ -51,7 +51,7 @@ export function Sheet({
         <View
           style={[
             styles.sheet,
-            { maxHeight: height * 0.85, paddingBottom: Math.max(insets.bottom, spacing.lg) },
+            { maxHeight: height * 0.85, paddingBottom: safeAreaFloor(Math.max(insets.bottom, spacing.lg), 'bottom') },
             shadow(3),
           ]}
         >

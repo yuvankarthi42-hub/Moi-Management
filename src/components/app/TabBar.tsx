@@ -4,7 +4,10 @@ import React from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { TAB_BAR_HEIGHT, TAB_FAB_SIZE, contentColumn, makeStyles, radius, shadow, spacing, typography, useColors } from '../../theme';
+import {
+  TAB_BAR_HEIGHT, TAB_FAB_SIZE, contentColumn, makeStyles, radius, safeAreaFloor, shadow,
+  spacing, typography, useColors,
+} from '../../theme';
 import { T } from '../ui/Text';
 
 export interface TabBarProps extends BottomTabBarProps {
@@ -91,7 +94,10 @@ export function TabBar({ state, navigation, onCentrePress }: TabBarProps) {
     <View
       style={[
         styles.bar,
-        { height: TAB_BAR_HEIGHT + insets.bottom, paddingBottom: insets.bottom },
+        {
+          height: safeAreaFloor(insets.bottom, 'bottom', TAB_BAR_HEIGHT),
+          paddingBottom: safeAreaFloor(insets.bottom, 'bottom'),
+        },
       ]}
     >
       <View style={styles.column}>

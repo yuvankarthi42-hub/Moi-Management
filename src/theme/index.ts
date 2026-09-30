@@ -4,5 +4,6 @@ export { ThemeProvider, useColors, useTheme } from './ThemeContext';
 export { makeStyles } from './styles';
 export {
   spacing, radius, shadow, TAB_BAR_HEIGHT, TAB_FAB_SIZE, CONTENT_MAX_WIDTH, contentColumn,
+  safeAreaFloor,
 } from './layout';
 export { typography } from './typography';
