@@ -69,21 +69,17 @@ export const TAB_FAB_SIZE = 56;
  * The inset to apply for a given side — on web, the browser's own
  * `env(safe-area-inset-*)` rather than what `useSafeAreaInsets()` reports.
  *
- * `react-native-safe-area-context`'s web detection measures a hidden element
- * once, on mount, and depends on a CSS `transitionend` firing to know when to
- * re-measure. That is reliable in an ordinary browser tab; running as an
- * installed, standalone app on iOS is a different rendering context, and — by
- * report — it comes back wrong there in *both* directions: too small in one
- * report (header and tab bar ignoring the notch), and too large in another
- * (a big dead strip of blank surface below the tab bar). Taking the larger of
- * the two (a `max()` floor) only fixes the first direction — when the JS
- * measurement itself overshoots, `max()` still picks the wrong, bigger
- * number. So on web this ignores that measurement entirely and trusts only
- * `env()`, which is the browser's own authoritative figure for the device
- * it's actually running on.
+ * On web the library has no native source for the insets: it reads the same
+ * `env()` values off a hidden element's computed style, once on mount, and
+ * relies on a CSS `transitionend` to notice a change. Writing `env()` into
+ * the style directly skips that JS snapshot — the browser re-resolves it on
+ * every layout, including a rotation or a late correction of the window
+ * size — and cannot be stale. (A blank strip under the tab bar in the
+ * installed iOS app was once blamed on this measurement; it was not — see
+ * the status-bar note in `public/index.html`.)
  *
- * `inset` is still taken as a parameter (used as-is on native, where this
- * measurement problem does not exist) so call sites don't need an `if
+ * `inset` is still taken as a parameter (used as-is on native, where the
+ * library's value is the real one) so call sites don't need an `if
  * (Platform.OS === 'web')` of their own.
  */
 export function safeAreaFloor(

@@ -24,11 +24,23 @@
 
   <!--
     PWA: iOS home screen. Safari does not read the manifest above for any of
-    this — each of these is read only from its own meta/link tag here.
+    this — each of these is read only from its own meta/link tag here, and
+    only at install time: a change here needs the app removed from the home
+    screen and added again.
   -->
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <!--
+    Opaque, not `black-translucent`. Translucent would let the purple header
+    run under the status bar, but on iOS 26 (WebKit bug 301108) a home-screen
+    app with a translucent status bar draws from the top edge yet gets a
+    window one status bar *short* — and the missing strip lands at the bottom,
+    as a blank band under the tab bar that no CSS or JS can paint into. With
+    an opaque bar iOS reserves its own strip at the top and the window reaches
+    the real bottom edge, so the tab bar sits on the home indicator as it
+    should. `viewport-fit=cover` above still keeps the bottom inset.
+  -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <meta name="apple-mobile-web-app-title" content="Moi Manager" />
 
   <!-- The `react-native-web` recommended style reset:

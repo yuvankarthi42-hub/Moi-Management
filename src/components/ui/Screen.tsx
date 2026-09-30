@@ -116,11 +116,10 @@ export function StatusBarScrim({ color }: { color?: string }) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   // Native's own measurement is trustworthy, so skip rendering an empty view
-  // for the common case of no notch at all. Web cannot make that call in JS
-  // — this is the exact value `react-native-safe-area-context` can get wrong
-  // in a standalone iOS PWA — so there it always renders, with the browser's
-  // own `env()` deciding the height in CSS; on an unnotched device that
-  // still resolves to 0 and costs nothing.
+  // for the common case of no notch at all. On web the height is an `env()`
+  // the browser resolves in CSS, not a number JS can inspect up front, so
+  // there it always renders; on an unnotched device that still resolves to 0
+  // and costs nothing.
   if (Platform.OS !== 'web' && insets.top === 0) return null;
   return (
     <View
