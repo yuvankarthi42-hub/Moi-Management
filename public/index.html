@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <!--
+    Pins the layout instead of allowing pinch-zoom, so the installed app
+    behaves like an app rather than a zoomable page. `maximum-scale` /
+    `user-scalable=no` is ignored by iOS Safari (by design, since iOS 10) — it
+    takes effect on Android Chrome and desktop. Text still scales with the
+    reader's own font-size setting either way, so this fixes the layout
+    without locking out anyone who needs larger type.
+  -->
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+  />
+  <title>Moi Manager</title>
+  <meta name="description" content="Every moi you receive and return, in one place." />
+
+  <!-- PWA: installability (Android/Chrome) -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#18095A" />
+
+  <!--
+    PWA: iOS home screen. Safari does not read the manifest above for any of
+    this — each of these is read only from its own meta/link tag here.
+  -->
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Moi Manager" />
+
+  <!-- The `react-native-web` recommended style reset:
+       https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+  <style id="expo-reset">
+    html, body, #root { height: 100%; }
+    body { overflow: hidden; }
+    #root { display: flex; flex: 1; }
+  </style>
+  <style>
+    html, body, #root {
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+    body {
+      margin: 0;
+      /* Stops the double-tap-to-zoom gesture the viewport meta above cannot
+         cover on its own. */
+      touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Use static rendering with Expo Router to support running without JavaScript. -->
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+  <script>
+    // Registered after load, and only on https or localhost — a service
+    // worker cannot register anywhere else, and trying logs a scary-looking
+    // error on every plain http preview for no benefit.
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {
+          // Offline shell caching is a nicety. The app works without it.
+        });
+      });
+    }
+  </script>
+</body>
+</html>
