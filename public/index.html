@@ -63,6 +63,28 @@
       touch-action: manipulation;
       -webkit-text-size-adjust: 100%;
     }
+    /*
+     * The layout box the installed iOS app actually fills.
+     *
+     * On iOS 26 (WebKit bug 301108) an installed home-screen app is handed a
+     * window that is one status bar *short* of the real screen, and every
+     * percentage-based height reflects that undersized window — `100%` on
+     * html/body, `100vh`, `100dvh`, `innerHeight`, `visualViewport.height`.
+     * The shortfall lands at the bottom as a blank band, no matter what
+     * the status-bar style is set to and no matter what the safe-area
+     * insets report.
+     *
+     * `position: fixed` with `inset: 0` sidesteps the entire percentage-height
+     * chain: fixed positioning is resolved against the viewport itself, which
+     * iOS sizes to the real screen. On every other browser and on native the
+     * box was already the same shape, so this rule is inert. Applied to
+     * `#root` alone (not html/body) so it never changes the stacking context
+     * of anything else on the page.
+     */
+    #root {
+      position: fixed;
+      inset: 0;
+    }
   </style>
 </head>
 
