@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 
 import { useAuth } from '../../src/auth';
 import { OptionPicker } from '../../src/components/app/OptionPicker';
-import { Avatar, Card, HeaderCanvas, ListRow, RowDivider, Screen, ScreenScroll, StatRow, StatusBarScrim, T } from '../../src/components/ui';
+import { Avatar, Card, HeaderCanvas, ListRow, RowDivider, Screen, ScreenScroll, Sheet, StatRow, StatusBarScrim, T } from '../../src/components/ui';
+import { SUPPORT } from '../../src/content/legal';
 import type { LanguagePreference, ThemePreference } from '../../src/domain/models';
 import { selectOverview } from '../../src/domain/selectors';
 
@@ -38,6 +39,7 @@ export default function MoreScreen() {
   const { account, signOut } = useAuth();
   const [themeOpen, setThemeOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
 
   const confirmSignOut = async () => {
     const ok = await confirmAction({
@@ -193,12 +195,8 @@ export default function MoreScreen() {
           <ListRow
             icon="help-circle-outline"
             title="Help & Support"
-            onPress={() =>
-              Alert.alert(
-                'Help & Support',
-                'Moi Manager keeps your family function records on this device. Use Backup & Restore to keep a copy safe before changing phones.',
-              )
-            }
+            subtitle="Reach us by email or phone"
+            onPress={() => setSupportOpen(true)}
           />
           <RowDivider />
           <ListRow
@@ -274,6 +272,32 @@ export default function MoreScreen() {
           setLanguageOpen(false);
         }}
       />
+
+      {/* A sheet (not an Alert) because Alert on web collapses to a single-
+          button `window.alert` — the two actions the reader actually wants
+          would not be reachable. The sheet closes before the OS mail or
+          dialler opens so the two surfaces are never fighting for focus. */}
+      <Sheet visible={supportOpen} onClose={() => setSupportOpen(false)} title="Help & Support">
+        <ListRow
+          icon="mail-outline"
+          title="Email us"
+          subtitle={SUPPORT.email}
+          onPress={() => {
+            setSupportOpen(false);
+            Linking.openURL(`mailto:${SUPPORT.email}`);
+          }}
+        />
+        <RowDivider />
+        <ListRow
+          icon="call-outline"
+          title="Call us"
+          subtitle={SUPPORT.phone}
+          onPress={() => {
+            setSupportOpen(false);
+            Linking.openURL(`tel:${SUPPORT.phoneHref}`);
+          }}
+        />
+      </Sheet>
     </Screen>
   );
 }

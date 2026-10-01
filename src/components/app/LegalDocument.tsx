@@ -73,26 +73,31 @@ function Block({ block }: { block: LegalBlock }) {
 }
 
 /**
- * Splits text around email addresses so each one renders as a tappable
- * `mailto:` link. Keeps the surrounding punctuation untouched.
+ * Splits text around email addresses and phone numbers so each one renders
+ * as a tappable `mailto:` / `tel:` link. Keeps the surrounding punctuation
+ * untouched. One combined regex so the capture-group split stays in step
+ * with the match order — each odd element in the result is a link.
+ *
+ * Phone matches require a leading `+` so plain numbers inside normal text
+ * (dates, amounts, counts) are left alone.
  */
 function renderWithLinks(text: string): React.ReactNode {
-  const EMAIL_RE = /([\w.+-]+@[\w-]+\.[\w.-]+)/g;
-  const parts = text.split(EMAIL_RE);
+  const LINK_RE = /([\w.+-]+@[\w-]+\.[\w.-]+|\+\d[\d\s-]{6,}\d)/g;
+  const parts = text.split(LINK_RE);
   return parts.map((part, i) => {
-    if (i % 2 === 1) {
-      return (
-        <T
-          key={i}
-          variant="body"
-          tone="primary"
-          onPress={() => Linking.openURL(`mailto:${part}`)}
-        >
-          {part}
-        </T>
-      );
-    }
-    return part;
+    if (i % 2 === 0) return part;
+    const isEmail = part.includes('@');
+    const href = isEmail ? `mailto:${part}` : `tel:${part.replace(/\s|-/g, '')}`;
+    return (
+      <T
+        key={i}
+        variant="body"
+        tone="primary"
+        onPress={() => Linking.openURL(href)}
+      >
+        {part}
+      </T>
+    );
   });
 }
 

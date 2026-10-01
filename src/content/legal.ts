@@ -32,7 +32,24 @@ export interface LegalDocument {
   sections: readonly LegalSection[];
 }
 
-const CONTACT_EMAIL = 'karthick.cinraj@zohocorp.com';
+/**
+ * The one place the support contact details are defined, so every screen
+ * that mentions them (legal docs, Help & Support, future help flows) shows
+ * the same email and the same number — change this and everything follows.
+ */
+export const SUPPORT = {
+  email: 'yuvankarthi42@gmail.com',
+  /** Human-readable phone, formatted the way `formatPhone()` renders a
+   * number elsewhere in the app, so the same number never shows up in two
+   * different shapes. Used on-screen and in link text. */
+  phone: '+91 70139 05970',
+  /** Dial-ready `tel:` href, without the spaces that break iOS/Android
+   * dialler parsing. */
+  phoneHref: '+917013905970',
+} as const;
+
+const CONTACT_EMAIL = SUPPORT.email;
+const CONTACT_PHONE = SUPPORT.phone;
 const LAST_UPDATED = '1 October 2026';
 
 export const privacyPolicy: LegalDocument = {
@@ -169,7 +186,7 @@ export const privacyPolicy: LegalDocument = {
       body: [
         {
           type: 'paragraph',
-          text: `Write to ${CONTACT_EMAIL} for any question about this policy or any request about your data.`,
+          text: `For any question about this policy or any request about your data, write to ${CONTACT_EMAIL} or call ${CONTACT_PHONE}.`,
         },
       ],
     },
@@ -314,7 +331,7 @@ export const termsAndConditions: LegalDocument = {
       body: [
         {
           type: 'paragraph',
-          text: `Write to ${CONTACT_EMAIL} with any question about these terms.`,
+          text: `For any question about these terms, write to ${CONTACT_EMAIL} or call ${CONTACT_PHONE}.`,
         },
       ],
     },
