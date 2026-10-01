@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Redirect } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,6 +22,7 @@ export default function WelcomeScreen() {
   const styles = useStyles();
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { signInWithGoogle } = useAuth();
   const destination = useAuthDestination();
   const [busy, setBusy] = useState(false);
@@ -91,6 +92,33 @@ export default function WelcomeScreen() {
               New here? Signing in creates your moi book.
             </T>
           )}
+
+          {/* The consent line goes with the button, not hidden behind a tap:
+              the reader sees it before they sign in, not after. Nesting the
+              Terms / Privacy spans inside a single <T> keeps them in-line
+              with the surrounding sentence and inheriting its typography,
+              which Pressable children would break. */}
+          <T variant="caption" color={colors.onPrimaryMuted} center style={styles.consent}>
+            By continuing you agree to our{' '}
+            <T
+              variant="caption"
+              tone="onPrimary"
+              style={styles.consentLink}
+              onPress={() => router.push('/legal/terms')}
+            >
+              Terms
+            </T>
+            {' and '}
+            <T
+              variant="caption"
+              tone="onPrimary"
+              style={styles.consentLink}
+              onPress={() => router.push('/legal/privacy')}
+            >
+              Privacy Policy
+            </T>
+            .
+          </T>
         </View>
       </View>
     </LinearGradient>
@@ -121,5 +149,11 @@ const useStyles = makeStyles(() => ({
   },
   error: {
     marginTop: spacing.xs,
+  },
+  consent: {
+    marginTop: spacing.md,
+  },
+  consentLink: {
+    textDecorationLine: 'underline',
   },
 }));

@@ -209,6 +209,22 @@ export default function MoreScreen() {
           />
         </Group>
 
+        <Group title="Legal">
+          <ListRow
+            icon="shield-checkmark-outline"
+            title="Privacy Policy"
+            subtitle="What we collect and what we do with it"
+            onPress={() => router.push('/legal/privacy')}
+          />
+          <RowDivider />
+          <ListRow
+            icon="document-text-outline"
+            title="Terms & Conditions"
+            subtitle="The rules for using the app"
+            onPress={() => router.push('/legal/terms')}
+          />
+        </Group>
+
         {/* Standalone, with no group title, and last on the page — signing out
             is not a setting alongside the others above, it is how the visit
             ends, and it stays away from everything else so it is never an
